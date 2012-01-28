@@ -1,0 +1,59 @@
+{
+  "LRCompilers": [
+    {
+      "Name": "IcedCoffeeScript",
+      "Extensions": ["iced"],
+      "DestinationExtension": "js",
+      "CommandLine": [
+        "$(node)",
+        "$(plugin)/node_modules/iced-coffee-script/bin/coffee",
+        "$(additional)",
+        "-o",
+        "$(dst_dir)",
+        "$(src_path)"
+      ],
+      "Errors": [
+        "Error: In ((file)), Parse error on line ((line)): ((message))\\n",
+        "Error: In ((file)), ((message)) on line ((line))\\n"
+      ],
+      "ExpectedOutputDirectories": [
+        "js",
+        "javascript",
+        "javascripts"
+      ],
+      "Options": [
+        {
+          "Id": "no-wrapper",
+          "Type": "checkbox",
+          "Title": "No wrapper (--bare)",
+          "OnArgument": "--bare"
+        },
+        {
+          "Id": "runtime-mode",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "inline",
+              "Title": "Include Iced runtime inline"
+            },
+            {
+              "Id": "window",
+              "Title": "Include Iced runtime globally (-Iwindow)",
+              "Argument": "--runtime window"
+            },
+            {
+              "Id": "node",
+              "Title": "Include Iced runtime via require (-Inode)",
+              "Argument": "--runtime node"
+            },
+            {
+              "Id": "none",
+              "Title": "Don't include Iced runtime (-Inone)",
+              "Argument": "--runtime none"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

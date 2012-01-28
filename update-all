@@ -50,6 +50,7 @@ update_gem() {
 }
 
 update_npm  CoffeeScript   coffee-script
+update_npm  IcedCoffeeScript iced-coffee-script
 update_npm  Eco            eco
 update_npm  LESS           less
 update_npm  Stylus         stylus
