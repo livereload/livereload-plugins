@@ -1,0 +1,7 @@
+# SASS likes to leave its shit out there
+SASS.lrplugin/.sass-cache
+
+# Normally this should be ignored per-system, not per-repository, but we won't to prevent any possible mistakes
+.DS_Store
+*.swp
+\#*
