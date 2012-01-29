@@ -1,6 +1,10 @@
 {
   "LRCompilers": [
     {
+      "Name": "Slim",
+      "Extensions": ["slim"],
+      "DestinationExtension": "html",
+      "Optional": true,
       "CommandLine": [
         "$(ruby)",
         "$(plugin)/lib/slim/bin/slimrb",
@@ -8,18 +12,12 @@
         "$(src_path)",
         "$(dst_path)"
       ],
-      "DestinationExtension": "html",
-      "Optional": true,
       "Errors": [],
       "ExpectedOutputDirectories": [
         "html",
         "view",
         "views"
-      ],
-      "Extensions": [
-        "slim"
-      ],
-      "Name": "Slim"
+      ]
     }
   ]
 }
