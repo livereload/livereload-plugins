@@ -17,6 +17,41 @@
         "html",
         "view",
         "views"
+      ],
+      "Options": [
+        {
+          "Id": "output-style",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "minified",
+              "Title": "Minified output style"
+            },
+            {
+              "Id": "pretty",
+              "Title": "Pretty ouput style (--pretty)",
+              "Argument": "--pretty"
+            }
+          ]
+        },
+        {
+          "Id": "sections",
+          "Type": "checkbox",
+          "Title": "Logic-less sections mode (--sessions)",
+          "OnArgument": "--sections"
+        },
+        {
+          "Id": "sections",
+          "Type": "checkbox",
+          "Title": "Generate Rails-compatible code (--rails)",
+          "OnArgument": "--rails"
+        },
+        {
+          "Id": "sections",
+          "Type": "checkbox",
+          "Title": "Compile only but do not run (--compile)",
+          "OnArgument": "--compile"
+        }
       ]
     }
   ]
