@@ -7,6 +7,8 @@
       "Optional": true,
       "CommandLine": [
         "$(ruby)",
+        "-I$(plugin)/lib/temple/lib",
+        "-I$(plugin)/lib/tilt/lib",
         "$(plugin)/lib/slim/bin/slimrb",
         "$(additional)",
         "$(src_path)",
