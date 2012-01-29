@@ -6,7 +6,7 @@
         "$(plugin)/jade_compiler.js",
         "$(additional)",
         "$(src_file)",
-        "$(dst_file)"
+        "$(dst_path)"
       ],
       "RunIn": "$(src_dir)",
       "DestinationExtension": "html",
