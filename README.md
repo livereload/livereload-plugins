@@ -132,6 +132,10 @@ You might also find it helpful to look at manifests of the existing plugins.
           //     e.g. imagine mytemplate.tpl.haml which you want compiled into mytemplate.tpl
           "DestinationExtension": "css",
 
+          // Set to "true" to disable this compiler by default. Intended for compilers which
+          // double as view template languages (think Jade or HAML).
+          "Optional": true,
+
           // a script to launch; see below for various available substitutions
           "CommandLine": [
             "$(node)",
