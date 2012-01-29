@@ -10,6 +10,7 @@ Plugins do NOT use any Objective-C code (actually, no code at all at this point,
 The following plugins maintained by the LiveReload team are currently bundled with LiveReload:
 
 * CoffeeScript
+* IcedCoffeeScript
 * Eco
 * HAML
 * Jade
