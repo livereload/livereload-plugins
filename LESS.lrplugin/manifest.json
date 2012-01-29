@@ -35,7 +35,7 @@
       "ImportRegExps": [
         "@import \"([^\"]+)\"",
         "@import '([^']+)'",
-        "@import ([\\w./]+)"
+        "@import ([\\w./-]+)"
       ],
       "DefaultImportedExts": [
         "less"
