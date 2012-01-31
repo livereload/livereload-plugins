@@ -10,12 +10,17 @@ stage_and_commit() {
 
 update_npm() {
     prev=$(pwd)
-    echo Updating $1...
-    cd $1.lrplugin
+    compiler=$1
+    echo Updating $compiler...
+    cd $compiler.lrplugin
     rm -rf node_modules
-    npm install $2
+    while test -n "$2"; do
+        echo "npm install $2"
+        npm install $2
+        shift
+    done
     cd node_modules
-    stage_and_commit $1
+    stage_and_commit $compiler
     cd $prev
 }
 
