@@ -32,7 +32,7 @@ To add your plugin, please fork this repository, commit the plugin into a separa
 
 ## Installing a plugin
 
-You need LiveReload 2.0 β7 or later to use plugins. β7 is not available publicly yet, but you can [download it here](http://download.livereload.com/LiveReload-2.0b7.zip).
+You need LiveReload 2.0 β7 or later to use plugins.
 
 LiveReload looks for plugins in the following folders:
 
