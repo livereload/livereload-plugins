@@ -34,7 +34,8 @@
           "Items": [
             {
               "Id": "inline",
-              "Title": "Include Iced runtime inline"
+              "Title": "Include Iced runtime inline (-Iinline)",
+              "Argument": "--runtime inline"
             },
             {
               "Id": "window",
