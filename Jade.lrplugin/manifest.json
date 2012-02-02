@@ -30,7 +30,24 @@
       "DefaultImportedExts": [
         "jade"
       ],
-      "Name": "Jade"
+      "Name": "Jade",
+      "Options": [
+        {
+          "Id": "output-style",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "minified",
+              "Title": "Minified output style"
+            },
+            {
+              "Id": "pretty",
+              "Title": "Pretty output style",
+              "Argument": ["-o", "{ pretty: true }"]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
