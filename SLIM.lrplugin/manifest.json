@@ -31,7 +31,7 @@
             },
             {
               "Id": "pretty",
-              "Title": "Pretty ouput style (--pretty)",
+              "Title": "Pretty output style (--pretty)",
               "Argument": "--pretty"
             }
           ]
