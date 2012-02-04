@@ -7,6 +7,6 @@
 ./update-npm  Stylus         stylus
 ./update-npm  Jade           jade markdown
 
-./update-gem  SASS  sass compass chunky_png
+./update-gem  SASS  sass compass chunky_png html5-boilerplate compass-h5bp
 ./update-gem  SLIM  slim temple tilt
 ./update-gem  HAML  haml

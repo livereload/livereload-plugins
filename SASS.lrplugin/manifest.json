@@ -88,6 +88,8 @@
         "-I$(plugin)/lib/sass/lib",
         "-I$(plugin)/lib/compass/lib",
         "-I$(plugin)/lib/chunky_png/lib",
+        "-I$(plugin)/lib/html5-boilerplate/lib",
+        "-I$(plugin)/lib/compass-h5bp/lib",
         "$(plugin)/lib/compass/bin/compass",
         "compile",
         "-q",
