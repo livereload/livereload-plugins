@@ -19,7 +19,7 @@ touch .keepwhitespace
 
 while test -n "$2"; do
     echo "sudo gem install $2"
-    # sudo gem install $2
+    sudo gem install $2
 
     export cur_gem=$2
     latest_ver=$(ls -1 $GEMS_DIR | ruby -ne 'puts "#{sprintf("%03d.%03d.%03d.%03d", $3, $4, $5, $6)} #{$2}" if /^([\w-]+)-((\d+)\.(\d+)(?:\.(\d+)(?:\.(\d+))?)?)\s*$/ && $1 == ENV["cur_gem"]' | sort | tail -1 | awk '{ print $2 }')
