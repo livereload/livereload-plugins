@@ -1,0 +1,18 @@
+//
+//  Removes any text from an element and replaces it with an image
+//
+.__image-replace {
+	display             : block;
+	text-indent         : -9999em;
+	overflow            : hidden;
+  background-repeat   : no-repeat; 
+	text-align          : left; 
+	direction           : ltr;
+}
+
+@mixin image-replace($img) {
+	@extend .__image-replace;
+	height:image-height($img);
+	width:image-width($img);
+	background-image:image-url($img);
+}

@@ -1,0 +1,88 @@
+ZURB Foundation for Compass
+===========================
+
+To create your first project, you'll need to have the ZURB-foundation gem installed, this will include all the necessary dependencies.
+
+To install from Ruby Gems   
+-------------------------
+
+In Terminal:
+
+* `(sudo) gem install ZURB-foundation`
+
+To install locally
+------------------
+
+In Terminal:
+
+* `git clone git://github.com/zurb/foundation-sass.git`
+* `cd foundation-sass`
+* `sudo gem build ZURB-foundation.gemspec`
+* `sudo gem install ZURB-foundation-2.1.5.2.gem`
+
+To create your first project
+----------------------------
+
+* `cd path/to/where-you-want-new-project`
+* .scss syntax: `compass create <my_project> -r ZURB-foundation --using ZURB-foundation --force`
+* .sass syntax: `compass create <my_project> -r ZURB-foundation --using ZURB-foundation --syntax sass --force`
+    
+Now you should have a new project folder created with the foundation file structure, but with the awesome advantages of having all the css pre-processed with Sass.
+
+To Add ZURB-foundation to an existing project
+---------------------------------------------
+* Add `require "ZURB-foundation"`
+* `cd path/to/your-project`
+* run: `compass install ZURB-foundation`
+
+
+Welcome to Foundation
+=====================
+
+Foundation is a rock-solid, responsive framework for rapidly prototyping and iterating into production code. It includes a 12-column, future-friendly grid and tons of great tools and elements that'll get you up and running in no time. Clone the repo to get the marketing site, docs, and base source. You can also visit http://foundation.zurb.com to download just the base source as a starting boilerplate.
+
+Homepage:      http://foundation.zurb.com  
+Documentation: http://foundation.zurb.com/docs  
+Download:      http://foundation.zurb.com/files/foundation-download-2.1.4.zip  
+
+Foundation is MIT-licensed and absolutely free to use. Foundation wouldn't be possible without the support of the entire ZURB team, our friends and colleagues who gave feedback, and some luminaries who did some heavy lifting that we took advantage of (thanks guys).
+
+ZURB
+====
+
+Foundation was made by [ZURB](http://www.zurb.com), an interaction design and design strategy firm in Campbell, CA.
+
+If Foundation knocks your socks off the way we hope it does and you want more, why not check out [our jobs](http://www.zurb.com/talent/jobs)?
+
+Community
+=========
+
+Many thanks to all the people working on Foundation either to improve the base code or to support specific frameworks. If you want to get on this readme send an email to foundation@zurb.com, and if you have questions you can join the Unofficial Foundation Google Group here: http://groups.google.com/group/foundation-framework-
+
+WordPress
+
+* [Starter Theme](https://github.com/drewsymo/Foundation) by Drew Morris
+* [Optional install for roots](https://github.com/retlehs/roots) by Corey Wagehoft
+
+.NET
+
+* [NuGet Package for ASP.Net MVC](http://nuget.org/List/Packages/Zurb_Foundation_MPC3) by Edward Charbeneau, @EdCharbeneau
+
+Other Implementations
+
+* [Mobile First](https://github.com/admfrhd/mobile-first-foundation) by Adam Fairhead
+* [Less Version](https://github.com/justinmarsan/FoundationLess) by Justin Marsan
+* [Less with Color Scheme](https://github.com/matalin/FoundationLess) by Matalin Hatchard
+
+Editors
+
+* [Textmate/Sublime Text2 Bundle](https://github.com/liamr/Zurb-Foundation-Textmate-Bundle) by Liam R, @liamr
+
+MIT Open Source License
+=======================
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

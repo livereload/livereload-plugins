@@ -1,0 +1,172 @@
+//============================================================================//
+//
+// THE LUCID GRID | PUBLIC MIXINS
+// plugin by Yifei Zhang [http://yifei.co]
+// MIT License [https://github.com/ezYZ/lucid/blob/master/LICENSE.txt]
+// 
+//============================================================================//
+
+
+//
+// GRID CALCULATIONS
+//----------------------------------------------------------------------------//
+
+
+// The difference between outer and inner gutters
+@function grid-outer-padding() {
+  @return $grid-outer-gutter - $grid-gutter;
+}
+
+// The actual width that contains the grid
+@function grid-actual-width() {
+  @return $grid-width - (2 * ($grid-outer-gutter - $grid-gutter));
+}
+
+// The full width of a single column
+@function grid-column-width() {
+  @return ($grid-width - (2 * ($grid-outer-gutter - $grid-gutter))) / $grid-columns;
+}
+
+
+//
+// GRID BASIC USAGE
+//----------------------------------------------------------------------------//
+
+
+//
+// Grid Init
+// - outputs 4 CSS selectors for use as @extend "hooks"
+// - (required) must appear before other grid mixins
+//
+
+@mixin grid-init {
+  @if $grid-clearfix != 'none' {
+    #{$grid-hook-clearfix} { @include _grid-clearfix($grid-clearfix); }
+  }
+  #{$grid-hook-container} { @include _grid-container($grid-clearfix, $grid-centering, grid-outer-padding(), grid-actual-width()); }
+  #{$grid-hook-element} { @include _grid-element($grid-gutter); }
+  #{$grid-hook-gutterless} { @include _grid-element(0); }
+}
+
+
+//
+// Container
+// - adds selector to .grid-container and .grid-clearfix hooks
+// - apply to the parent(s) of all floated grid elements
+//
+
+@mixin container {
+  @extend #{$grid-hook-container};
+}
+
+
+//
+// Columns
+// - defines a grid element that spans one or more columns 
+// - if $columns is 0, only the float and margin are applied
+//
+// $columns     (int)         number of columns to span
+// $adjustment  (px)          adjustment to element width (to compensate for borders and padding)
+// $gutters     (0 || none)   whether to include gutters
+//
+
+@mixin columns($columns, $adjustment: 0, $gutters: null) {
+  @if $gutters == none {
+    @extend #{$grid-hook-gutterless};
+    @if $columns > 0 {
+      @include _grid-element-style($columns, $adjustment, 0, grid-column-width());
+    }
+  }
+  @else if $gutters == 0 {
+    @extend #{$grid-hook-gutterless};
+    @if $columns > 0 {
+      @include _grid-element-style($columns, $adjustment, 0, grid-column-width());
+    }
+  }
+  @else {
+    @extend #{$grid-hook-element};
+    @if $columns > 0 {
+      @include _grid-element-style($columns, $adjustment, $grid-gutter, grid-column-width());
+    }
+  }
+}
+
+
+//
+// GRID ELEMENT MODIFIERS
+//----------------------------------------------------------------------------//
+
+
+//
+// Row Break
+// - breaks grid element into a new row
+//
+// $clear   (string)  direction to clear ("left", "both")
+//
+
+@mixin row-break($clear: 'left') {
+  clear: unquote($clear);
+}
+
+
+//
+// Offset
+// - shifts grid element to the left/right (-/+) by one or more columns
+// - must be defined after +column
+// 
+// $offset    (int)         the number of columns to shift (positive to the right, negative to the left)
+// $gutters   (0 || none)   whether the element has gutters
+//
+
+@mixin offset($offset, $gutters: null) {
+  @if $gutters == none {
+    margin-left: ($offset * grid-column-width());
+  }
+  @else if $gutters == 0 {
+    margin-left: ($offset * grid-column-width());
+  }
+  @else {
+    margin-left: ($offset * grid-column-width()) + $grid-gutter;
+  }
+}
+
+
+//
+// Other / Experimental
+//----------------------------------------------------------------------------//
+
+
+//
+// Grid Reinit
+// - outputs a modified .grid-container @extend hook for use within media queries, etc.
+// - must come after redeclaration of one or more grid configuration variables
+//   ($grid-width, $grid-columns, $grid-gutter, $grid-outer-gutter)
+// - does not redeclare clearfix, centering, or .grid-element hooks
+//
+
+@mixin grid-reinit {
+  #{$grid-hook-container} { @include _grid-container(false, false, grid-outer-padding(), grid-actual-width()); }
+}
+
+//
+// Grid Classes
+// - outputs a set of classes for use in markup
+// - new rows require `clear: left;` to be added manually
+// - not recommended under most circumstances
+//
+// $gutterless          (bool)    whether to output gutterless grid element classes
+// $prefix              (string)  class name prefix for grid elements
+// $gutterless-prefix   (string)  class name prefix for gutterless grid elements
+//
+
+@mixin grid-classes($gutterless: false, $prefix: 'g', $gutterless-prefix: 'gl') {
+  @for $i from 1 through $grid-columns {
+    .#{$prefix}#{$i} { @include columns($i); }
+  }
+
+  @if $gutterless == true {
+    @for $i from 1 through $grid-columns {
+      .#{$gutterless-prefix}#{$i} { @include columns($i, 0, 0); }
+    }
+  }
+}

@@ -1,0 +1,106 @@
+=baseline-grid($selector: unquote("#page"))
+  #{$selector}
+    +baseline-grid-container
+  +baseline-grid-defaults
+
+=baseline-grid-container
+  width: 990px
+  position: relative
+  &:after
+    content: "."
+    display: block
+    height: 0
+    clear: both
+    visibility: hidden
+
+=column
+  margin-left: 18px
+  display: block
+  float: left
+
+=colgroup
+  display: block
+  float: left
+
+=first
+  margin-left: 0
+  clear: left
+  label &
+    margin-left: 0
+
+=gutter
+  margin-left: 18px
+
+=no-gutter
+  margin-left: 0
+
+=align-left
+  float: left
+
+=align-right
+  float: right
+  text-align: right
+
+=leading
+  margin-bottom: 18px
+
+=noleading
+  margin-bottom: 0 !important
+
+=width($n)
+  width: 234px * $n + 18px * ($n - 1)
+
+=unitx($n)
+  width: 108px * $n + 18px * ($n - 1)
+
+=columnsx($n)
+  -webkit-column-count: $n
+  -webkit-column-gap: 18px
+  -moz-column-count: $n
+  -moz-column-gap: 18px
+  column-count: $n
+  column-gap: 18px
+
+=baseline-grid-defaults
+  .column
+    +column
+  .colgroup
+    +colgroup
+  .first
+    +first
+  .gutter
+    +gutter
+  .no-gutter
+    +no-gutter
+  .align-left
+    +align-left
+  .align-right
+    +align-right
+  header, section, div
+    padding-bottom: 18px
+  .leading
+    +leading
+  .noleading
+    +noleading
+  @for $n from 1 to 4
+    .width#{$n}
+      +width($n)
+  .table-column
+    th, td
+      +width(1)
+    @for $n from 2 to 4
+      th.width#{$n}, td.width#{$n}
+        +width($n)
+  @for $n from 1 to 8
+    .unitx#{$n}
+      +unitx($n)
+  .table-unit
+    th, td
+      +unitx(1)
+    @for $n from 2 to 8
+      th.unitx#{$n}, td.unitx#{$n}
+        +unitx($n)
+  .columnsx2
+    +columnsx(2)
+  .columnsx4
+    +columnsx(4)

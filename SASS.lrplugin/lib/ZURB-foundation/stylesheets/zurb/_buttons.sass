@@ -1,0 +1,102 @@
+// Buttons
+//-------------------------------------------------
+
+.button
+  background: $default-color
+  border: none
+  color: $white
+  cursor: pointer
+  display: inline-block
+  font-weight: bold
+  font-family: $helvetica-font-stack
+  line-height: 1
+  padding: 9px 34px 11px
+  position: relative
+  text-align: center
+  text-decoration: none
+
+  // Nice button
+  &.nice
+    background-color: $default-color
+    +background-image(linear-gradient(rgba(#fff, 0.2) 0%, rgba(#fff, 0.2) 50%, rgba(#000, 0) 51%, rgba(#000, 0) 100%))
+    +box-shadow(inset rgba(#fff, 0.5) 0 1px 0)
+    text-shadow: rgba(#000, 0.28) 0 -1px 1px
+    border: 1px solid darken($default-color, 7%)
+    +transition-property(background-color)
+    +transition-duration($button-transition-duration)
+    +transition-timing-function(ease-in-out)
+    
+    // Nice button borders
+    &.red
+      border: solid 1px darken($red, 7%)
+    &.blue
+      border: solid 1px darken($blue, 7%)
+    &.white
+      border: solid 1px darken($white, 20%)
+      text-shadow: none !important
+    &.black
+      border: solid 1px darken($black, 7%)
+      
+  // Button colors and hover states
+  // Base hover state
+  &:hover, &:focus
+    background-color: darken($default-color, 5%)
+    color: #fff
+  &.red
+    background-color: $red
+    &:hover, &:focus
+      background-color: darken($red, 5%)
+  &.blue
+    background-color: $blue
+    &:hover, &:focus
+      background-color: darken($blue, 5%)
+  &.white
+    background-color: darken($white, 15%)
+    color: #333
+    &:hover, &:focus
+      background-color: darken($white, 30%)
+      color: #333
+  &.black
+    background-color: $black
+    &:hover, &:focus
+      background-color: darken($black, 5%)
+
+  // Button shapes
+  &.radius
+    +border-radius(3px)
+  &.round
+    +border-radius(1000px)
+
+  // Button layout
+  &.full-width
+    width: 100%
+    padding-left: 0 !important
+    padding-right: 0 !important
+    text-align: center
+  &.left-align
+    text-align: left
+    text-indent: 12px
+
+  // Button sizes
+  &.small
+    +font-size(11)
+    padding: 8px 20px 10px
+    width: auto
+  &.medium
+    +font-size(13)
+    width: auto
+  &.large
+    +font-size(18)
+    padding: 11px 48px 13px
+    width: auto
+
+  // Button disabled states
+  &.disabled, &[disabled]
+    opacity: 0.6
+    cursor: default
+
+//----------------------------------------------------
+
+// Don't use native buttons on iOS
+input[type=submit].button, button.button
+  -webkit-appearance: none

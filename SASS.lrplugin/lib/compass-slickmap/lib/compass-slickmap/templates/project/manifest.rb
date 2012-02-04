@@ -1,0 +1,1 @@
+stylesheet 'sitemap.scss', :media => "screen, projection"

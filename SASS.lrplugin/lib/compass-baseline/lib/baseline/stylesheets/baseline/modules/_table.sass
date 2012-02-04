@@ -1,0 +1,23 @@
+=baseline-table
+  table
+    border-top: solid 3px black
+    position: relative
+    top: -3px
+    margin-top: 18px
+    padding-bottom: 15px
+  th, td
+    border-top: solid 1px black
+    line-height: 18px
+    padding: 9px 18px 8px 0
+    position: relative
+  th:first-child, td:first-child
+    padding-left: 0
+  th:last-child, td:last-child
+    padding-right: 0
+  tr
+    &:nth-child(even) td
+    &:nth-child(odd) td
+      background: #f6f6f6
+  caption
+    top: 8px
+    margin-bottom: 18px

@@ -1,0 +1,17 @@
+/*
+  Mixins are slightly modified from Benjamin Doherty's first implementations: http://gist.github.com/377912
+  rgba-background mixin can now be passed an option $dir variable
+*/
+
+$rgbapng_path: 'rgbapng';
+
+@mixin rgba-background($color, $dir:$rgbapng_path){
+  background: image_url(png_pixelate($color, $dir));
+  background: $color;
+}
+
+@mixin rgba-background-inline($color){
+  background: png_base64($color);
+  background: $color;
+}
+

@@ -1,0 +1,15 @@
+//
+//  Cross-browser inline-block.
+//  @see http://www.quirksmode.org/css/display.html
+//
+.__inline-block {
+	display:inline-block;
+
+	// IE7 fix
+	*display:inline;
+	*zoom:1;
+}
+
+@mixin inline-block {
+	@extend .__inline-block;
+}

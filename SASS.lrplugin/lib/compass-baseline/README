@@ -1,0 +1,9 @@
+Usage:
+  sudo gem install compass-baseline
+
+In Compass config:
+  require 'baseline'
+
+In Sass
+  @import baseline.sass
+  +baseline

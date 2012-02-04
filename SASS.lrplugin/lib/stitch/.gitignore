@@ -1,0 +1,5 @@
+*/.DS_Store
+*.gem
+*/.sass-cache/*
+pkg/*
+*/.gitignore

@@ -1,0 +1,6 @@
+/* Override with the number of top level naigation columns you need.
+   - not including your home page */
+$column-default: 4 !default;
+
+@import "slickmap";
+@include slickmap;
