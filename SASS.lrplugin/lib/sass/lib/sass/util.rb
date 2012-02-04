@@ -2,7 +2,6 @@ require 'erb'
 require 'set'
 require 'enumerator'
 require 'stringio'
-require 'strscan'
 require 'rbconfig'
 
 require 'sass/root'
@@ -217,6 +216,20 @@ module Sass
       y = [nil, *y]
       block ||= proc {|a, b| a == b && a}
       lcs_backtrace(lcs_table(x, y, &block), x, y, x.size-1, y.size-1, &block)
+    end
+
+    # Converts a Hash to an Array. This is usually identical to `Hash#to_a`,
+    # with the following exceptions:
+    #
+    # * In Ruby 1.8, `Hash#to_a` is not deterministically ordered, but this is.
+    # * In Ruby 1.9 when running tests, this is ordered in the same way it would
+    #   be under Ruby 1.8 (sorted key order rather than insertion order).
+    #
+    # @param hash [Hash]
+    # @return [Array]
+    def hash_to_a(hash)
+      return has.to_a unless ruby1_8? || defined?(Test::Unit)
+      return hash.sort_by {|k, v| k}
     end
 
     # Returns information about the caller of the previous method.
@@ -562,6 +575,24 @@ MSG
       ruby1_8? ? enum.enum_slice(n) : enum.each_slice(n)
     end
 
+    # Destructively removes all elements from an array that match a block, and
+    # returns the removed elements.
+    #
+    # @param array [Array] The array from which to remove elements.
+    # @yield [el] Called for each element.
+    # @yieldparam el [*] The element to test.
+    # @yieldreturn [Boolean] Whether or not to extract the element.
+    # @return [Array] The extracted elements.
+    def extract!(array)
+      out = []
+      array.reject! do |e|
+        next false unless yield e
+        out << e
+        true
+      end
+      out
+    end
+
     # Returns the ASCII code of the given character.
     #
     # @param c [String] All characters but the first are ignored.
@@ -719,3 +750,5 @@ MSG
     end
   end
 end
+
+require 'sass/util/multibyte_string_scanner'

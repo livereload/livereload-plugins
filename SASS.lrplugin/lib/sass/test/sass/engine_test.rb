@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require 'test_helper'
-require 'sass/test_helper'
+require File.dirname(__FILE__) + '/../test_helper'
+require File.dirname(__FILE__) + '/test_helper'
 require 'sass/engine'
 require 'stringio'
 require 'mock_importer'
@@ -608,13 +608,21 @@ CSS
   end
 
   def test_http_import
-    assert_equal("@import url(http://fonts.googleapis.com/css?family=Droid+Sans);\n",
+    assert_equal("@import \"http://fonts.googleapis.com/css?family=Droid+Sans\";\n",
       render("@import \"http://fonts.googleapis.com/css?family=Droid+Sans\""))
   end
 
-  def test_http_import_with_interpolation
-    assert_equal("@import url(http://fonts.googleapis.com/css?family=Droid+Sans);\n",
-      render("$family: unquote(\"Droid+Sans\")\n@import \"http://fonts.googleapis.com/css?family=\#{$family}\"\n"))
+  def test_import_with_interpolation
+    assert_warning(<<WARNING) do
+DEPRECATION WARNING on line 2 of test_import_with_interpolation_inline.sass:
+@import directives using \#{} interpolation will need to use url() in Sass 3.2.
+For example:
+
+  @import url("http://\#{$url}/style.css");
+WARNING
+      assert_equal("@import \"http://fonts.googleapis.com/css?family=Droid+Sans\";\n",
+        render("$family: unquote(\"Droid+Sans\")\n@import \"http://fonts.googleapis.com/css?family=\#{$family}\"\n"))
+    end
     assert_equal("@import url(\"http://fonts.googleapis.com/css?family=Droid+Sans\");\n",
       render("$family: unquote(\"Droid+Sans\")\n@import url(\"http://fonts.googleapis.com/css?family=\#{$family}\")\n"))
   end
@@ -1003,6 +1011,23 @@ foo {
 CSS
 foo
   a: b
+SASS
+  end
+
+  def test_debug_info_in_keyframes
+    assert_equal(<<CSS, render(<<SASS, :debug_info => true))
+@-webkit-keyframes warm {
+  from {
+    color: black; }
+
+  to {
+    color: red; } }
+CSS
+@-webkit-keyframes warm
+  from
+    color: black
+  to
+    color: red
 SASS
   end
 
@@ -2448,6 +2473,15 @@ CSS
 SASS
   end
 
+  def test_selector_compression
+    assert_equal <<CSS, render(<<SASS, :style => :compressed)
+a>b,c+d,:-moz-any(e,f,g){h:i}
+CSS
+a > b, c + d, :-moz-any(e, f, g)
+  h: i
+SASS
+  end
+
   # Encodings
 
   unless Sass::Util.ruby1_8?
@@ -2559,6 +2593,31 @@ CSS
 \uFEFFfóó
   a: b
 SASS
+    end
+
+    # Encoding Regression Test
+
+    def test_multibyte_prop_name
+      assert_equal(<<CSS, render(<<SASS))
+@charset "UTF-8";
+#bar {
+  cölor: blue; }
+CSS
+#bar
+  cölor: blue
+SASS
+    end
+
+    def test_multibyte_and_interpolation
+      assert_equal(<<CSS, render(<<SCSS, :syntax => :scss))
+#bar {
+  background: a 0%; }
+CSS
+#bar {
+  // 
+  background: \#{a} 0%;
+}
+SCSS
     end
   end
 
