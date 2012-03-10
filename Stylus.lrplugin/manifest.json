@@ -47,6 +47,12 @@
           "Type": "checkbox",
           "Title": "Emit line numbers debug info (--line-numbers)",
           "OnArgument": "--line-numbers"
+        },
+        {
+          "Id": "include-css",
+          "Type": "checkbox",
+          "Title": "Include regular css on @import (--include-css)",
+          "OnArgument": "--include-css"
         }
       ]
     }
