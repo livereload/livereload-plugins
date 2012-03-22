@@ -1,4 +1,4 @@
-$(document).ready(function () {
+jQuery(document).ready(function ($) {
 
 	/* Use this js doc for all application specific JS */
 
@@ -15,7 +15,7 @@ $(document).ready(function () {
 
     	//Show Tab Content
 		$(contentLocation).closest('.tabs-content').children('li').hide();
-		$(contentLocation).show();
+		$(contentLocation).css('display', 'block');
 	}
 
 	$('dl.tabs').each(function () {
@@ -44,6 +44,9 @@ $(document).ready(function () {
 
 	$('input, textarea').placeholder();
 
+	/* TOOLTIPS ------------ */
+	$(this).tooltips();
+
 
 
 	/* UNCOMMENT THE LINE YOU WANT BELOW IF YOU WANT IE6/7/8 SUPPORT AND ARE USING .block-grids */
@@ -68,9 +71,24 @@ $(document).ready(function () {
 		}
 		lockNavBar = true;
 	});
+  if (Modernizr.touch) {
+    $('.nav-bar>li.has-flyout>a.main').css({
+      'padding-right' : '75px'
+    });
+    $('.nav-bar>li.has-flyout>a.flyout-toggle').css({
+      'border-left' : '1px dashed #eee'
+    });
+  } else {
+    $('.nav-bar>li.has-flyout').hover(function() {
+      $(this).children('.flyout').show();
+    }, function() {
+      $(this).children('.flyout').hide();
+    })
+  }
 
 
 	/* DISABLED BUTTONS ------------- */
 	/* Gives elements with a class of 'disabled' a return: false; */
+  
 
 });

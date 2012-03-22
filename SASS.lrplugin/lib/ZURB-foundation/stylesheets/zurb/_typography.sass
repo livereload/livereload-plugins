@@ -1,14 +1,10 @@
 // Typography
-//----------------------------------------------------------------------------------------------------
+//------------------------------------------------
 
 #{headings(all)}
   color: #181818
   font-weight: bold
   line-height: 1.25
-  small
-    color: #777
-  a
-    font-weight: inherit
 
 h1
   +font-size(46)
@@ -57,15 +53,13 @@ small
 
 // Blockquotes
 //--------------------------------------------
-blockquote
+blockquote, blockquote p
   line-height: 20px
   color: #777
+blockquote
   margin: 0 0 18px
   padding: 9px 20px 0 19px
   border-left: 1px solid #ddd
-  p
-    line-height: 20px
-    color: #777
   cite
     display: block
     +font-size(12)
@@ -92,13 +86,13 @@ abbr
   text-transform: none
 
 // Print styles
-//----------------------------------------------------------------------------------------------------  
+//-------------------------------------------
 
 // Notes:
 //
-//    Using "@media print" to avoid additional HTTP request to print.css
-//    Source: http://www.phpied.com/delay-loading-your-print-css/
-//    Credit: Paul Irish & HTML5 Boilerplate (http://html5boilerplate.com/)
+//  Using "@media print" to avoid additional HTTP request to print.css
+//  Source: http://www.phpied.com/delay-loading-your-print-css/
+//  Credit: Paul Irish & HTML5 Boilerplate (http://html5boilerplate.com/)
 
 .print-only
   display: none !important

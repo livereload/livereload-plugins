@@ -27,6 +27,8 @@
     +font-size(15)
     line-height: 1.4
 
+// Grid
+//---------------------------------------------------
 @media only screen and (max-width: 767px)
   body
     -webkit-text-size-adjust: none
@@ -55,47 +57,56 @@
     margin-right: 0
   .column:last-child, .columns:last-child
     margin-right: 0
+    float: none
+  [class*="column"]+[class*="column"]:last-child
+    float: none
+  [class*="column"]:before, [class*="column"]:after
+    content: ""
+    display: table
   .offset-by-one, .offset-by-two, .offset-by-three, .offset-by-four, .offset-by-five, .offset-by-six, .offset-by-seven, .offset-by-eight, .offset-by-nine, .offset-by-ten, .offset-by-eleven, .centered
     margin-left: 0% !important
   .push-two, .push-three, .push-four, .push-five, .push-six, .push-seven, .push-eight, .push-nine, .push-ten
-    left: none
+    left: auto
   .pull-two, .pull-three, .pull-four, .pull-five, .pull-six, .pull-seven, .pull-eight, .pull-nine, .pull-ten
-    right: none
-// Mobile 4-column Grid
-//----------------------------------------------------------------------------------------------------
-.row
-  .phone-one.column:first-child, .phone-two.column:first-child, .phone-three.column:first-child, .phone-four.column:first-child, .phone-one.columns:first-child, .phone-two.columns:first-child, .phone-three.columns:first-child, .phone-four.columns:first-child
-    margin-left: 0
-  .phone-one.column, .phone-two.column, .phone-three.column, .phone-four.column, .phone-one.columns, .phone-two.columns, .phone-three.columns, .phone-four.columns
-    margin-left: 4.4%
-    float: left
-    min-height: 1px
-    position: relative
-    padding: 0
-  .phone-one.columns
-    width: 21.68% !important
-  .phone-two.columns
-    width: 47.8% !important
-  .phone-three.columns
-    width: 73.9% !important
-  .phone-four.columns
-    width: 100% !important
+    right: auto
+  // Mobile 4-column Grid
+  //----------------------------------------------
+  .row
+    .phone-one:first-child, .phone-two:first-child, .phone-three:first-child, .phone-four:first-child
+      margin-left: 0
+    .phone-one:last-child, .phone-two:last-child, .phone-three:last-child, .phone-four:last-child
+      float: right
+    .phone-one, .phone-two, .phone-three, .phone-four
+      margin-left: 4.4%
+      float: left
+      min-height: 1px
+      position: relative
+      padding: 0
+    .phone-one
+      width: 21.68% !important
+    .phone-two
+      width: 47.8% !important
+    .phone-three
+      width: 73.9% !important
+    .phone-four
+      width: 100% !important
     
-  .columns.push-one-phone
-    left: 26.08%
-  .columns.push-two-phone
-    left: 52.2%
-  .columns.push-three-phone
-    left: 78.3%
+    .push-one-phone
+      left: 26.08%
+    .push-two-phone
+      left: 52.2%
+    .push-three-phone
+      left: 78.3%
 
-  .columns.pull-one-phone
-    right: 26.08%
-  .columns.pull-two-phone
-    right: 52.2%
-  .columns.pull-three-phone
-    right: 78.3%
+    .pull-one-phone
+      right: 26.08%
+    .pull-two-phone
+      right: 52.2%
+    .pull-three-phone
+      right: 78.3%
+    
 // Block Grid
-//----------------------------------------------------------------------------------------------------
+//--------------------------------------------------
 @media only screen and (max-width: 767px)
   .block-grid.mobile
     margin-left: 0%
@@ -105,7 +116,7 @@
       margin-left: 0%
 
 // Mobile Visibility Affordances
-//----------------------------------------------------------------------------------------------------
+//---------------------------------------------------
 .show-on-phones
   display: none !important
 .show-on-tablets
@@ -119,21 +130,6 @@
   display: block !important
 .hide-on-desktops
   display: none !important
-
-@media only screen and (max-device-width: 800), only screen and (device-width: 1024px) and (device-width: 600), only screen and (width: 1280) and (orientation: landscape), only screen and (device-width: 800)
-  .hide-on-phones
-    display: block !important
-  .hide-on-tablets
-    display: none !important
-  .hide-on-desktops
-    display: block !important
-  
-  .show-on-phones
-    display: none !important
-  .show-on-tablets
-    display: block !important
-  .show-on-desktops
-    display: none !important
 
 // Modernizr-enabled tablet targeting
 //-------------------------------------------------
@@ -168,12 +164,7 @@
   .show-on-desktops
     display: none !important 
 
-// Specific overrides
-//----------------------------------------------------------------------------------------------------
-
-//
-// For elements that require something other than display: block
-//
+// Specific overrides for elements that require something other than display: block
 
 table
   &.show-on-desktops
@@ -183,54 +174,65 @@ table
   &.hide-on-tablets
     display: table !important
     
-@media only screen and (max-device-width: 800), only screen and (device-width: 1024px) and (device-height: 600), only screen and (width: 1280) and (orientation: landscape), only screen and (device-width: 800)
-  table
-    &.hide-on-phones
-      display: block !important
-    &.hide-on-desktops
-      display: block !important
-    &.show-on-tablets
-      display: block !important
+@media only screen and (max-width: 1280px) and (min-width: 768px)
+  .touch
+    table.hide-on-phones
+      display: table !important
+    table.hide-on-desktops
+      display: table !important
+    table.hide-on-tablets
+      display: table !important
 
 @media only screen and (max-width: 767px)
   table
     &.hide-on-tablets
-      display: block !important
+      display: table !important
     &.hide-on-desktops
-      display: block !important
+      display: table !important
     &.show-on-phones
-      display: block !important
+      display: table !important
 
 // Forms
-//----------------------------------------------------------------------------------------------------
+//----------------------------------------------
 
 @media only screen and (max-width: 767px)
-  input.input-text, input.input-text.oversize, textarea, form.nice input.input-text, form.nice input.input-text.oversize, form.nice textarea
+  div.form-field input, div.form-field input.small, div.form-field input.medium, div.form-field input.large, div.form-field input.oversize, input.input-text, input.input-text.oversize, textarea, form.nice div.form-field input, form.nice div.form-field input.oversize, form.nice input.input-text, form.nice input.input-text.oversize, form.nice textarea
     display: block
-    width: 96%
+    width: 100%
     padding: 6px 2% 4px
     +font-size(18)
-  form.nice input.input-text, form.nice input.input-text.oversize, form.nice textarea
+  form.nice div.form-field input, form.nice div.form-field input.oversize, form.nice input.input-text, form.nice input.input-text.oversize, form.nice textarea
     +border-radius(2px)
-  form.nice small.error
+  form.nice div.form-field.error small, form.nice small.error
     padding: 6px 2%
     display: block
-  form.nice .small+.error, form.nice .medium+.error, form.nice .large+.error
+  form.nice div.form-field.error .small + small, form.nice .small + .error
+    width: auto
+  form.nice div.form-field.error .medium + small, form.nice .medium + .error
+    width: auto
+  form.nice div.form-field.error .large + small, form.nice .large + .error
+    width: auto
+  form.nice div.form-field.error .expand + small, form.nice .expand + .error
     width: auto
 
+//----------------------------------------------
+// UI
+//----------------------------------------------
+
 // Buttons
-//----------------------------------------------------------------------------------------------------
+//----------------------------------------------
 
 @media only screen and (max-width: 767px)
   .button
     display: block
-  button.button
+  button.button, input[submit="submit"].button
     width: 100%
     padding-left: 0
     padding-right: 0
+    margin-bottom: 5px
     
 // Tabs
-//----------------------------------------------------------------------------------------------------
+//-----------------------------------------------
 
 @media only screen and (max-width: 767px)
   dl.tabs.mobile, dl.nice.tabs.mobile
@@ -285,6 +287,10 @@ table
     padding: 18px 20px
   dl.nice.contained.tabs.mobile dd a
     padding: 18px 20px
+  dl.tabs.mobile + ul.contained
+    margin-left: -20px
+    margin-right: -20px
+    border-width: 0 0 1px 0
 
   // Nav Bar with Dropdowns
   .nav-bar
@@ -341,11 +347,23 @@ table
       width: auto
     p.last-child
       margin-bottom: 18px
-  .nav-bar>li:hover .flyout
-    display: none
-  
+
+// Tooltips
+//-----------------------------------------------
+
+@media only screen and (max-width: 767px)
+  .tooltip
+    +font-size(14)
+    line-height: 1.4
+    padding: 7px 10px 9px 10px
+  .tooltip > .nub, .tooltip.top > .nub, .tooltip.left > .nub, .tooltip.right > .nub
+    border-color: transparent transparent rgb(0,0,0) transparent
+    border-color: transparent transparent rgba(0,0,0,0.85) transparent
+    top: -12px
+    left: 10px
+
 // Video
-//----------------------------------------------------------------------------------------------------
+//-----------------------------------------------
 
 @media only screen and (max-device-width: 800px), only screen and (device-width: 1024px) and (device-height: 600px), only screen and (width: 1280px) and (orientation: landscape), only screen and (device-width: 800px), only screen and (max-width: 767px)
   .flex-video

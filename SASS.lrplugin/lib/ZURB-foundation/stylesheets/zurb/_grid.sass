@@ -1,8 +1,12 @@
+// Grid
+//--------------------------------------
+// This is the mobile-friendly, responsive grid that
+// lets Foundation work much of its magic
+
 .container
   padding: 0 20px
 
 .row
-  @extend .clearfix
   width: 100%
   max-width: $grid-max-width
   min-width: $grid-min-width
@@ -17,6 +21,8 @@
   position: relative
   &:first-child
     margin-left: 0
+[class*="column"]+[class*='column']:last-child
+  float: right
 
 .row
   .one.columns
@@ -24,7 +30,7 @@
   .two.columns
     width: 13%
   .three.columns
-    width: 21.68%
+    width: 21.679%
   .four.columns
     width: 30.37%
   .five.columns
@@ -90,6 +96,7 @@
   .centered
     float: none
     margin: 0 auto
+    
 // Source Ordering
 .push-two
   left: 17.4%
@@ -129,7 +136,6 @@
 .pull-ten
   right: 87%
 
-
 img, object, embed
   max-width: 100%
   height: auto
@@ -137,6 +143,15 @@ img
   -ms-interpolation-mode: bicubic
 #map_canvas img, .map_canvas img 
   max-width: none !important
+
+// Nicolas Gallagher's micro clearfix
+.row:before, .row:after, .clearfix:before, .clearfix:after
+  content: ""
+  display: table
+.row:after, .clearfix:after
+  clear: both
+.row, .clearfix
+  zoom: 1
   
 // Blockgrids
 //----------------------------------------------------------------------------------------------------

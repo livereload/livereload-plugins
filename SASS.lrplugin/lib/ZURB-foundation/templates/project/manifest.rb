@@ -1,6 +1,7 @@
 description 'ZURB-foundation Compass Gem'
 
 # Sass Files
+stylesheet 'sass/foundation.sass', :to => 'foundation.sass', :media => "screen, projector, print"
 stylesheet 'sass/app.sass', :to => 'app.sass', :media => "screen, projector, print"
 stylesheet 'sass/ie.sass', :to => 'ie.sass', :condition => "IE lt 9"
 stylesheet 'sass/_settings.sass', :to => '_settings.sass'
@@ -8,7 +9,6 @@ stylesheet 'sass/_settings.sass', :to => '_settings.sass'
 # Javascripts
 javascript 'javascripts/jquery.min.js', :to => 'jquery.min.js'
 javascript 'javascripts/modernizr.foundation.js', :to => 'modernizr.foundation.js'
-javascript 'javascripts/forms.jquery.js', :to => 'forms.jquery.js'
 javascript 'javascripts/jquery.customforms.js', :to => 'jquery.customforms.js'
 javascript 'javascripts/jquery.reveal.js', :to => 'jquery.reveal.js'
 javascript 'javascripts/jquery.orbit-1.4.0.js', :to => 'jquery.orbit-1.4.0.js'

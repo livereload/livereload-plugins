@@ -1,7 +1,7 @@
 Compass H5bp
 =========================
 
-This is a Compass extension of Html5 mixins extracted from v2 on Html5 Boilerplate
+This is a Compass extension of Html5 mixins extracted from v3 on Html5 Boilerplate
 by Paul Irish and Divya Manian. This gem provides only the CSS mixins and not the
 html or javascript templates.  This makes sense because any implementation of
 Html5 Boilerplate should be specific to the language and framework it's built on.
@@ -37,6 +37,7 @@ Then include the mixins that make up the Normalize portion of Html5
 Boilerplate's styles. http://necolas.github.com/normalize.css
 
     @include h5bp-display;
+    @include h5bp-selection;
     @include h5bp-base;
     @include h5bp-links;
     @include h5bp-typography;
@@ -51,6 +52,10 @@ Now you can define your own custom CSS here.
 Then (optionally) let H5bp define some semantic helper classes. (e.g. `.clearfix`):
 
     @include h5bp-helpers;
+
+You can include the default Html5 Boilerplate Chrome Frame notification styling:
+
+    @include h5bp-chromeframe;
 
 Finally, you can include H5bp's predefined print style media query:
 

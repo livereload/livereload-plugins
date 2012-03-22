@@ -47,11 +47,9 @@ input, textarea
 // Text input and textarea sizes
 //-----------------------------------------
 
-input
-  &.input-text
-    width: 254px
-textarea
+input.input-text, textarea
   width: 254px
+  +box-sizing(border-box)
 input, textarea
   &.small
     width: 134px
@@ -59,6 +57,8 @@ input, textarea
     width: 254px
   &.large
     width: 434px
+  &.expand
+    width: 100%
 
 // Fieldsets
 //-----------------------------------------
@@ -90,20 +90,33 @@ form
   display: block
   margin-bottom: 9px
   +font-size(11)
-  color: red
-  width: 260px
-.small+.error
-  width: 140px
-.medium+.error
-  width: 260px
-.large+.error
-  width: 440px
+  color: #c00000
+  width: 254px
+  +box-sizing(border-box)
+
+.small+small.error
+  width: 134px
+.medium+small.error
+  width: 254px
+.large+small.error
+  width: 434px
+.expand+small.error
+  width: 100%
+
+.small.oversize+small.error
+  width: 144px
+.medium.oversize+small.error
+  width: 264px
+.large.oversize+small.error
+  width: 444px
+.expand.oversize+small.error
+  width: 100%
 
 // Nicer Forms
 //-----------------------------------------
 
 form.nice
-  input.input-text, textarea
+  div.form-field input, input.input-text, textarea
     border: solid 1px #bbb
     +border-radius(2px)
     +font-size(13)
@@ -114,9 +127,14 @@ form.nice
       background-color: #f9f9f9
     fieldset
       +border-radius(3px)
-    .form-field input[disabled], input.input-text[disabled], textarea[disabled]
+    div.form-field input[disabled], input.input-text[disabled], textarea[disabled]
       background: #ddd
-  small.error
+    div.form-field input[type=radio], div.form-field input[type=checkbox]
+      display: inline
+      width: auto
+      margin-bottom: 0
+      
+  div.form-field.error small, small.error
     padding: 6px 4px
     border: solid 0 #c00000
     border-width: 0 1px 1px 1px
@@ -127,12 +145,21 @@ form.nice
     font-weight: bold
     +border-bottom-left-radius(2px)
     +border-bottom-right-radius(2px)
-  .small+.error
+    
+  div.form-field.error .small+small, .small+small.error
     width: 132px
-  .medium+.error
+  div.form-field.error .medium+small, .medium+small.error
     width: 252px
-  .large+.error
+  div.form-field.error .large+small, .large+small.error
     width: 432px
+    
+  div.form-field.error .small.oversize+small, .small.oversize+small.error
+    width: 136px
+  div.form-field.error .medium.oversize+small, .medium.oversize+small.error
+    width: 256px
+  div.form-field.error .large.oversize+small, .large.oversize+small.error
+    width: 436px  
+    
     
 // Custom Forms
 //-------------------------------------------------
@@ -156,23 +183,26 @@ form.custom
   div.custom
     &.dropdown
       position: relative
-      display: inline-block
+      display: block
       width: auto
       height: 28px
       margin-bottom: 9px
+      margin-top: 2px
       a.current
         display: block
         width: auto
         line-height: 26px
+        min-height: 26px
         padding: 0 38px 0 6px
         border: solid 1px #ddd
         color: #141414
+        background-color: #fff
       a.selector
         position: absolute
         width: 26px
         height: 26px
         display: block
-        background: image-url('misc/custom-form-sprites.png') -14px 0 no-repeat
+        background: image-url('misc/custom-form-sprites.png') -14px 1px no-repeat
         right: 0
         top: 0
         border: solid 1px #ddd
@@ -183,35 +213,37 @@ form.custom
         margin: 0
         left: 0
         top: 27px
-        margin: 0
         padding: 0
-        background: rgba(255,255,255,0.9)
+        background: #fff
+        background: rgba(255,255,255,0.95)
         border: solid 1px #ddd
-        z-index: 10
         &.show
           display: block
         li
           cursor: pointer
           padding: 3px 38px 3px 6px
+          min-height: 18px
           margin: 0
           white-space: nowrap
           &.selected
             background: image-url('misc/custom-form-sprites.png') right -52px no-repeat
             &:hover
-              background: image-url('misc/custom-form-sprites.png') $blue right -78px no-repeat
+              background: image-url('misc/custom-form-sprites.png') $default-color right -78px no-repeat
           &:hover
-            background-color: $blue
+            background-color: $default-color
             color: #fff
-      &:hover
-        a.selector
-          background-position: -14px -26px
+      &:hover a.selector, &.open a.selector
+        background-position: -14px -26px
       &.open
         ul
           display: block
-        a.selector
-          background-position: -14px -26px
+          z-index: 10
+  
+  // Custom input, disabled
   .custom.disabled
     background-color: #ddd
+  
+  
   // Nicer Customer Forms
   &.nice
     span.custom.checkbox

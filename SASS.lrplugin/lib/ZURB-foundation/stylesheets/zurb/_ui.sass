@@ -4,15 +4,16 @@
 // Labels
 // Tabs
 // Pagination
+// Breadcrumbs
 // Lists
 // Panels
 // Nav
-// Tooltips
 // Video
 // Microformats
+// Tooltips
 
 // Alerts
-//----------------------------------------------------------------------------------------------------
+//----------------------------------------------
 
 div.alert-box
   display: block
@@ -51,7 +52,7 @@ div.alert-box
 
 
 // Labels
-//----------------------------------------------------------------------------------------------------
+//------------------------------------------------
 .label
   padding: 0px 4px 2px
   +font-size(11)
@@ -64,7 +65,7 @@ div.alert-box
   position: relative
   bottom: 1px
   color: $white
-  background: $blue
+  background: $default-color
   &.radius
     +border-radius(2px)
   &.round
@@ -86,7 +87,7 @@ div.alert-box
 
 
 // Tabs
-//----------------------------------------------------------------------------------------------------
+//------------------------------------------------
 
 dl.tabs
   display: block
@@ -193,23 +194,16 @@ dl.tabs.vertical dd a
       border-top: 1px solid #eee
       &.active
         border: none
-        background: $blue
+        background: $default-color
         color: $white
         margin: 0
         position: static
         top: 0
         height: auto
     &:first-child
-      margin-left: 0
-dl.tabs.vertical
-  height: auto
-  dt, dd, dt
-    float: none
-    height: auto
-dl.nice.tabs.vertical
-  dd
-    float: none
-    height: auto
+      a
+        &.active
+          margin: 0
 
 ul.tabs-content
   margin: 0
@@ -218,6 +212,8 @@ ul.tabs-content
     display: none
     &.active
       display: block
+.no-js  ul.tabs-content>li
+  display: block
       
 dl.contained, dl.nice.contained
   margin-bottom: 0
@@ -232,12 +228,14 @@ ul.contained.tabs-content
     padding: 20px
     border: solid 0 #ddd
     border-width: 0 1px 1px 1px
+ul.contained.vertical.tabs-content>li
+  border-width: 1px 1px 1px 1px
 ul.nice.contained.tabs-content
   &>li
     border-color: #eee
   
 // Pagination
-//----------------------------------------------------------------------------------------------------
+//------------------------------------------------
 
 ul.pagination
   display: block
@@ -266,8 +264,51 @@ ul.pagination
         a
           border-bottom: none
 
+// Breadcrumbs
+//------------------------------------------------
+ul.breadcrums
+  display: block
+  background: #f4f4f4
+  padding: 7px 10px
+  border: 1px solid #ddd
+  +border-radius(2px)
+  overflow: hidden
+  li
+    margin: 0
+    padding: 0 12px 0 0
+    float: left
+    a, span
+      text-transform: uppercase
+      +font-size(11)
+      padding-left: 12px
+    &:first-child
+      a, span
+        padding-left: 0
+    &:before
+      content: "/"
+      color: #333
+    &:first-child
+      &:before
+        content: ""
+    &.current
+      a
+        cursor: default
+        color: #333
+    &:hover a, a:focus
+      text-decoration: underline
+    &.current
+      &:hover a, a:focus
+        text-decoration: none
+    &.unavailable
+      a
+        color: #999
+      &:hover a, a:focus
+        text-decoration: none
+        color: #999
+        cursor: default
+        
 // Lists
-//----------------------------------------------------------------------------------------------------
+//--------------------------------------------------
 
 ul.nice, ol.nice
   list-style: none
@@ -282,7 +323,7 @@ ul.nice li span.bullet, ol.nice li span.number
   color: #ccc
 
 // Panels
-//----------------------------------------------------------------------------------------------------
+//---------------------------------------------------
 
 div.panel 
   padding: 20px 20px 2px 20px
@@ -292,7 +333,7 @@ div.panel
   margin: 0 0 20px 0
   
 // Nav Bar with Dropdowns
-//----------------------------------------------------------------------------------------------------
+//----------------------------------------------------
 
 .nav-bar
   height: 45px
@@ -307,46 +348,35 @@ div.panel
     margin: 0
     border-right: 1px solid #ddd
     line-height: 45px
-    .flyout
-      display: none
     &>a.main
       position: relative
       +font-size(15)
       padding: 0 20px
       display: block
       text-decoration: none
-      border-right: 1px solid #ddd
     &>input
       margin: 0 16px
     ul
       margin-bottom: 0
     li
       line-height: 1.3
-    &:hover
-      .flyout
-        display: block
-      &>a.main
-        color: #141414
-        z-index: 2
-        &:after
-          border-top-color: #141414
     &.has-flyout
       &>a.main
         padding-right: 36px
-        &:after
-          content: ""
+      &>a.flyout-toggle
+        position: absolute
+        right: 0
+        top: 0
+        padding: 22px
+        z-index: 2
+        display: block
+        span
           width: 0
-          height: 0 
+          height: 0
           border-left: 4px solid transparent
           border-right: 4px solid transparent
-          border-top: 4px solid #2a85e8
-          display: block
-          position: absolute
-          right: 18px
-          bottom: 20px
-      &>a.flyout-toggle
-        display: none
-          
+          border-top: 4px solid $default-color
+          display: block      
 .flyout
   background: #fff
   margin: 0
@@ -356,7 +386,7 @@ div.panel
   top: 45px
   left: -1px
   width: 400px
-  z-index: 10
+  z-index: 40
   &.small
     width: 200px
   &.large
@@ -366,10 +396,11 @@ div.panel
     right: 0
   p:last-child
     margin-bottom: 0
-
+.nav-bar>li .flyout
+  display: none
 
 // Sub Navs
-//---------------------------------------------------------------------------------------------------
+//---------------------------------------------------
 // http://www.zurb.com/article/292/how-to-create-simple-and-effective-sub-na
 dl.sub-nav
   display: block
@@ -391,75 +422,12 @@ dl.sub-nav
       +border-radius(12px)
     &.active
       a
-        background: $blue
+        background: $default-color
         color: $white
         padding: 3px 9px
 
-
-// Tooltips
-//----------------------------------------------------------------------------------------------------
-
-.has-tip
-  border-bottom: dotted 1px #ccc
-  cursor: help
-  font-weight: bold
-  color: #333
-  &:hover
-    border-bottom: dotted 1px #0593dc
-    color: #0192dd
-  &.opened
-    color: #0192DD !important
-    border-bottom: dotted 1px #0593DC !important
-.tooltip
-  display: block
-  background: rgb(0,0,0)
-  background: rgba(0,0,0,0.85)
-  position: absolute
-  color: #fff
-  font-weight: bold
-  +font-size(12)
-  width: auto
-  padding: 5px 9px 7px 8px
-  z-index: 999
-  &>.nub
-    display: block
-    width: 0
-    height: 0
-    border: solid 6px
-    border-color: transparent transparent rgb(0,0,0) transparent
-    border-color: transparent transparent rgba(0,0,0,0.85) transparent
-    position: absolute
-    top: -12px
-    left: 10px
-  &.top>.nub
-    border-color: rgb(0,0,0) transparent transparent transparent
-    border-color: rgba(0,0,0,0.85) transparent transparent transparent
-    top: auto
-    bottom: -12px
-  &.left, .right, .left, .right
-    float: none !important
-  &.left>.nub
-    border-color: transparent transparent transparent rgb(0,0,0)
-    border-color: transparent transparent transparent rgba(0,0,0,0.85)
-    right: -12px
-    left: auto
-  &.right>.nub
-    border-color: transparent rgb(0,0,0) transparent transparent
-    border-color: transparent rgba(0,0,0,0.85) transparent transparent
-    right: auto
-    left: -12px
-  &.radius
-    +border-radius(6px)
-.tap-to-close
-  display: block
-  font-size: 10px
-  font-size: 1.0rem
-  color: #888
-  font-weight: normal
-
-
 // Video
-//----------------------------------------------------------------------------------------------------
+//---------------------------------------------------
 // Mad props to http://www.alistapart.com/articles/creating-intrinsic-ratios-for-video/
 
 .flex-video
@@ -481,7 +449,7 @@ dl.sub-nav
     height: 100%
 
 // Microformats
-//----------------------------------------------------------------------------------------------------
+//---------------------------------------------------
 
 // hcard
 ul.vcard
@@ -496,7 +464,6 @@ ul.vcard
       font-weight: bold
       +font-size(15)
 
-// vevent
 p.vevent span.summary
   font-weight: bold
 p.vevent abbr 
@@ -505,3 +472,72 @@ p.vevent abbr
   font-weight: bold
   border: none
   padding: 0 1px
+  
+// Tooltips
+//--------------------------------------------------------
+
+.has-tip
+  border-bottom: dotted 1px #ccc
+  cursor: help
+  font-weight: bold
+  color: #333
+  &:hover
+    border-bottom: dotted 1px #0593dc
+    color: #0192dd
+.tooltip
+  display: none
+  background: rgb(0,0,0)
+  background: rgba(0,0,0,0.8)
+  position: absolute
+  color: #fff
+  font-weight: bold
+  +font-size(12)
+  padding: 5px
+  z-index: 999
+  +border-radius(4px)
+  line-height: normal
+  &>.nub
+    display: block
+    width: 0
+    height: 0
+    border: solid 6px
+    border-color: transparent transparent rgb(0,0,0) transparent
+    border-color: transparent transparent rgba(0,0,0,0.8) transparent
+    position: absolute
+    top: -10px
+    left: 10px
+  &.tip-override>.nub
+    border-color: transparent transparent rgb(0,0,0) transparent !important
+    border-color: transparent transparent rgba(0,0,0, 0.8) transparent !important
+    top: -10px !important
+  &.tip-top>.nub
+    border-color: rgb(0,0,0) transparent transparent transparent
+    border-color: rgba(0,0,0,0.8) transparent transparent transparent
+    top: auto
+    bottom: -10px
+  &.tip-left, .tip-right
+    float: none !important
+  &.tip-left>.nub
+    border-color: transparent transparent transparent rgb(0,0,0)
+    border-color: transparent transparent transparent rgba(0,0,0,0.8)
+    right: -10px
+    left: auto
+  &.tip-right>.nub
+    border-color: transparent rgb(0,0,0) transparent transparent
+    border-color: transparent rgba(0,0,0,0.8) transparent transparent
+    right: auto
+    left: -10px
+  &.noradius
+    +border-radius(0px)
+.has-tip
+  &.opened
+    color: $default-color !important
+    border-bottom: dotted 1px darken($default-color, 5%)
+  &.tip-left, .tip-right
+    float: none !important
+.tap-to-close
+  display: block
+  font-size: 10px
+  font-size: 1.0rem
+  color: #888
+  font-weight: normal
