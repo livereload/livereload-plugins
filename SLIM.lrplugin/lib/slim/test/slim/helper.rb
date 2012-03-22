@@ -9,7 +9,7 @@ MiniTest::Unit.autorun
 
 Slim::Engine.after  Slim::Parser, Temple::Filters::Validator, :grammar => Slim::Grammar
 Slim::Engine.before Slim::Compiler, Temple::Filters::Validator, :grammar => Slim::Grammar
-Slim::Engine.before Temple::HTML::Pretty, Temple::Filters::Validator
+Slim::Engine.before :Pretty, Temple::Filters::Validator
 
 class TestSlim < MiniTest::Unit::TestCase
   def setup
@@ -72,7 +72,7 @@ class TestSlim < MiniTest::Unit::TestCase
 end
 
 class Env
-  attr_reader :var
+  attr_reader :var, :x
 
   class ::HtmlSafeString < String
     def html_safe?
@@ -88,6 +88,7 @@ class Env
 
   def initialize
     @var = 'instance'
+    @x = 0
   end
 
   def id_helper
@@ -144,6 +145,11 @@ class Env
   def output_number
     1337
   end
+
+  def succ_x
+    @x = @x.succ
+  end
+
 end
 
 class ViewEnv

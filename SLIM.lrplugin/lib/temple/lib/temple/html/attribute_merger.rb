@@ -1,9 +1,9 @@
 module Temple
   module HTML
+    # This filter merges html attributes (e.g. used for id and class)
     # @api public
     class AttributeMerger < Filter
       default_options[:attr_delimiter] = {'id' => '_', 'class' => ' '}
-      default_options[:sort_attrs] = true
 
       def on_html_attrs(*attrs)
         names = []
@@ -41,37 +41,7 @@ module Temple
             names << name
           end
         end
-        result = options[:sort_attrs] ? result.sort : names.map {|k| [k, result[k]] }
-        [:multi, *result.map {|name,attr| compile(attr) }]
-      end
-
-      def on_html_attr(name, value)
-        if empty_exp?(value)
-          value
-        elsif contains_static?(value)
-          [:html, :attr, name, value]
-        else
-          tmp = unique_name
-          [:multi,
-           [:capture, tmp, compile(value)],
-           [:if, "!#{tmp}.empty?",
-            [:html, :attr, name, [:dynamic, tmp]]]]
-        end
-      end
-
-      protected
-
-      def contains_static?(exp)
-        case exp[0]
-        when :multi
-          exp[1..-1].any? {|e| contains_static?(e) }
-        when :escape
-          contains_static?(exp[2])
-        when :static
-          true
-        else
-          false
-        end
+        [:html, :attrs, *names.map {|name| result[name] }]
       end
     end
   end
