@@ -4,7 +4,7 @@
 ./update-npm  IcedCoffeeScript iced-coffee-script
 ./update-npm  Eco            eco
 ./update-npm  LESS           less
-./update-npm  Stylus         stylus
+./update-npm  Stylus         stylus nib canvas
 ./update-npm  Jade           jade markdown
 
 ./update-gem  SASS  sass compass chunky_png html5-boilerplate compass-h5bp compass-960-plugin compass-susy-plugin ZURB-foundation compass-colors fancy-buttons compass-slickmap grid-coordinates compass-rgbapng compass-baseline compass-vgrid-plugin compass-less-plugin sassy-buttons compass-thesquaregrid compass-fancybox-plugin font-stack compass-squaregrid-plugin compass_formalize compass-lucid-grid stitch

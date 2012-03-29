@@ -43,6 +43,12 @@
           "OnArgument": "--firebug"
         },
         {
+          "Id": "use-nib",
+          "Type": "checkbox",
+          "Title": "Use Nib (--use nib)",
+          "OnArgument": "--use nib"
+        },
+        {
           "Id": "line-numbers",
           "Type": "checkbox",
           "Title": "Emit line numbers debug info (--line-numbers)",
