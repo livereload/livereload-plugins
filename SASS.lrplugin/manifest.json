@@ -41,8 +41,8 @@
         "scss"
       ],
       "ImportToFileMappings": [
-        "$(file)",
-        "_$(file)"
+        "$(dir)/$(file)",
+        "$(dir)/_$(file)"
       ],
       "NonImportedExts": [
         "css"
