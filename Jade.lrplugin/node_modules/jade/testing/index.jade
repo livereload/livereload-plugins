@@ -1,0 +1,48 @@
+
+
+mixin form(method, action)
+  form(method=method, action=action)
+    csrf_token_from_somewhere = 'hey'
+    input(type='hidden', name='_csrf', value=csrf_token_from_somewhere)
+    != content
+
+html
+  body
+    +form('GET', '/search')
+      input(type='text', name='query', placeholder='Search')
+      input(type='submit', value='Search')
+
+html
+  body
+    +form('POST', '/search')
+      input(type='text', name='query', placeholder='Search')
+      input(type='submit', value='Search')
+
+html
+  body
+    +form('POST', '/search')
+
+mixin hello
+  p Hello
+
++hello
+
+mixin hello(user)
+  p Hello #{user}
+
++hello('Tobi')
+
+mixin article(title)
+  .article
+    .article-wrapper
+      h1= title
+      if content
+        != content
+      else
+        p No content provided
+
++article('Hello world')
+
++article('Hello world')
+  p This is my
+  p Amazing article
