@@ -114,7 +114,9 @@ module Sass
       end
 
       DIRECTIVES = Set[:mixin, :include, :function, :return, :debug, :warn, :for,
-        :each, :while, :if, :else, :extend, :import, :media, :charset]
+        :each, :while, :if, :else, :extend, :import, :media, :charset, :_moz_document]
+
+      PREFIXED_DIRECTIVES = Set[:supports]
 
       def directive
         return unless tok(/@/)
@@ -123,13 +125,19 @@ module Sass
 
         if dir = special_directive(name)
           return dir
+        elsif dir = prefixed_directive(name)
+          return dir
         end
 
         # Most at-rules take expressions (e.g. @import),
         # but some (e.g. @page) take selector-like arguments
         val = str {break unless expr}
         val ||= CssParser.new(@scanner, @line).parse_selector_string
-        node = node(Sass::Tree::DirectiveNode.new("@#{name} #{val}".strip))
+        directive_body("@#{name} #{val}")
+      end
+
+      def directive_body(value)
+        node = node(Sass::Tree::DirectiveNode.new(value.strip))
 
         if tok(/\{/)
           node.has_children = true
@@ -143,6 +151,11 @@ module Sass
       def special_directive(name)
         sym = name.gsub('-', '_').to_sym
         DIRECTIVES.include?(sym) && send("#{sym}_directive")
+      end
+
+      def prefixed_directive(name)
+        sym = name.gsub(/^-[a-z0-9]+-/i, '').gsub('-', '_').to_sym
+        PREFIXED_DIRECTIVES.include?(sym) && send("#{sym}_directive", name)
       end
 
       def mixin_directive
@@ -344,6 +357,76 @@ module Sass
         name = @scanner[1] || @scanner[2]
         ss
         node(Sass::Tree::CharsetNode.new(name))
+      end
+
+      # The document directive is specified in
+      # http://www.w3.org/TR/css3-conditional/, but Gecko allows the
+      # `url-prefix` and `domain` functions to omit quotation marks, contrary to
+      # the standard.
+      #
+      # We could parse all document directives according to Mozilla's syntax,
+      # but if someone's using e.g. @-webkit-document we don't want them to
+      # think WebKit works sans quotes.
+      def _moz_document_directive
+        value = str do
+          begin
+            ss
+            expr!(:moz_document_function)
+          end while tok(/,/)
+        end
+        directive_body("@-moz-document #{value}")
+      end
+
+      def moz_document_function
+        return unless tok(URI) || tok(URL_PREFIX) || tok(DOMAIN) || function
+        ss
+      end
+
+      # http://www.w3.org/TR/css3-conditional/
+      def supports_directive(name)
+        value = str {expr!(:supports_condition)}
+        directive_body("@#{name} #{value}")
+      end
+
+      def supports_condition
+        supports_negation || supports_operator || supports_declaration_condition
+      end
+
+      def supports_negation
+        return unless tok(/not/i)
+        ss
+        expr!(:supports_condition_in_parens)
+      end
+
+      def supports_operator
+        return unless supports_condition_in_parens
+        tok!(/and|or/i)
+        begin
+          ss
+          expr!(:supports_condition_in_parens)
+        end while tok(/and|or/i)
+        true
+      end
+
+      def supports_condition_in_parens
+        return unless tok(/\(/); ss
+        if supports_condition
+          tok!(/\)/); ss
+        else
+          supports_declaration_body
+        end
+      end
+
+      def supports_declaration_condition
+        return unless tok(/\(/); ss
+        supports_declaration_body
+      end
+
+      def supports_declaration_body
+        tok!(IDENT); ss
+        tok!(/:/); ss
+        expr!(:expr); ss
+        tok!(/\)/); ss
       end
 
       def variable
@@ -792,11 +875,11 @@ MESSAGE
         @strs.pop
       end
 
-      def str?(&block)
+      def str?
         pos = @scanner.pos
         line = @line
         @strs.push ""
-        throw_error(&block) && @strs.last
+        throw_error {yield} && @strs.last
       rescue Sass::SyntaxError => e
         @scanner.pos = pos
         @line = line
@@ -841,6 +924,9 @@ MESSAGE
         :selector_comma_sequence => "selector",
         :simple_selector_sequence => "selector",
         :import_arg => "file to import (string or url())",
+        :moz_document_function => "matching function (e.g. url-prefix(), domain())",
+        :supports_condition => "@supports condition (e.g. (display: flexbox))",
+        :supports_condition_in_parens => "@supports condition (e.g. (display: flexbox))",
       }
 
       TOK_NAMES = Sass::Util.to_hash(

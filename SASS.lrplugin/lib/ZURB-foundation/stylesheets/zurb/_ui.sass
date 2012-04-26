@@ -148,7 +148,7 @@ dl.tabs
           background: #fff
           border-left: 1px solid #eee
           border-right: 1px solid #eee
-          border-top: 1px solid #00a6fc
+          border-top: 3px solid #00a6fc
           margin: 0 10px
           position: relative
           top: -5px
@@ -529,6 +529,8 @@ p.vevent abbr
     left: -10px
   &.noradius
     +border-radius(0px)
+  &.tip-left, .tip-right
+    float: none !important
 .has-tip
   &.opened
     color: $default-color !important
@@ -537,7 +539,6 @@ p.vevent abbr
     float: none !important
 .tap-to-close
   display: block
-  font-size: 10px
-  font-size: 1.0rem
+  +font-size(10)
   color: #888
   font-weight: normal

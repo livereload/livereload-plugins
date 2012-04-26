@@ -18,6 +18,8 @@ input.input-text, textarea, select
   margin-bottom: 9px
 label + input.input-text, label + textarea, label + select, label + div.dropdown, select + div.dropdown
   margin-top: -9px
+textarea
+  max-width: 100%
   
 // Text input and textarea font and padding
 //-----------------------------------------
@@ -59,6 +61,19 @@ input, textarea
     width: 434px
   &.expand
     width: 100%
+
+// Lock textareas so they can't be resized
+// beyond their set width in webkit
+//-----------------------------------------
+textarea
+  &.locked
+    max-width: 254px
+    &.small
+      max-width: 134px
+    &.large
+      max-width: 434px
+    &.expand
+      max-width: 100%
 
 // Fieldsets
 //-----------------------------------------
@@ -129,6 +144,8 @@ form.nice
       +border-radius(3px)
     div.form-field input[disabled], input.input-text[disabled], textarea[disabled]
       background: #ddd
+    fieldset
+      +border-radius(3px)
     div.form-field input[type=radio], div.form-field input[type=checkbox]
       display: inline
       width: auto
@@ -197,6 +214,7 @@ form.custom
         border: solid 1px #ddd
         color: #141414
         background-color: #fff
+        word-wrap: nowrap
       a.selector
         position: absolute
         width: 26px
@@ -238,11 +256,30 @@ form.custom
         ul
           display: block
           z-index: 10
+        &.small
+          ul
+            width: 132px !important
+        &.medium
+          ul
+            width: 252px !important
+        &.large
+          ul
+            width: 432px !important
+        &.expand
+          ul
+            width: 100% !important
+      &.small
+        width: 134px !important
+      &.medium
+        width: 254px !important
+      &.large
+        width: 434px !important
+      &.expand
+        width: 100% !important
   
   // Custom input, disabled
   .custom.disabled
     background-color: #ddd
-  
   
   // Nicer Customer Forms
   &.nice

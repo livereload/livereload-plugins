@@ -279,7 +279,7 @@ table
       top: 0
       height: auto
   .nice.tabs.mobile dd:first-child a.active
-    margin-bottom: 0
+    margin: 0
   
   dl.contained.mobile, dl.nice.contained.mobile
     margin-bottom: 0
@@ -292,7 +292,19 @@ table
     margin-right: -20px
     border-width: 0 0 1px 0
 
-  // Nav Bar with Dropdowns
+// Modernizr-enabled tablet targeting
+@media only screen and (max-width: 1280px) and (min-width: 768px)
+  .touch
+    .nav-bar
+      li
+        a
+          +font-size(13)
+        &.has-flyout
+          &>a.flyout-toggle
+            padding: 20px
+
+// Nav Bar with Dropdowns
+@media only screen and (max-width: 767px)
   .nav-bar
     height: auto
     & > li

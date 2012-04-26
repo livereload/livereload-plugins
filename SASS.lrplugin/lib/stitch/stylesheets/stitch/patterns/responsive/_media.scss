@@ -11,13 +11,19 @@
 }
 
 @mixin mobile-landscape {
-	@media only screen and (min-width : 321px) {
+	@media only screen and (max-width : 480px) {
 		@content;
 	}
 }
 
 @mixin tablet {
 	@media only screen and (min-width : 768px) and (max-width : 1024px) {
+		@content;
+	}
+}
+
+@mixin max-tablet {
+	@media only screen and (max-width : 1024px) {
 		@content;
 	}
 }
@@ -35,7 +41,7 @@
 }
 
 @mixin desktop {
-	@media only screen and (min-width : 1224px) {
+	@media only screen and (min-width : 1025px) {
 		@content;
 	}
 }

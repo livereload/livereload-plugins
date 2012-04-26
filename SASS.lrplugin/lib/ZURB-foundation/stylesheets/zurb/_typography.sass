@@ -5,7 +5,8 @@
   color: #181818
   font-weight: bold
   line-height: 1.25
-
+  a
+    font-weight: inherit
 h1
   +font-size(46)
   margin-bottom: 12px
@@ -50,6 +51,8 @@ strong, b
 small
   font-size: 60%
   line-height: inherit
+h1 small, h2 small, h3 small, h4 small, h5 small
+  color: #777
 
 // Blockquotes
 //--------------------------------------------
@@ -65,7 +68,7 @@ blockquote
     +font-size(12)
     color: #555
     &:before
-      content: "/2014 /0020"
+      content: "\2014 \0020"
     a, a:visited
       color: #555
 

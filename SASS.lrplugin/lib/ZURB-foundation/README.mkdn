@@ -18,7 +18,7 @@ In Terminal:
 * `git clone git://github.com/zurb/foundation-sass.git`
 * `cd foundation-sass`
 * `sudo gem build ZURB-foundation.gemspec`
-* `sudo gem install ZURB-foundation-2.2.0.1.gem`
+* `sudo gem install ZURB-foundation-2.2.1.gem`
 
 To create your first project
 ----------------------------
@@ -39,7 +39,6 @@ Custom Settings
 ---------------------------------------------
 Work with your own custom settings by adjusting the _settings.sass file in a new project!
 
-
 Welcome to Foundation
 =====================
 
@@ -47,7 +46,7 @@ Foundation is a rock-solid, responsive framework for rapidly prototyping and ite
 
 Homepage:      http://foundation.zurb.com  
 Documentation: http://foundation.zurb.com/docs  
-Download:      http://foundation.zurb.com/files/foundation-download-2.2.zip  
+Download:      http://foundation.zurb.com/files/foundation-download-2.2.1.zip  
 
 Foundation is MIT-licensed and absolutely free to use. Foundation wouldn't be possible without the support of the entire ZURB team, our friends and colleagues who gave feedback, and some luminaries who did some heavy lifting that we took advantage of (thanks guys).
 
@@ -80,6 +79,10 @@ WordPress
 * [Starter Theme](https://github.com/drewsymo/Foundation) by Drew Morris
 * [Reverie](http://themefortress.com/reverie/) by Zhen
 
+Joomla
+
+* [Joomla Template](https://github.com/meridiansoftech/joomla_foundation_template) by Arnold Mwumva Ford, Meridian Softech
+
 Drupal
 
 * [Drupal Theme](https://github.com/drewkennelly/foundation7) by Drew Kennelly
@@ -90,7 +93,7 @@ MODX
 
 .NET
 
-* [NuGet Package for ASP.Net MVC](http://nuget.org/List/Packages/Zurb_Foundation_MPC3) by Edward Charbeneau, @EdCharbeneau
+* [NuGet Package for ASP.Net MVC](http://www.nuget.org/packages/Zurb_Foundation_MVC3) by Edward Charbeneau, @EdCharbeneau
 
 Other Implementations
 
@@ -110,6 +113,10 @@ Grid Generator
 
 * [Experimental Grid Generator](http://www.gridlover.net/foundation/) courtesy of [Ville Vanninen](http://foolproof.me)
 
+Grid displayer
+
+* [Grid displayer bookmarklet](http://alefeuvre.github.com/foundation-grid-displayer/) by [Antoine Lefeuvre](http://twitter.com/jiraisurfer)
+
 MIT Open Source License
 =======================
 
@@ -118,3 +125,4 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
