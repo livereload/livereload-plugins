@@ -4,9 +4,12 @@ module Slim
   class Parser
     include Temple::Mixins::Options
 
-    set_default_options :tabsize  => 4,
+    set_default_options :tabsize => 4,
                         :encoding => 'utf-8',
-                        :default_tag => 'div'
+                        :shortcut => {
+                          '#' => 'id',
+                          '.' => 'class'
+                        }
 
     class SyntaxError < StandardError
       attr_reader :error, :file, :line, :lineno, :column
@@ -33,6 +36,17 @@ module Slim
     def initialize(options = {})
       super
       @tab = ' ' * @options[:tabsize]
+      @shortcut = {}
+      @options[:shortcut].each do |k,v|
+        @shortcut[k] = if v =~ /\A([^\s]+)\s+([^\s]+)\Z/
+                         [$1, $2]
+                       else
+                         [@options[:default_tag], v]
+                       end
+      end
+      shortcut = "[#{Regexp.escape @shortcut.keys.join}]"
+      @shortcut_regex = /\A(#{shortcut})(\w[\w-]*\w|\w+)/
+      @tag_regex = /\A(?:#{shortcut}|\*(?=[^\s]+)|(\w[\w:-]*\w|\w+))/
     end
 
     # Compile string to Temple expression
@@ -66,15 +80,10 @@ module Slim
       '{' => '}',
     }.freeze
 
-    ATTR_SHORTCUT = {
-      '#' => 'id',
-      '.' => 'class',
-    }.freeze
-
-    DELIMITER_REGEX = /\A[\(\[\{]/
-    ATTR_NAME_REGEX = '\A\s*(\w[:\w-]*)'
-    CLASS_ID_REGEX = /\A(#|\.)(\w[\w-]*\w|\w+)/
-    TAG_REGEX = /\A([#\.]|\w[\w:-]*\w|\w+)/
+    DELIMITER_REGEX = /\A[#{Regexp.escape DELIMITERS.keys.join}]/
+    ATTR_NAME = '\A\s*(\w[:\w-]*)'
+    QUOTED_ATTR_REGEX = /#{ATTR_NAME}=("|')/
+    CODE_ATTR_REGEX = /#{ATTR_NAME}=/
 
     def reset(lines = nil, stacks = nil)
       # Since you can indent however you like in Slim, we need to keep a list
@@ -208,8 +217,9 @@ module Slim
       when /\Adoctype\s+/i
         # Found doctype declaration
         @stacks.last << [:html, :doctype, $'.strip]
-      when TAG_REGEX
+      when @tag_regex
         # Found a HTML tag.
+        @line = $' if $1
         parse_tag($&)
       else
         syntax_error! 'Unknown line indicator'
@@ -279,25 +289,20 @@ module Slim
     end
 
     def parse_tag(tag)
-      if tag == '#' || tag == '.'
-        tag = options[:default_tag]
-      else
-        @line.slice!(0, tag.size)
-      end
-
-      tag = [:html, :tag, tag, parse_attributes]
+      tag = [:slim, :tag, @shortcut[tag] ? @shortcut[tag][0] : tag, parse_attributes]
       @stacks.last << tag
 
       case @line
       when /\A\s*:\s*/
         # Block expansion
         @line = $'
-        (@line =~ TAG_REGEX) || syntax_error!('Expected tag')
+        (@line =~ @tag_regex) || syntax_error!('Expected tag')
+        @line = $' if $1
         content = [:multi]
         tag << content
         i = @stacks.size
         @stacks << content
-        parse_tag($1)
+        parse_tag($&)
         @stacks.delete_at(i)
       when /\A\s*=(=?)('?)/
         # Handle output code
@@ -321,13 +326,14 @@ module Slim
     end
 
     def parse_attributes
-      attributes = [:html, :attrs]
+      attributes = [:slim, :attrs]
+      attribute = nil
 
-      # Find any literal class/id attributes
-      while @line =~ CLASS_ID_REGEX
+      # Find any shortcut attributes
+      while @line =~ @shortcut_regex
         # The class/id attribute is :static instead of :slim :text,
         # because we don't want text interpolation in .class or #id shortcut
-        attributes << [:html, :attr, ATTR_SHORTCUT[$1], [:static, $2]]
+        attributes << [:html, :attr, @shortcut[$1][1], [:static, $2]]
         @line = $'
       end
 
@@ -338,54 +344,67 @@ module Slim
         @line.slice!(0)
       end
 
-      orig_line = @orig_line
-      lineno = @lineno
+      if delimiter
+        boolean_attr_regex = /#{ATTR_NAME}(?=(\s|#{Regexp.escape delimiter}))/
+        end_regex = /\A\s*#{Regexp.escape delimiter}/
+      end
+
       while true
-        # Parse attributes
-        attr_regex = delimiter ? /#{ATTR_NAME_REGEX}(=|\s|(?=#{Regexp.escape delimiter}))/ : /#{ATTR_NAME_REGEX}=/
-        while @line =~ attr_regex
+        case @line
+        when /\A\s*\*(?=[^\s]+)/
+          # Splat attribute
           @line = $'
+          attributes << [:slim, :splat, parse_ruby_code(delimiter)]
+        when QUOTED_ATTR_REGEX
+          # Value is quoted (static)
+          @line = $'
+          attributes << [:html, :attr, $1, [:slim, :interpolate, parse_quoted_attribute($2)]]
+        when CODE_ATTR_REGEX
+          # Value is ruby code
+          @line = $'
+          escape = @line[0] != ?=
+          @line.slice!(0) unless escape
           name = $1
-          if delimiter && $2 != '='
-            attributes << [:slim, :attr, name, false, 'true']
-          elsif @line =~ /\A["']/
-            # Value is quoted (static)
+          value = parse_ruby_code(delimiter)
+          # Remove attribute wrapper which doesn't belong to the ruby code
+          # e.g id=[hash[:a] + hash[:b]]
+          value = value[1..-2] if value =~ DELIMITER_REGEX &&
+            DELIMITERS[$&] == value[-1, 1]
+          syntax_error!('Invalid empty attribute') if value.empty?
+          attributes << [:slim, :attr, name, escape, value]
+        else
+          break unless delimiter
+
+          case @line
+          when boolean_attr_regex
+            # Boolean attribute
             @line = $'
-            attributes << [:html, :attr, name, [:slim, :interpolate, parse_quoted_attribute($&)]]
+            attributes << [:slim, :attr, $1, false, 'true']
+          when end_regex
+            # Find ending delimiter
+            @line = $'
+            break
           else
-            # Value is ruby code
-            escape = @line[0] != ?=
-            @line.slice!(0) unless escape
-            attributes << [:slim, :attr, name, escape, parse_ruby_attribute(delimiter)]
+            # Found something where an attribute should be
+            @line.lstrip!
+            syntax_error!('Expected attribute') unless @line.empty?
+
+            # Attributes span multiple lines
+            @stacks.last << [:newline]
+            orig_line, lineno = @orig_line, @lineno
+            next_line || syntax_error!("Expected closing delimiter #{delimiter}",
+                                       :orig_line => orig_line,
+                                       :lineno => lineno,
+                                       :column => orig_line.size)
           end
         end
-
-        # No ending delimiter, attribute end
-        break unless delimiter
-
-        # Find ending delimiter
-        if @line =~ /\A\s*#{Regexp.escape delimiter}/
-          @line = $'
-          break
-        end
-
-        # Found something where an attribute should be
-        @line.lstrip!
-        syntax_error!('Expected attribute') unless @line.empty?
-
-        # Attributes span multiple lines
-        @stacks.last << [:newline]
-        next_line || syntax_error!("Expected closing delimiter #{delimiter}",
-                                   :orig_line => orig_line,
-                                   :lineno => lineno,
-                                   :column => orig_line.size)
       end
 
       attributes
     end
 
-    def parse_ruby_attribute(outer_delimiter)
-      value, count, delimiter, close_delimiter = '', 0, nil, nil
+    def parse_ruby_code(outer_delimiter)
+      code, count, delimiter, close_delimiter = '', 0, nil, nil
 
       # Attribute ends with space or attribute delimiter
       end_regex = /\A[\s#{Regexp.escape outer_delimiter.to_s}]/
@@ -401,18 +420,10 @@ module Slim
           count = 1
           delimiter, close_delimiter = $&, DELIMITERS[$&]
         end
-        value << @line.slice!(0)
+        code << @line.slice!(0)
       end
-
-      syntax_error!("Expected closing attribute delimiter #{close_delimiter}") if count != 0
-      syntax_error!('Invalid empty attribute') if value.empty?
-
-      # Remove attribute wrapper which doesn't belong to the ruby code
-      # e.g id=[hash[:a] + hash[:b]]
-      value = value[1..-2] if value =~ DELIMITER_REGEX &&
-        DELIMITERS[$&] == value[-1, 1]
-
-      value
+      syntax_error!("Expected closing delimiter #{close_delimiter}") if count != 0
+      code
     end
 
     def parse_quoted_attribute(quote)

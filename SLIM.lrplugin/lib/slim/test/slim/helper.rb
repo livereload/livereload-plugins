@@ -9,7 +9,7 @@ MiniTest::Unit.autorun
 
 Slim::Engine.after  Slim::Parser, Temple::Filters::Validator, :grammar => Slim::Grammar
 Slim::Engine.before Slim::Compiler, Temple::Filters::Validator, :grammar => Slim::Grammar
-Slim::Engine.before :Pretty, Temple::Filters::Validator
+Slim::Engine.before :AttributeMerger, Temple::Filters::Validator
 
 class TestSlim < MiniTest::Unit::TestCase
   def setup

@@ -15,7 +15,6 @@ html
   end
 
   def test_html_tag_with_text_and_empty_line
-    # Keep the trailing space behind "body "!
     source = %q{
 p Hello
 
@@ -74,10 +73,21 @@ h1#title This is my title
   def test_render_with_overwritten_default_tag
     source = %q{
 #notice.hello.world
+   = hello_world
+ }
+
+    assert_html '<section class="hello world" id="notice">Hello World from @env</section>', source, :default_tag => 'section'
+   end
+
+  def test_render_with_custom_shortcut
+    source = %q{
+#notice.hello.world@test
+  = hello_world
+@abc
   = hello_world
 }
 
-    assert_html '<section class="hello world" id="notice">Hello World from @env</section>', source, :default_tag => 'section'
+    assert_html '<div class="hello world" id="notice" role="test">Hello World from @env</div><section role="abc">Hello World from @env</section>', source, :shortcut => {'#' => 'id', '.' => 'class', '@' => 'section role'}
   end
 
   def test_render_with_text_block
@@ -468,4 +478,94 @@ input[value=succ_x]
     assert_html %{<input value="1" /><input value="2" />}, source
   end
 
+  def test_shortcut_splat
+    source = %q{
+*hash This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b">This is my title</div>', source
+  end
+
+  def test_splat
+    source = %q{
+h1 *hash This is my title
+}
+
+    assert_html '<h1 a="The letter a" b="The letter b">This is my title</h1>', source
+  end
+
+  def test_splat_tag_name
+    source = %q{
+*{:tag => 'h1', :id => 'title'} This is my title
+}
+
+    assert_html '<h1 id="title">This is my title</h1>', source
+  end
+
+
+  def test_splat_empty_tag_name
+    source = %q{
+*{:tag => '', :id => 'test'} This is my title
+}
+
+    assert_html '<div id="test">This is my title</div>', source, :remove_empty_attrs => true
+    assert_html '<div id="test">This is my title</div>', source, :remove_empty_attrs => false
+  end
+
+  def test_closed_splat_tag
+    source = %q{
+*hash / This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b"/>', source
+  end
+
+  def test_splat_with_id_shortcut
+    source = %q{
+#myid*hash This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b" id="myid">This is my title</div>', source
+  end
+
+  def test_splat_with_class_shortcut
+    source = %q{
+.myclass*hash This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b" class="myclass">This is my title</div>', source
+  end
+
+  def test_splat_with_id_and_class_shortcuts
+    source = %q{
+#myid.myclass*hash This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b" class="myclass" id="myid">This is my title</div>', source
+  end
+
+  def test_splat_with_class_merging
+    source = %q{
+#myid.myclass *{:class => [:secondclass, %w(x y z)]} *hash This is my title
+}
+
+    assert_html '<div a="The letter a" b="The letter b" class="myclass secondclass x y z" id="myid">This is my title</div>', source
+  end
+
+  def test_splat_with_boolean_attribute
+    source = %q{
+*{:disabled => true, :empty1 => false, :empty2 => '', :empty3 => nil} This is my title
+}
+
+    assert_html '<div disabled="disabled">This is my title</div>', source
+    assert_html '<div disabled="disabled" empty1="" empty2="" empty3="">This is my title</div>', source, :remove_empty_attrs => false
+  end
+
+  def test_splat_with_other_attributes
+    source = %q{
+h1 data-id="123" *hash This is my title
+}
+
+    assert_html '<h1 a="The letter a" b="The letter b" data-id="123">This is my title</h1>', source
+  end
 end
