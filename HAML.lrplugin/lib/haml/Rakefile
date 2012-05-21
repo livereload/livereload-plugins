@@ -103,7 +103,7 @@ end
 # Ensures that the VERSION file has been updated for a new release.
 task :check_release do
   version = File.read(scope("VERSION")).strip
-  #raise "There have been changes since current version (#{version})" if changed_since?(version)
+  raise "There have been changes since current version (#{version})" if changed_since?(version)
   raise "VERSION_NAME must not be 'Bleeding Edge'" if File.read(scope("VERSION_NAME")) == "Bleeding Edge"
 end
 
