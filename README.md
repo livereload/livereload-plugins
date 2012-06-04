@@ -52,7 +52,7 @@ For a Node.js-based compiler:
 1. Fork this repository on GitHub then clone your fork, if not already done so. Use free [GitHub for Mac](http://mac.github.com/) if you're not a Git pro.
 1. Create a subdirectory for your plugin (Whatever.lrplugin), cd into it.
 1. Run `npm install whatever` to save the required npm module into 'Whatever.lrplugin/node_modules/whatever'
-1. Bonus points if you modify 'update-all' script to automatically pull updates in the future. It should be very easy, see the bottom of the script. Check that it works for you, but be sure to not commit updates to any other plugins together with your plugin. Skip this step if you're not comfortable doing it right.
+1. Bonus points if you modify Rakefile to automatically pull the updates in the future. It should be very easy, see the bottom of the script. Check that it works for you, but be sure to not commit updates to any other plugins together with your plugin. Skip this step if you're not comfortable doing it right.
 1. Write manifest.json.
 1. Test test test!
 1. Create a Git branch for your plugin (`git checkout -b whatever`).
@@ -65,7 +65,7 @@ For a Ruby-based library:
 1. Fork this repository on GitHub then clone your fork, if not already done so. Use free [GitHub for Mac](http://mac.github.com/) if you're not a Git pro.
 1. Create a subdirectory for your plugin (Whatever.lrplugin), cd into it.
 1. Copy any gems your compiler requires into 'Whatever.lrplugin/lib/whatever'. You need to copy any dependencies as well; for example, for SLIM we end up with `SLIM.lrplugin/lib/temple`, `SLIM.lrplugin/lib/tilt` and `SLIM.lrplugin/lib/slim`. The gem folders should have e.g. `SLIM.lrplugin/lib/slim/lib`, `SLIM.lrplugin/lib/slim/bin` etc.
-1. Bonus points (and actually an easier way to do step 1. if you modify 'update-all' script to automatically pull updates in the future. It should be very easy, see the bottom of the script. Check that it works for you, but be sure to not commit updates to any other plugins together with your plugin. Skip this step if you're not comfortable doing it right.
+1. Bonus points (and actually an easier way to do step 1. if you modify Rakefile to automatically pull the updates in the future. It should be very easy, see the bottom of the script. Check that it works for you, but be sure to not commit updates to any other plugins together with your plugin. Skip this step if you're not comfortable doing it right.
 1. Write manifest.json. For any gem which your main gem depends on, you need to include `-I$(plugin)/lib/thatothergem/lib` argument to the command line, so that Ruby knows where to find those additional gems. See e.g. SLIM.lrplugin.
 1. Test test test!
 1. Create a Git branch for your plugin (`git checkout -b whatever`).
