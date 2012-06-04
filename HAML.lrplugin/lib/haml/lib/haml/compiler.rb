@@ -11,9 +11,8 @@ module Haml
       preamble = <<END.gsub("\n", ";")
 begin
 extend Haml::Helpers
-_hamlout = @haml_buffer = Haml::Buffer.new(@haml_buffer, #{options_for_buffer.inspect})
+_hamlout = @haml_buffer = Haml::Buffer.new(haml_buffer, #{options_for_buffer.inspect})
 _erbout = _hamlout.buffer
-__in_erb_template = true
 END
       postamble = <<END.gsub("\n", ";")
 #{precompiled_method_return_value}
@@ -53,17 +52,28 @@ END
       push_text @node.value[:text]
     end
 
+    def nuke_inner_whitespace?(node)
+      if node.value && node.value[:nuke_inner_whitespace]
+        true
+      elsif node.parent
+        nuke_inner_whitespace?(node.parent)
+      else
+        false
+      end
+    end
+
     def compile_script(&block)
       push_script(@node.value[:text],
-        :preserve_script => @node.value[:preserve],
-        :escape_html => @node.value[:escape_html], &block)
+                  :preserve_script       => @node.value[:preserve],
+                  :escape_html           => @node.value[:escape_html],
+                  :nuke_inner_whitespace => nuke_inner_whitespace?(@node),
+                  &block)
     end
 
     def compile_silent_script
       return if @options[:suppress_eval]
       push_silent(@node.value[:text])
       keyword = @node.value[:keyword]
-      ruby_block = block_given? && !keyword
 
       if block_given?
         # Store these values because for conditional statements,
@@ -345,14 +355,18 @@ END
     end
 
     # This is a class method so it can be accessed from Buffer.
-    def self.build_attributes(is_html, attr_wrapper, escape_attrs, attributes = {})
-      quote_escape = attr_wrapper == '"' ? "&quot;" : "&apos;"
+    def self.build_attributes(is_html, attr_wrapper, escape_attrs, hyphenate_data_attrs, attributes = {})
+      # @TODO this is an absolutely ridiculous amount of arguments. At least
+      # some of this needs to be moved into an instance method.
+      quote_escape     = attr_wrapper == '"' ? "&#x0022;" : "&#x0027;"
       other_quote_char = attr_wrapper == '"' ? "'" : '"'
+      join_char        = hyphenate_data_attrs ? '-' : '_'
 
       if attributes['data'].is_a?(Hash)
-        attributes = attributes.dup
-        attributes =
-          Haml::Util.map_keys(attributes.delete('data')) {|name| "data-#{name}"}.merge(attributes)
+        data_attributes = attributes.delete('data')
+        data_attributes = flatten_data_attributes(data_attributes, '', join_char)
+        data_attributes = build_data_keys(data_attributes, hyphenate_data_attrs)
+        attributes = data_attributes.merge(attributes)
       end
 
       result = attributes.collect do |attr, value|
@@ -379,7 +393,7 @@ END
         value = Haml::Helpers.preserve(escaped)
         if escape_attrs
           # We want to decide whether or not to escape quotes
-          value = value.gsub('&quot;', '"')
+          value = value.gsub('&quot;', '"').gsub('&#x0022;', '"')
           this_attr_wrapper = attr_wrapper
           if value.include? attr_wrapper
             if value.include? other_quote_char
@@ -403,9 +417,33 @@ END
       return !value.empty? && value
     end
 
+    def self.build_data_keys(data_hash, hyphenate)
+      Hash[data_hash.map do |name, value|
+        if name == nil
+          ["data", value]
+        elsif hyphenate
+          ["data-#{name.to_s.gsub(/_/, '-')}", value]
+        else
+          ["data-#{name}", value]
+        end
+      end]
+    end
+
+    def self.flatten_data_attributes(data, key, join_char, seen = [])
+      return {key => nil} if seen.include? data.object_id
+      seen << data.object_id
+
+      return {key => data} unless data.is_a?(Hash)
+      data.sort {|x, y| x[0].to_s <=> y[0].to_s}.inject({}) do |hash, array|
+        k, v = array
+        joined = key == '' ? k : [key, k].join(join_char)
+        hash.merge! flatten_data_attributes(v, joined, join_char, seen)
+      end
+    end
+
     def prerender_tag(name, self_close, attributes)
       attributes_string = Compiler.build_attributes(
-        html?, @options[:attr_wrapper], @options[:escape_attrs], attributes)
+        html?, @options[:attr_wrapper], @options[:escape_attrs], @options[:hyphenate_data_attrs], attributes)
       "<#{name}#{attributes_string}#{self_close && xhtml? ? ' /' : ''}>"
     end
 
@@ -442,9 +480,13 @@ END
     end
 
     def compile(node)
-      parent, @node = @node, node
-      block = proc {node.children.each {|c| compile c}}
-      send("compile_#{node.type}", &(block unless node.children.empty?))
+      parent = instance_variable_defined?('@node') ? @node : nil
+      @node = node
+      if node.children.empty?
+        send(:"compile_#{node.type}")
+      else
+        send(:"compile_#{node.type}") {node.children.each {|c| compile c}}
+      end
     ensure
       @node = parent
     end

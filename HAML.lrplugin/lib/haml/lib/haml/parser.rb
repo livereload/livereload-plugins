@@ -1,5 +1,4 @@
 require 'strscan'
-require 'haml/shared'
 
 module Haml
   module Parser
@@ -104,8 +103,8 @@ module Haml
           break @template_tabs + 1 if flat? && whitespace =~ /^#{@flat_spaces}/
 
           raise SyntaxError.new(<<END.strip.gsub("\n", ' '), line.index)
-Inconsistent indentation: #{Haml::Shared.human_indentation whitespace, true} used for indentation,
-but the rest of the document was indented using #{Haml::Shared.human_indentation @indentation}.
+Inconsistent indentation: #{Haml::Util.human_indentation whitespace, true} used for indentation,
+but the rest of the document was indented using #{Haml::Util.human_indentation @indentation}.
 END
         end
       end
@@ -151,7 +150,7 @@ END
           @parent = @parent.children.last
         end
 
-        if !flat? && @next_line.tabs - @line.tabs > 1
+        if !@haml_comment && !flat? && @next_line.tabs - @line.tabs > 1
           raise SyntaxError.new("The line was indented #{@next_line.tabs - @line.tabs} levels deeper than the previous line.", @next_line.index)
         end
 
@@ -199,10 +198,10 @@ END
       when FILTER; push filter(text[1..-1].downcase)
       when DOCTYPE
         return push doctype(text) if text[0...3] == '!!!'
-        return push plain(text[3..-1].strip, !:escape_html) if text[1..2] == "=="
-        return push script(text[2..-1].strip, !:escape_html) if text[1] == SCRIPT
-        return push flat_script(text[2..-1].strip, !:escape_html) if text[1] == FLAT_SCRIPT
-        return push plain(text[1..-1].strip, !:escape_html) if text[1] == ?\s
+        return push plain(text[3..-1].strip, false) if text[1..2] == "=="
+        return push script(text[2..-1].strip, false) if text[1] == SCRIPT
+        return push flat_script(text[2..-1].strip, false) if text[1] == FLAT_SCRIPT
+        return push plain(text[1..-1].strip, false) if text[1] == ?\s
         push plain(text)
       when ESCAPE; push plain(text[1..-1])
       else; push plain(text)
@@ -233,7 +232,7 @@ END
       end
 
       escape_html = @options[:escape_html] if escape_html.nil?
-      script(unescape_interpolation(text, escape_html), !:escape_html)
+      script(unescape_interpolation(text, escape_html), false)
     end
 
     def script(text, escape_html = nil, preserve = false)
@@ -530,7 +529,7 @@ END
         break if name.nil?
 
         if name == false
-          text = (Haml::Shared.balance(line, ?(, ?)) || [line]).first
+          text = (Haml::Util.balance(line, ?(, ?)) || [line]).first
           raise Haml::SyntaxError.new("Invalid attribute list: #{text.inspect}.", last_line - 1)
         end
         attributes[name] = value
@@ -613,9 +612,10 @@ END
       # `flat?' here is a little outdated,
       # so we have to manually check if either the previous or current line
       # closes the flat block, as well as whether a new block is opened.
-      @line.tabs if @line
+      line_defined = instance_variable_defined?('@line')
+      @line.tabs if line_defined
       unless (flat? && !closes_flat?(line) && !closes_flat?(@line)) ||
-          (@line && @line.text[0] == ?: && line.full =~ %r[^#{@line.full[/^\s+/]}\s])
+          (line_defined && @line.text[0] == ?: && line.full =~ %r[^#{@line.full[/^\s+/]}\s])
         return next_line if line.text.empty?
 
         handle_multiline(line)
@@ -664,8 +664,15 @@ END
       text
     end
 
+    # `text' is a Ruby multiline block if it:
+    # - ends with a comma
+    # - but not "?," which is a character literal
+    #   (however, "x?," is a method call and not a literal)
+    # - and not "?\," which is a character literal
+    #
     def is_ruby_multiline?(text)
-      text && text.length > 1 && text[-1] == ?, && text[-2] != ?? && text[-3..-2] != "?\\"
+      text && text.length > 1 && text[-1] == ?, &&
+        !((text[-3..-2] =~ /\W\?/) || text[-3..-2] == "?\\")
     end
 
     def contains_interpolation?(str)
@@ -674,7 +681,7 @@ END
 
     def unescape_interpolation(str, escape_html = nil)
       res = ''
-      rest = Haml::Shared.handle_interpolation str.dump do |scan|
+      rest = Haml::Util.handle_interpolation str.dump do |scan|
         escapes = (scan[2].size - 1) / 2
         res << scan.matched[0...-3 - escapes]
         if escapes % 2 == 1
@@ -689,7 +696,7 @@ END
     end
 
     def balance(*args)
-      res = Haml::Shared.balance(*args)
+      res = Haml::Util.balance(*args)
       return res if res
       raise SyntaxError.new("Unbalanced brackets.")
     end
