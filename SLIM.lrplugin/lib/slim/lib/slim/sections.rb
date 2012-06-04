@@ -14,13 +14,13 @@ module Slim
       end
     end
 
-    def call(exp)
+    def compile(exp)
       if options[:sections]
         # Store the dictionary in the _slimdict variable
         dictionary = options[:dictionary]
         dictionary = "Slim::Wrapper.new(#{dictionary})" if options[:dictionary_access] == :wrapped
         [:multi,
-         [:code, "_slimdict = #{dictionary}"],
+         [:block, "_slimdict = #{dictionary}"],
          super]
       else
         exp
@@ -29,57 +29,45 @@ module Slim
 
     # Interpret control blocks as sections or inverted sections
     def on_slim_control(name, content)
-      if name =~ /\A!\s*(.*)/
+      if name =~ /^!\s*(.*)/
         on_slim_inverted_section($1, content)
       else
         on_slim_section(name, content)
       end
     end
 
-    def on_slim_output(escape, name, content)
-      raise 'Output statements with content are forbidden in sections mode' if !empty_exp?(content)
-      [:slim, :output, escape, access(name), content]
-    end
-
-    def on_slim_attr(name, escape, value)
-      [:slim, :attr, name, escape, access(value)]
-    end
-
-    def on_slim_splat(code)
-      [:slim, :splat, access(code)]
-    end
-
-    def on_dynamic(code)
-      raise 'Embedded code is forbidden in sections mode'
-    end
-
-    def on_code(code)
-      raise 'Embedded code is forbidden in sections mode'
-    end
-
-    protected
-
     def on_slim_inverted_section(name, content)
-      tmp = unique_name
+      tmp = tmp_var('section')
       [:multi,
-       [:code, "#{tmp} = #{access name}"],
-       [:if, "!#{tmp} || #{tmp}.respond_to?(:empty) && #{tmp}.empty?",
-        compile(content)]]
+       [:block, "#{tmp} = #{access name}"],
+       [:block, "if !#{tmp} || #{tmp}.respond_to?(:empty) && #{tmp}.empty?"],
+                  compile!(content),
+       [:block, 'end']]
     end
 
     def on_slim_section(name, content)
-      content = compile(content)
-      tmp1, tmp2 = unique_name, unique_name
+      content = compile!(content)
+      tmp1, tmp2 = tmp_var('dict'), tmp_var('dict')
 
-      [:if, "#{tmp1} = #{access name}",
-       [:if, "#{tmp1} == true",
-        content,
-        [:multi,
-         # Wrap map in array because maps implement each
-         [:code, "#{tmp1} = [#{tmp1}] if #{tmp1}.respond_to?(:has_key?) || !#{tmp1}.respond_to?(:map)"],
-         [:code, "#{tmp2} = _slimdict"],
-         [:block, "#{tmp1}.each do |_slimdict|", content],
-         [:code, "_slimdict = #{tmp2}"]]]]
+      [:multi,
+       [:block, "if #{tmp1} = #{access name}"],
+       [:block,   "if #{tmp1} == true"],
+                     content,
+       [:block,   'else'],
+                    # Wrap map in array because maps implement each
+       [:block,     "#{tmp1} = [#{tmp1}] if #{tmp1}.respond_to?(:has_key?) || !#{tmp1}.respond_to?(:map)"],
+       [:block,     "#{tmp2} = _slimdict"],
+       [:block,     "#{tmp1}.each do |_slimdict|"],
+                      content,
+       [:block,     'end'],
+       [:block,     "_slimdict = #{tmp2}"],
+       [:block,   'end'],
+       [:block, 'end']]
+    end
+
+    def on_slim_output(escape, name, content)
+      raise 'Output statements with content are forbidden in sections mode' if !empty_exp?(content)
+      [:slim, :output, escape, access(name), content]
     end
 
     private

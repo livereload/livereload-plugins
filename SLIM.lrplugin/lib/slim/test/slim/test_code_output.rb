@@ -7,41 +7,7 @@ p
   = hello_world
 }
 
-    assert_html '<p>Hello World from @env</p>', source
-  end
-
-  def test_render_with_trailing_whitespace
-    source = %q{
-p
-  =' hello_world
-}
-
-    assert_html '<p>Hello World from @env </p>', source
-  end
-
-  def test_render_with_trailing_whitespace_after_tag
-    source = %q{
-p=' hello_world
-}
-
-    assert_html '<p>Hello World from @env</p> ', source
-  end
-
-  def test_no_escape_render_with_trailing_whitespace
-    source = %q{
-p
-  ==' hello_world
-}
-
-    assert_html '<p>Hello World from @env </p>', source
-  end
-
-  def test_no_escape_render_with_trailing_whitespace_after_tag
-    source = %q{
-p==' hello_world
-}
-
-    assert_html '<p>Hello World from @env</p> ', source
+    assert_html '<p>Hello World from @env</p>', source #, :debug => true
   end
 
   def test_render_with_conditional_call
@@ -134,7 +100,6 @@ p(id="test")==hello_world
   end
 
   def test_render_with_backslash_end
-# Keep trailing spaces!
     source = %q{
 p = \
 "Hello" + \
@@ -147,15 +112,6 @@ p = \
 }
 
     assert_html '<p>Hello Ruby!</p>7', source
-  end
-
-  def test_render_with_comma_end
-    source = %q{
-p = message("Hello",
-            "Ruby!")
-}
-
-    assert_html '<p>Hello Ruby!</p>', source
   end
 
   def test_render_with_no_trailing_character

@@ -1,21 +1,6 @@
 require 'helper'
 
 class TestSlimTextInterpolation < TestSlim
-  def test_interpolation_in_attribute
-    source = %q{
-p id="a#{id_helper}b" = hello_world
-}
-
-    assert_html '<p id="anoticeb">Hello World from @env</p>', source
-  end
-
-  def test_nested_interpolation_in_attribute
-    source = %q{
-p id="#{"abc#{1+1}" + "("}" = hello_world
-}
-
-    assert_html '<p id="abc2(">Hello World from @env</p>', source
-  end
 
   def test_interpolation_in_text
     source = %q{
@@ -40,10 +25,9 @@ p #{hello_world}
   def test_escape_interpolation
     source = %q{
 p \\#{hello_world}
-p text1 \\#{hello_world} text2
 }
 
-    assert_html '<p>#{hello_world}</p><p>text1 #{hello_world} text2</p>', source
+    assert_html '<p>#{hello_world}</p>', source
   end
 
   def test_complex_interpolation
@@ -68,12 +52,5 @@ p Message: #{message('hello', "user #{output_number}")}
 }
 
     assert_html '<script>do_something_evil();</script>', source
-  end
-
-  def test_interpolation_with_escaping_and_delimiter
-    source = %q{
-| #{(evil_method)}
-}
-    assert_html '&lt;script&gt;do_something_evil();&lt;&#47;script&gt;', source
   end
 end

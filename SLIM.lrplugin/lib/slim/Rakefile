@@ -1,42 +1,38 @@
 begin
   require 'bundler'
   Bundler::GemHelper.install_tasks
-rescue Exception
+rescue Exception => e
 end
 
 require 'rake/testtask'
 
-desc 'Run Slim benchmarks! (default parameters slow=false iterations=1000)'
-task :bench, :iterations, :slow do
-  ruby('benchmarks/run-benchmarks.rb')
+desc 'Run Slim benchmarks! (Default :iterations is 1000)'
+task :bench, :iterations, :slow do |t, args|
+  ruby("benchmarks/run.rb #{args[:slow]} #{args[:iterations]}")
 end
 
-Rake::TestTask.new('test') do |t|
-  t.libs << 'lib' << 'test/slim'
-  t.test_files = FileList['test/slim/test_*.rb']
+Rake::TestTask.new(:test) do |t|
+  t.libs << 'lib' << 'test'
+  t.pattern = 'test/slim/**/test_*.rb'
   t.verbose = true
 end
 
-Rake::TestTask.new('test:rails') do |t|
-  t.libs << 'lib'
-  t.test_files = FileList['test/rails/test/test_*.rb']
+Rake::TestTask.new(:integration) do |t|
+  t.libs << 'lib' << 'test'
+  t.pattern = 'test/integration/**/test_*.rb'
   t.verbose = true
-end
-
-task 'test:ci' do |t|
-  Rake::Task[ENV['TASK']].execute
 end
 
 begin
   require 'rcov/rcovtask'
   Rcov::RcovTask.new do |t|
-    t.libs << 'lib' << 'test/slim'
-    t.test_files = FileList['test/slim/test_*.rb']
+    t.libs << 'lib' << 'test'
+    t.pattern = 'test/**/test_*.rb'
     t.verbose = true
   end
 rescue LoadError
   task :rcov do
-    abort 'RCov is not available. In order to run rcov, you must: gem install rcov'
+    abort "RCov is not available. In order to run rcov, you must: gem install rcov"
   end
 end
 
@@ -47,7 +43,7 @@ begin
   end
 rescue LoadError
   task :yard do
-    abort 'YARD is not available. In order to run yard, you must: gem install yard'
+    abort "YARD is not available. In order to run yard, you must: gem install yard"
   end
 end
 

@@ -1,17 +1,6 @@
 require 'helper'
 
 class TestSlimRubyErrors < TestSlim
-  def test_multline_attribute
-    source = %q{
-p(data-1=1
-data2-=1)
-  p
-    = unknown_ruby_method
-}
-
-    assert_ruby_error NameError, "test.slim:5", source, :file => 'test.slim'
-  end
-
   def test_broken_output_line
     source = %q{
 p = hello_world + \
@@ -19,17 +8,7 @@ p = hello_world + \
   unknown_ruby_method
 }
 
-    # FIXME: Remove this hack!
-    # This is actually a jruby issue. Jruby reports a wrong
-    # line number 1 in this case:
-    #
-    # test = 1+\
-    #    unknown_variable
-    if RUBY_PLATFORM == "java"
-      assert_ruby_error NameError, "test.slim:2", source, :file => 'test.slim'
-    else
-      assert_ruby_error NameError, "test.slim:4", source, :file => 'test.slim'
-    end
+    assert_ruby_error NameError, "test.slim:4", source, :file => 'test.slim'
   end
 
   def test_broken_output_line2
@@ -94,23 +73,7 @@ p Text line 1
     assert_ruby_error NameError,"(__TEMPLATE__):4", source
   end
 
-  def test_embedded_erb
-    source = %q{
-erb:
-  <%= 123 %>
-  Hello from ERB!
-  <%#
-    comment block
-  %>
-  <% if true %>
-  Text
-  <% end %>
-= unknown_ruby_method
-}
-    assert_ruby_error NameError,"(__TEMPLATE__):11", source
-  end
-
-  def test_embedded_ruby1
+  def test_embedded_ruby
     source = %q{
 ruby:
   a = 1
@@ -119,29 +82,7 @@ ruby:
 = unknown_ruby_method
 }
 
-    assert_ruby_error NameError,"(__TEMPLATE__):6", source
-  end
-
-  def test_embedded_ruby2
-    source = %q{
-ruby:
-  a = 1
-  unknown_ruby_method
-}
-
-    assert_ruby_error NameError,"(__TEMPLATE__):4", source
-  end
-
-  def test_embedded_markdown
-    source = %q{
-markdown:
-  #Header
-  Hello from #{"Markdown!"}
-  "Second Line!"
-= unknown_ruby_method
-}
-
-    assert_ruby_error NameError,"(__TEMPLATE__):6", source
+    assert_ruby_error NameError,"(__TEMPLATE__):5", source
   end
 
   def test_embedded_javascript
@@ -180,7 +121,7 @@ p
     1+1
 }
 
-    assert_runtime_error 'Embedded engine embed_unknown not found', source
+    assert_runtime_error 'Invalid embedded engine embed_unknown', source
   end
 
   def test_explicit_end
@@ -194,17 +135,10 @@ div
     assert_runtime_error 'Explicit end statements are forbidden', source
   end
 
-  def test_multiple_id_attribute
+  def test_id_attribute_merging2
     source = %{
 #alpha id="beta" Test it
 }
-    assert_runtime_error 'Multiple id attributes specified', source
-  end
-
-  def test_splat_multiple_id_attribute
-    source = %{
-#alpha *{:id =>"beta"} Test it
-}
-    assert_runtime_error 'Multiple id attributes specified', source
+    assert_runtime_error 'Multiple id attributes specified, but id concatenation disabled', source
   end
 end

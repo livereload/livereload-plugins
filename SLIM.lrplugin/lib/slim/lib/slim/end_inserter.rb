@@ -10,12 +10,10 @@ module Slim
   #
   # @api private
   class EndInserter < Filter
-    ELSE_REGEX = /\Aelse|elsif|when\b/
-    END_REGEX = /\Aend\b/
+    ELSE_REGEX = /^else|elsif|when\b/
+    END_REGEX = /^end\b/
 
     # Handle multi expression `[:multi, *exps]`
-    #
-    # @return [Array] Corrected Temple expression with ends inserted
     def on_multi(*exps)
       result = [:multi]
       # This variable is true if the previous line was
@@ -39,7 +37,7 @@ module Slim
           prev_indent = false
         end
 
-        result << compile(exp)
+        result << compile!(exp)
       end
 
       # The last line can be a control code too.
@@ -48,12 +46,12 @@ module Slim
 
     private
 
-    # Appends an end
+    # Appends an end.
     def append_end(result)
-      result << [:code, 'end']
+      result << [:block, 'end']
     end
 
-    # Checks if an expression is a Slim control code
+    # Checks if an expression is a Slim control code.
     def control?(exp)
       exp[0] == :slim && exp[1] == :control
     end

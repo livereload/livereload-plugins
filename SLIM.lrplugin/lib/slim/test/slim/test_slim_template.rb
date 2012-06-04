@@ -3,7 +3,7 @@ require 'helper'
 class ::MockError < NameError
 end
 
-class TestSlimTemplate < TestSlim
+class TestSlimTemplate < MiniTest::Unit::TestCase
   class Scope
   end
 
@@ -40,9 +40,10 @@ class TestSlimTemplate < TestSlim
     begin
       template.render
       fail 'should have raised an exception'
-    rescue => ex
-      assert_kind_of NameError, ex
-      assert_backtrace(ex, 'test.slim:12')
+    rescue => boom
+      assert_kind_of NameError, boom
+      line = boom.backtrace.first
+      assert_equal 'test.slim', line.split(":").first
     end
   end
 
@@ -52,9 +53,10 @@ class TestSlimTemplate < TestSlim
     template = Slim::Template.new('test.slim') { data }
     begin
       res = template.render(Object.new, :name => 'Joe', :foo => 'bar')
-    rescue => ex
-      assert_kind_of MockError, ex
-      assert_backtrace(ex, 'test.slim:4')
+    rescue => boom
+      assert_kind_of MockError, boom
+      line = boom.backtrace.first
+      assert_equal 'test.slim', line.split(":").first
     end
   end
 
@@ -64,6 +66,7 @@ class TestSlimTemplate < TestSlim
     method = template.send(:compiled_method, [])
     assert_kind_of UnboundMethod, method
   end
+  
 
   def test_passing_locals
     template = Slim::Template.new { "p = 'Hey ' + name + '!'\n" }
@@ -82,16 +85,17 @@ class TestSlimTemplate < TestSlim
     assert_equal "<p>Hey Joe!</p>", template.render(Scope.new) { 'Joe' }
   end
 
-  def test_backtrace_file_and_line_reporting_without_locals
+  def backtrace_file_and_line_reporting_without_locals
     data = File.read(__FILE__).split("\n__END__\n").last
     fail unless data[0] == ?h
     template = Slim::Template.new('test.slim', 10) { data }
     begin
       template.render(Scope.new)
       fail 'should have raised an exception'
-    rescue => ex
-      assert_kind_of NameError, ex
-      assert_backtrace(ex, 'test.slim:12')
+    rescue => boom
+      assert_kind_of NameError, boom
+      line = boom.backtrace.first
+      assert_equal 'test.slim', line.split(":").first
     end
   end
 
@@ -101,9 +105,10 @@ class TestSlimTemplate < TestSlim
     template = Slim::Template.new('test.slim') { data }
     begin
       res = template.render(Scope.new, :name => 'Joe', :foo => 'bar')
-    rescue => ex
-      assert_kind_of MockError, ex
-      assert_backtrace(ex, 'test.slim:5')
+    rescue => boom
+      assert_kind_of MockError, boom
+      line = boom.backtrace.first
+      assert_equal 'test.slim', line.split(":").first
     end
   end
 end

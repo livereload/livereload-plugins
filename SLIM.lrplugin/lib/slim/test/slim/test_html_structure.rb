@@ -7,21 +7,11 @@ class TestSlimHtmlStructure < TestSlim
 html
   head
     title Simple Test Title
-  body 
+  body
     p Hello World, meet Slim.
 }
 
     assert_html '<html><head><title>Simple Test Title</title></head><body><p>Hello World, meet Slim.</p></body></html>', source
-  end
-
-  def test_html_tag_with_text_and_empty_line
-    source = %q{
-p Hello
-
-p World
-}
-
-    assert_html "<p>Hello</p><p>World</p>", source
   end
 
   def test_html_namespaces
@@ -35,29 +25,20 @@ html:body
 
   def test_doctype
     source = %q{
-doctype 1.1
+! doctype 5
 html
 }
 
-    assert_html '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html></html>', source, :format => :xhtml
+    assert_html '<!DOCTYPE html><html></html>', source
   end
 
-  def test_doctype_new_syntax
+  def test_capitalized_doctype
     source = %q{
-doctype 5
+! DOCTYPE 5
 html
 }
 
-    assert_html '<!DOCTYPE html><html></html>', source, :format => :xhtml
-  end
-
-  def test_doctype_new_syntax_html5
-    source = %q{
-doctype html
-html
-}
-
-    assert_html '<!DOCTYPE html><html></html>', source, :format => :xhtml
+    assert_html '<!DOCTYPE html><html></html>', source
   end
 
   def test_render_with_shortcut_attributes
@@ -68,26 +49,6 @@ h1#title This is my title
 }
 
     assert_html '<h1 id="title">This is my title</h1><div class="hello world" id="notice">Hello World from @env</div>', source
-  end
-
-  def test_render_with_overwritten_default_tag
-    source = %q{
-#notice.hello.world
-   = hello_world
- }
-
-    assert_html '<section class="hello world" id="notice">Hello World from @env</section>', source, :default_tag => 'section'
-   end
-
-  def test_render_with_custom_shortcut
-    source = %q{
-#notice.hello.world@test
-  = hello_world
-@abc
-  = hello_world
-}
-
-    assert_html '<div class="hello world" id="notice" role="test">Hello World from @env</div><section role="abc">Hello World from @env</section>', source, :shortcut => {'#' => 'id', '.' => 'class', '@' => 'section role'}
   end
 
   def test_render_with_text_block
@@ -283,22 +244,6 @@ p(id="marvin" class="martian" data-info="Illudium Q-36")= output_number
     assert_html '<p class="martian" data-info="Illudium Q-36" id="marvin">1337</p>', source
   end
 
-  def test_static_empty_attribute
-    source = %q{
-p(id="marvin" class="" data-info="Illudium Q-36")= output_number
-}
-
-    assert_html '<p class="" data-info="Illudium Q-36" id="marvin">1337</p>', source
-  end
-
-  def test_dynamic_empty_attribute
-    source = %q{
-p(id="marvin" class=nil other_empty=("".to_s) data-info="Illudium Q-36")= output_number
-}
-
-    assert_html '<p data-info="Illudium Q-36" id="marvin">1337</p>', source
-  end
-
   def test_closed_tag
     source = %q{
 closed/
@@ -342,238 +287,21 @@ closed(id="test")/
     source = %q{
 p Hello
 /! This is a comment
-
-   Another comment
 p World
 }
 
-    assert_html "<p>Hello</p><!--This is a comment\n\nAnother comment--><p>World</p>", source
+    assert_html "<p>Hello</p><!--This is a comment--><p>World</p>", source
   end
 
-  def test_render_with_html_conditional_and_tag
+  def test_render_with_html_comments_2
     source = %q{
-/[ if IE ]
- p Get a better browser.
+p Hello
+/! This is a comment
+   Another comment
+  Last line of comment.
+p World
 }
 
-    assert_html "<!--[if IE]><p>Get a better browser.</p><![endif]-->", source
-  end
-
-  def test_render_with_html_conditional_and_method_output
-    source = %q{
-/[ if IE ]
- = message 'hello'
-}
-
-    assert_html "<!--[if IE]>hello<![endif]-->", source
-  end
-
-  def test_multiline_attributes_with_method
-    source = %q{
-p<id="marvin"
-class="martian"
- data-info="Illudium Q-36"> = output_number
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<p class="martian" data-info="Illudium Q-36" id="marvin">1337</p>', str
-    end
-  end
-
-  def test_multiline_attributes_with_text_on_same_line
-    source = %q{
-p<id="marvin"
-  class="martian"
- data-info="Illudium Q-36"> THE space modulator
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<p class="martian" data-info="Illudium Q-36" id="marvin">THE space modulator</p>', str
-    end
-  end
-
-  def test_multiline_attributes_with_nested_text
-    source = %q{
-p<id="marvin"
-  class="martian"
-data-info="Illudium Q-36">
-  | THE space modulator
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<p class="martian" data-info="Illudium Q-36" id="marvin">THE space modulator</p>', str
-    end
-  end
-
-  def test_multiline_attributes_with_dynamic_attr
-    source = %q{
-p<id=id_helper
-  class="martian"
-  data-info="Illudium Q-36">
-  | THE space modulator
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<p class="martian" data-info="Illudium Q-36" id="notice">THE space modulator</p>', str
-    end
-  end
-
-  def test_multiline_attributes_with_nested_tag
-    source = %q{
-p<id=id_helper
-  class="martian"
-  data-info="Illudium Q-36">
-  span.emphasis THE
-  |  space modulator
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<p class="martian" data-info="Illudium Q-36" id="notice"><span class="emphasis">THE</span> space modulator</p>', str
-    end
-  end
-
-  def test_multiline_attributes_with_nested_text_and_extra_indentation
-    source = %q{
-li< id="myid"
-    class="myclass"
-data-info="myinfo">
-  a href="link" My Link
-}
-    Slim::Parser::DELIMITERS.each do |k,v|
-      str = source.sub('<',k).sub('>',v)
-      assert_html '<li class="myclass" data-info="myinfo" id="myid"><a href="link">My Link</a></li>', str
-    end
-  end
-
-  def test_block_expansion_support
-    source = %q{
-ul
-  li.first: a href='a' foo
-  li:       a href='b' bar
-  li.last:  a href='c' baz
-}
-    assert_html %{<ul><li class=\"first\"><a href=\"a\">foo</a></li><li><a href=\"b\">bar</a></li><li class=\"last\"><a href=\"c\">baz</a></li></ul>}, source
-  end
-
-  def test_block_expansion_class_attributes
-    source = %q{
-.a: .b: #c d
-}
-    assert_html %{<div class="a"><div class="b"><div id="c">d</div></div></div>}, source
-  end
-
-  def test_block_expansion_nesting
-    source = %q{
-html: body: .content
-  | Text
-}
-    assert_html %{<html><body><div class=\"content\">Text</div></body></html>}, source
-  end
-
-  def test_eval_attributes_once
-    source = %q{
-input[value=succ_x]
-input[value=succ_x]
-}
-    assert_html %{<input value="1" /><input value="2" />}, source
-  end
-
-  def test_shortcut_splat
-    source = %q{
-*hash This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b">This is my title</div>', source
-  end
-
-  def test_splat
-    source = %q{
-h1 *hash This is my title
-}
-
-    assert_html '<h1 a="The letter a" b="The letter b">This is my title</h1>', source
-  end
-
-  def test_splat_tag_name
-    source = %q{
-*{:tag => 'h1', :id => 'title'} This is my title
-}
-
-    assert_html '<h1 id="title">This is my title</h1>', source
-  end
-
-
-  def test_splat_empty_tag_name
-    source = %q{
-*{:tag => '', :id => 'test'} This is my title
-}
-
-    assert_html '<div id="test">This is my title</div>', source, :remove_empty_attrs => true
-    assert_html '<div id="test">This is my title</div>', source, :remove_empty_attrs => false
-  end
-
-  def test_closed_splat_tag
-    source = %q{
-*hash / This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b"/>', source
-  end
-
-  def test_splat_with_id_shortcut
-    source = %q{
-#myid*hash This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b" id="myid">This is my title</div>', source
-  end
-
-  def test_splat_with_class_shortcut
-    source = %q{
-.myclass*hash This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b" class="myclass">This is my title</div>', source
-  end
-
-  def test_splat_with_id_and_class_shortcuts
-    source = %q{
-#myid.myclass*hash This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b" class="myclass" id="myid">This is my title</div>', source
-  end
-
-  def test_splat_with_class_merging
-    source = %q{
-#myid.myclass *{:class => [:secondclass, %w(x y z)]} *hash This is my title
-}
-
-    assert_html '<div a="The letter a" b="The letter b" class="myclass secondclass x y z" id="myid">This is my title</div>', source
-  end
-
-  def test_splat_with_boolean_attribute
-    source = %q{
-*{:disabled => true, :empty1 => false, :empty2 => '', :empty3 => nil} This is my title
-}
-
-    assert_html '<div disabled="disabled">This is my title</div>', source
-    assert_html '<div disabled="disabled" empty1="" empty2="" empty3="">This is my title</div>', source, :remove_empty_attrs => false
-  end
-
-  def test_splat_merging_with_arrays
-    source = %q{
-*{:a => 1, :b => 2} *[[:c, 3], [:d, 4]] *[[:e, 5], [:f, 6]] This is my title
-}
-
-    assert_html '<div a="1" b="2" c="3" d="4" e="5" f="6">This is my title</div>', source
-  end
-
-  def test_splat_with_other_attributes
-    source = %q{
-h1 data-id="123" *hash This is my title
-}
-
-    assert_html '<h1 a="The letter a" b="The letter b" data-id="123">This is my title</h1>', source
+    assert_html "<p>Hello</p><!--This is a comment\n Another comment\nLast line of comment.--><p>World</p>", source
   end
 end

@@ -15,11 +15,11 @@ Slim uses [Temple](https://github.com/judofyr/temple) for parsing/compilation an
 
 ## Why?
 
-Within the Rails community, _Erb_ and _Haml_ are without doubt the two most popular templating engines. However, _Erb_'s syntax is cumbersome and _Haml_'s syntax can be quite cryptic to the uninitiated.
+Within the Rails community, _Erb_ and _Haml_ are without doubt the two most popular templating engines. However, _Erb_'s syntax is cumbersome and _Haml_'s performance isn't exactly the best.
 
 Slim was born to bring a minimalist syntax approach with speed. If people chose not to use Slim, it would not be because of speed.
 
-___Yes, Slim is speedy!___ Benchmarks are provided at the end of this README file. Don't trust the numbers? That's as it should be. Therefore we provide a benchmark rake task so you could test it yourself (`rake bench`).
+___Yes, Slim is speedy!___ Benchmarks are provided at the end of this README file. Alternatively, a benchmark rake task is provided so you could test it yourself (`rake bench`).
 
 ## How?
 
@@ -29,7 +29,7 @@ Install Slim as a gem:
 
 Include Slim in your Gemfile:
 
-    gem 'slim'
+    gem 'slim', :require => 'slim/rails'
 
 That's it! Now, just use the .slim extension and you're good to go.
 
@@ -41,16 +41,11 @@ If you want to use the Slim template directly, you can use the Tilt interface:
 
 ## Syntax Highlighters
 
-There are plugins for Vim, Emacs, Textmate and Espresso text editor:
-
-* [Vim](https://github.com/bbommarito/vim-slim)
-* [Textmate](https://github.com/fredwu/ruby-slim-tmbundle)
-* [Emacs](https://github.com/minad/emacs-slim)
-* [Espresso text editor](https://github.com/CiiDub/Slim-Sugar)
+Syntax highlight support for __Vim__ (very beta) and __Emacs__ are included in the `extra` folder. There is also a [Textmate bundle](https://github.com/fredwu/ruby-slim-textmate-bundle).
 
 ## Template Converters
 
-For Haml, there is a [Haml2Slim converter](https://github.com/fredwu/haml2slim). For HTML, there is a [HTML2Slim converter](https://github.com/joaomilho/html2slim).
+For Haml, there is a [Haml2Slim converter](https://github.com/fredwu/haml2slim). Please check out the [issue tracker](https://github.com/stonean/slim/issues) to see the status of the varies converters.
 
 ## The syntax
 
@@ -60,7 +55,7 @@ Slim's syntax has been influenced by both _Haml_ and _Jade_.
 
 Here's a quick example to demonstrate what a Slim template looks like:
 
-    doctype html
+    ! doctype html
     html
       head
         title Slim Examples
@@ -73,7 +68,7 @@ Here's a quick example to demonstrate what a Slim template looks like:
 
         = yield
 
-        - if items.any?
+        - unless items.empty?
           table
             - for item in items do
               tr
@@ -111,17 +106,13 @@ Here's a quick example to demonstrate what a Slim template looks like:
 
 > The equal sign tells Slim it's a Ruby call that produces output to add to the buffer (similar to Erb and Haml).
 
-#### `='`
-
-> Same as the single equal sign (`=`), except that it adds a trailing whitespace.
-
 #### `==`
 
-> Same as the single equal sign (`=`), but does not go through the `escape_html` method.
+> Same as the single equal sign, but does not go through the `escape_html` method.
 
-#### `=='`
+#### `!`
 
-> Same as the double equal sign (`==`), except that it adds a trailing whitespace.
+> This is a directive.  Most common example: `! doctype html # renders <!doctype html>`
 
 #### `/`
 
@@ -129,7 +120,7 @@ Here's a quick example to demonstrate what a Slim template looks like:
 
 #### `/!`
 
-> Use the forward slash immediately followed by an exclamation mark for html comments (` <!-- --> `).
+> Use the forward slash immediately followed by an exclamation mark for html comments (`<!-- -->`).
 
 
 ### Things to know
@@ -146,7 +137,7 @@ Here's a quick example to demonstrate what a Slim template looks like:
 #### If your ruby code needs to use multiple lines, append a `\` at the end of the lines, for example:
     = javascript_include_tag \
        "jquery", \
-       "application"
+       "application"`
 
 ### Wrap attributes with delimiters
 
@@ -156,12 +147,6 @@ Here's a quick example to demonstrate what a Slim template looks like:
     body
       h1(id="logo") = page_logo
       h2[id="tagline" class="small tagline"] = page_tagline
-
-
-  If you wrap the attributes, you can spread them across multiple lines:
-
-    h2[ id="tagline"
-        class="small tagline"] = page_tagline
 
 ### Add content to a tag
 
@@ -213,20 +198,6 @@ Here's a quick example to demonstrate what a Slim template looks like:
       div class="content"
         = show_content
 
-### Inline tags
-
-  Sometimes you may want to be a little more compact and inline the tags.
-
-    ul
-      li.first: a href="/a" A link
-      li: a href="/b" B link
-
-  For readability, don't forget you can wrap the attributes.
-
-    ul
-      li.first: a[href="/a"] A link
-      li: a[href="/b"] B link
-
 ### Set an attribute's value with a method
 
   * Alternative 1: Use parentheses (), {}, []. The code in the parentheses will be evaluated.
@@ -244,11 +215,10 @@ Here's a quick example to demonstrate what a Slim template looks like:
 
 ### Evaluate ruby code in text
 
-  Use standard Ruby interpolation. The text will be html escaped by default.
+  Use standard Ruby interpolation. The text will always be html escaped.
 
     body
       h1 Welcome #{current_user.name} to the show.
-      | Unescaped #{{content}} is also possible.
 
   To escape the interpolation (i.e. render as is)
 
@@ -263,9 +233,9 @@ Here's a quick example to demonstrate what a Slim template looks like:
       h1 id="headline"
         == page_headline
 
-  Alternatively, if you prefer to use single equal sign, you may do so by setting the `disable_escape` option to true.
+  Alternatively, if you prefer to use single equal sign, you may do so by setting the `auto_escape` option to false.
 
-    Slim::Engine.default_options[:disable_escape] = true
+    Slim::Engine.default_options[:auto_escape] = false
 
 ### Treat multiple lines of code as text that should bypass parsing
 
@@ -306,42 +276,36 @@ Here's a quick example to demonstrate what a Slim template looks like:
 
     <body><p><!--This will get displayed as html comments.--></p></body>
 
+### Validate Slim syntax
+
+There are two helpers you could use to validate your Slim syntax:
+
+    Slim::Validator.valid?(source) # -> true or false
+    Slim::Validator.validate!(source) # -> true or exception
+
 ## Benchmarks
 
-  *The benchmarks are only to demonstrate that Slim's speed should not
-  be a determining factor in your template choice. Even if we don't
-  agree, we'd prefer you to use any other reason for choosing another
-  template language.*
-
-    # Linux + Ruby 1.9.2, 1000 iterations
+    # OS X 10.6 + Ruby 1.9.2, 1000 iterations
 
                           user     system      total        real
-    (1) erb           0.680000   0.000000   0.680000 (  0.810375)
-    (1) erubis        0.510000   0.000000   0.510000 (  0.547548)
-    (1) fast erubis   0.530000   0.000000   0.530000 (  0.583134)
-    (1) slim          4.330000   0.020000   4.350000 (  4.495633)
-    (1) haml          4.680000   0.020000   4.700000 (  4.747019)
-    (1) haml ugly     4.530000   0.020000   4.550000 (  4.592425)
-    
-    (2) erb           0.240000   0.000000   0.240000 (  0.235896)
-    (2) erubis        0.180000   0.000000   0.180000 (  0.185349)
-    (2) fast erubis   0.150000   0.000000   0.150000 (  0.154970)
-    (2) slim          0.050000   0.000000   0.050000 (  0.046685)
-    (2) haml          0.490000   0.000000   0.490000 (  0.497864)
-    (2) haml ugly     0.420000   0.000000   0.420000 (  0.428596)
-    
-    (3) erb           0.030000   0.000000   0.030000 (  0.033979)
-    (3) erubis        0.030000   0.000000   0.030000 (  0.030705)
-    (3) fast erubis   0.040000   0.000000   0.040000 (  0.035229)
-    (3) slim          0.040000   0.000000   0.040000 (  0.036249)
-    (3) haml          0.160000   0.000000   0.160000 (  0.165024)
-    (3) haml ugly     0.150000   0.000000   0.150000 (  0.146130)
-    
-    (4) erb           0.060000   0.000000   0.060000 (  0.059847)
-    (4) erubis        0.040000   0.000000   0.040000 (  0.040770)
-    (4) slim          0.040000   0.000000   0.040000 (  0.047389)
-    (4) haml          0.190000   0.000000   0.190000 (  0.188837)
-    (4) haml ugly     0.170000   0.000000   0.170000 (  0.175378)
+    (1) erb           0.420000   0.000000   0.420000 (  0.429334)
+    (1) erubis        0.350000   0.000000   0.350000 (  0.356078)
+    (1) fast erubis   0.350000   0.000000   0.350000 (  0.355976)
+    (1) slim          3.300000   0.010000   3.310000 (  3.340637)
+    (1) haml          2.950000   0.000000   2.950000 (  2.970671)
+    (1) haml ugly     2.840000   0.010000   2.850000 (  2.856405)
+    (2) erb           0.150000   0.000000   0.150000 (  0.151098)
+    (2) erubis        0.130000   0.000000   0.130000 (  0.130713)
+    (2) fast erubis   0.100000   0.000000   0.100000 (  0.112199)
+    (2) slim          0.030000   0.000000   0.030000 (  0.027752)
+    (2) haml          0.320000   0.000000   0.320000 (  0.332581)
+    (2) haml ugly     0.280000   0.000000   0.280000 (  0.305250)
+    (3) erb           0.010000   0.000000   0.010000 (  0.014402)
+    (3) erubis        0.010000   0.000000   0.010000 (  0.015365)
+    (3) fast erubis   0.010000   0.000000   0.010000 (  0.012789)
+    (3) slim          0.010000   0.000000   0.010000 (  0.015583)
+    (3) haml          0.120000   0.000000   0.120000 (  0.120017)
+    (3) haml ugly     0.100000   0.010000   0.110000 (  0.117665)
 
     1. Uncached benchmark. Template is parsed every time.
        Activate this benchmark with slow=1.
@@ -355,27 +319,6 @@ Here's a quick example to demonstrate what a Slim template looks like:
        This is the fastest evaluation strategy because it benchmarks
        pure execution speed of the generated ruby code.
 
-    4. Compiled Tilt benchmark. Template is compiled with Tilt, which gives a more
-       accurate result of the performance in production mode in frameworks like
-       Sinatra, Ramaze and Camping. (Rails still uses its own template
-       compilation.)
-
-## Tests
-
-Slim provides an extensive test-suite based on minitest. You can run the tests
-with 'rake test' and the rails integration tests with 'rake test:rails'.
-
-Travis-CI is used for continous integration testing: http://travis-ci.org/#!/stonean/slim
-
-Slim is working well on all major Ruby implementations:
-
-* Ruby 1.8.7
-* Ruby 1.9.2
-* Ruby 1.9.3
-* Ruby EE
-* JRuby
-* Rubinius 2.0
-
 ## License
 
 This project is released under the MIT license.
@@ -388,24 +331,11 @@ This project is released under the MIT license.
 
 ## Discuss
 
-* [Google Group](http://groups.google.com/group/slim-template)
-* IRC Channel #slim-lang on freenode.net
+[Google Group](http://groups.google.com/group/slim-template)
 
 ## Slim related projects
 
-* [Temple](https://github.com/judofyr/slim)
-
-* [Vim syntax highlighting](https://github.com/bbommarito/vim-slim)
-* [Emacs syntax highlighting](https://github.com/minad/emacs-slim)
-* [Textmate bundle](https://github.com/fredwu/ruby-slim-tmbundle)
-* [Slim support for the Espresso text editor from MacRabbits](https://github.com/CiiDub/Slim-Sugar)
-
+* [Textmate bundle](https://github.com/fredwu/ruby-slim-textmate-bundle)
 * [Haml2Slim converter](https://github.com/fredwu/haml2slim)
-* [Html2Slim converter](https://github.com/joaomilho/html2slim)
-
 * [Rails 3 Generators](https://github.com/leogalmeida/slim-rails)
-
-* [Skim (Slim for Javascript)](https://github.com/jfirebaugh/skim)
 * [Slim for Clojure](https://github.com/chaslemley/slim.clj)
-* [Hamlet.rb (Similar template language)](https://github.com/gregwebs/hamlet.rb)
-* [Coffee script plugin for Slim](https://github.com/yury/coffee-views)

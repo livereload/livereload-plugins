@@ -3,21 +3,18 @@
 require 'rubygems'
 require 'minitest/unit'
 require 'slim'
-require 'slim/grammar'
 
 MiniTest::Unit.autorun
-
-Slim::Engine.after  Slim::Parser, Temple::Filters::Validator, :grammar => Slim::Grammar
-Slim::Engine.before Slim::Compiler, Temple::Filters::Validator, :grammar => Slim::Grammar
-Slim::Engine.before :AttributeMerger, Temple::Filters::Validator
 
 class TestSlim < MiniTest::Unit::TestCase
   def setup
     @env = Env.new
+    # Slim::Engine.set_default_options :debug => true
   end
 
   def teardown
     Slim::Sections.set_default_options(:dictionary_access => :wrapped)
+    Temple::Filters::EscapeHTML.default_options.delete(:use_html_safe)
   end
 
   def render(source, options = {}, &block)
@@ -39,20 +36,8 @@ class TestSlim < MiniTest::Unit::TestCase
     render(source, options)
     raise 'Ruby error expected'
   rescue error => ex
-    assert_backtrace(ex, from)
-  end
-
-  def assert_backtrace(ex, from)
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
-      # HACK: Rubinius stack trace sometimes has one entry more
-      if ex.backtrace[0] !~ /^#{Regexp.escape from}:/
-        ex.backtrace[1] =~ /^(.*?:\d+):/
-        assert_equal from, $1
-      end
-    else
-      ex.backtrace[0] =~ /^(.*?:\d+):/
-      assert_equal from, $1
-    end
+    ex.backtrace[0] =~ /^(.*?:\d+):/
+    assert_equal from, $1
   end
 
   def assert_ruby_syntax_error(from, source, options = {})
@@ -72,15 +57,15 @@ class TestSlim < MiniTest::Unit::TestCase
 end
 
 class Env
-  attr_reader :var, :x
+  attr_reader :var
 
-  class ::HtmlSafeString < String
+  class HtmlSafeString < String
     def html_safe?
       true
     end
   end
 
-  class ::HtmlUnsafeString < String
+  class HtmlUnsafeString < String
     def html_safe?
       false
     end
@@ -88,7 +73,6 @@ class Env
 
   def initialize
     @var = 'instance'
-    @x = 0
   end
 
   def id_helper
@@ -138,25 +122,12 @@ class Env
     "<script>do_something_evil();</script>"
   end
 
-  def method_which_returns_true
-    true
-  end
-
   def output_number
     1337
   end
-
-  def succ_x
-    @x = @x.succ
-  end
-
 end
 
 class ViewEnv
-  def output_number
-     1337
-  end
-
   def person
     [{:name => 'Joe'}, {:name => 'Jack'}]
   end
