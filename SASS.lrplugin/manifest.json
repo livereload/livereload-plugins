@@ -32,9 +32,14 @@
         "stylesheets"
       ],
       "ImportRegExps": [
-        "@import \"([^\"]+)\"",
-        "@import '([^']+)'",
-        "@import ([\\w./-]+)"
+        "@import\\s*\"([^\"]+)\"",
+        "@import\\s*'([^']+)'",
+        "@import\\s+([\\w./-]+)"
+      ],
+      "ImportContinuationRegExps": [
+        ",\\s*\"([^\"]+)\"",
+        ",\\s*'([^']+)'",
+        ",\\s*([\\w./-]+)"
       ],
       "DefaultImportedExts": [
         "sass",

@@ -25,9 +25,9 @@
         "stylesheets"
       ],
       "ImportRegExps": [
-        "@import \"([^\"]+)\"",
-        "@import '([^']+)'",
-        "@import ([\\w./-]+)"
+        "@import\\s*\"([^\"]+)\"",
+        "@import\\s*'([^']+)'",
+        "@import\\s*([\\w./-]+)"
       ],
       "DefaultImportedExts": [
         "styl"
