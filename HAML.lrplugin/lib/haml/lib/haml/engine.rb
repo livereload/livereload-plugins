@@ -20,7 +20,7 @@ module Haml
     include Compiler
 
     # The options hash.
-    # See {file:REFERENCE.md#options the Haml options documentation}.
+    # See {file:HAML_REFERENCE.md#haml_options the Haml options documentation}.
     #
     # @return [{Symbol => Object}]
     attr_accessor :options
@@ -52,62 +52,61 @@ module Haml
       @options[:format] == :html5
     end
 
-    if RUBY_VERSION < "1.9"
-      # The source code that is evaluated to produce the Haml document.
-      #
-      # In Ruby 1.9, this is automatically converted to the correct encoding
-      # (see {file:REFERENCE.md#encodings the `:encoding` option}).
-      #
-      # @return [String]
-      def precompiled
-        @precompiled
-      end
-    else
-      def precompiled
-        encoding = Encoding.find(@options[:encoding])
-        return @precompiled.force_encoding(encoding) if encoding == Encoding::BINARY
-        return @precompiled.encode(encoding)
-      end
+    # The source code that is evaluated to produce the Haml document.
+    #
+    # In Ruby 1.9, this is automatically converted to the correct encoding
+    # (see {file:HAML_REFERENCE.md#encoding-option the `:encoding` option}).
+    #
+    # @return [String]
+    def precompiled
+      return @precompiled if ruby1_8?
+      encoding = Encoding.find(@options[:encoding])
+      return @precompiled.force_encoding(encoding) if encoding == Encoding::BINARY
+      return @precompiled.encode(encoding)
     end
 
     # Precompiles the Haml template.
     #
     # @param template [String] The Haml template
     # @param options [{Symbol => Object}] An options hash;
-    #   see {file:REFERENCE.md#options the Haml options documentation}
+    #   see {file:HAML_REFERENCE.md#haml_options the Haml options documentation}
     # @raise [Haml::Error] if there's a Haml syntax error in the template
     def initialize(template, options = {})
       @options = {
-        :suppress_eval        => false,
-        :attr_wrapper         => "'",
-        # Don't forget to update the docs in doc-src/REFERENCE.md
+        :suppress_eval => false,
+        :attr_wrapper => "'",
+
+        # Don't forget to update the docs in doc-src/HAML_REFERENCE.md
         # if you update these
-        :autoclose            => %w[meta img link br hr input area param col base],
-        :preserve             => %w[textarea pre code],
-        :filename             => '(haml)',
-        :line                 => 1,
-        :ugly                 => false,
-        :format               => :xhtml,
-        :escape_html          => false,
-        :escape_attrs         => true,
-        :hyphenate_data_attrs => true,
+        :autoclose => %w[meta img link br hr input area param col base],
+        :preserve => %w[textarea pre code],
+
+        :filename => '(haml)',
+        :line => 1,
+        :ugly => false,
+        :format => :xhtml,
+        :escape_html => false,
+        :escape_attrs => true,
       }
 
-      @index = nil # explicitily initialize to avoid warnings
 
       template = check_haml_encoding(template) do |msg, line|
         raise Haml::Error.new(msg, line)
       end
 
-      set_up_encoding(options, template)
-
+      unless ruby1_8?
+        @options[:encoding] = Encoding.default_internal || template.encoding
+        @options[:encoding] = "utf-8" if @options[:encoding].name == "US-ASCII"
+      end
       @options.merge! options.reject {|k, v| v.nil?}
       @index = 0
 
-      @options[:format] = :xhtml if @options[:mime_type] == 'text/xml'
-
       unless [:xhtml, :html4, :html5].include?(@options[:format])
         raise Haml::Error, "Invalid output format #{@options[:format].inspect}"
+      end
+
+      if @options[:encoding] && @options[:encoding].is_a?(Encoding)
+        @options[:encoding] = @options[:encoding].name
       end
 
       # :eod is a special end-of-document marker
@@ -172,8 +171,7 @@ module Haml
     # @param block [#to_proc] A block that can be yielded to within the template
     # @return [String] The rendered template
     def render(scope = Object.new, locals = {}, &block)
-      parent = scope.instance_variable_defined?('@haml_buffer') ? scope.instance_variable_get('@haml_buffer') : nil
-      buffer = Haml::Buffer.new(parent, options_for_buffer)
+      buffer = Haml::Buffer.new(scope.instance_variable_get('@haml_buffer'), options_for_buffer)
 
       if scope.is_a?(Binding) || scope.is_a?(Proc)
         scope_object = eval("self", scope)
@@ -287,38 +285,23 @@ module Haml
     # All of the values here are such that when `#inspect` is called on the hash,
     # it can be `Kernel#eval`ed to get the same result back.
     #
-    # See {file:REFERENCE.md#options the Haml options documentation}.
+    # See {file:HAML_REFERENCE.md#haml_options the Haml options documentation}.
     #
     # @return [{Symbol => Object}] The options hash
     def options_for_buffer
       {
-        :autoclose            => @options[:autoclose],
-        :preserve             => @options[:preserve],
-        :attr_wrapper         => @options[:attr_wrapper],
-        :ugly                 => @options[:ugly],
-        :format               => @options[:format],
-        :encoding             => @options[:encoding],
-        :escape_html          => @options[:escape_html],
-        :escape_attrs         => @options[:escape_attrs],
-        :hyphenate_data_attrs => @options[:hyphenate_data_attrs],
+        :autoclose => @options[:autoclose],
+        :preserve => @options[:preserve],
+        :attr_wrapper => @options[:attr_wrapper],
+        :ugly => @options[:ugly],
+        :format => @options[:format],
+        :encoding => @options[:encoding],
+        :escape_html => @options[:escape_html],
+        :escape_attrs => @options[:escape_attrs],
       }
     end
 
     private
-
-    if RUBY_VERSION < "1.9"
-      def set_up_encoding(options, template)
-        options
-      end
-    else
-      def set_up_encoding(options, template)
-        @options.tap do |ops|
-          ops[:encoding] = Encoding.default_internal || template.encoding
-          ops[:encoding] = "utf-8" if ops[:encoding].name == "US-ASCII"
-          ops[:encoding] = ops[:encoding].name if ops[:encoding].is_a?(Encoding)
-        end
-      end
-    end
 
     def set_locals(locals, scope, scope_object)
       scope_object.send(:instance_variable_set, '@_haml_locals', locals)
