@@ -1,11 +1,13 @@
 require 'json'
+require 'open-uri'
 require 'net/http'
+require 'zlib'
 
 GEMS_DIR = '/Library/Ruby/Gems/1.8/gems'
 
 
 def find_gem name, options={}
-    options = { :prerelease => false, :install => true }.merge(options)
+    options = { :prerelease => false }.merge(options)
 
     versions = Dir["#{GEMS_DIR}/#{name}-*"].map { |path| File.basename(path) =~ /^#{name}-(\d+\.\d.*)$/ ? [path, $1] : nil }.compact
 
@@ -19,7 +21,37 @@ def find_gem name, options={}
 end
 
 
-class Dependency < Struct.new(:name, :cur_version, :old_version, :requires_update, :src_path, :dst_path)
+class GemHosting
+    class <<self
+        def latest_gem_version name, prerelease=false
+            result = gem_versions(name, prerelease).last
+            if result.nil? && prerelease
+                result = gem_versions(name, false).last
+            end
+            result[1]
+        end
+
+        def gem_versions name, prerelease=false
+            gem_specs(prerelease).select { |n, ver, plaf| n == name }.sort { |a, b| a[1] <=> b[1] }
+        end
+
+        def gem_specs prerelease=false
+            if prerelease
+                @prerelease_gem_specs ||= load_gem_specs('http://rubygems.org/prerelease_specs.4.8.gz')
+            else
+                @gem_specs ||= load_gem_specs('http://rubygems.org/latest_specs.4.8.gz')
+            end
+        end
+
+        def load_gem_specs url
+            puts "Loading gem list from #{url}..."
+            Marshal.load(Zlib::GzipReader.new(StringIO.new(open(url).read)).read)
+        end
+    end
+end
+
+
+class Dependency < Struct.new(:name, :cur_version, :old_version, :requires_update, :dst_path)
 end
 
 class NpmDependency < Dependency
@@ -38,8 +70,22 @@ class GemDependency < Dependency
 
     include Rake::DSL
 
+    def src_path
+        File.join(GEMS_DIR, "#{name}-#{cur_version}")
+    end
+
     def install! plugin_dir
-        cp_r src_path, dst_path
+        unless File.directory? src_path
+            sh "sudo gem install #{name} -v #{cur_version} --no-rdoc --no-ri --verbose"
+        end
+        begin
+            cp_r src_path, dst_path
+        rescue Errno::EACCES
+            # fix perms of compass-*/examples/css3/extensions/fancy-fonts/templates/project/bgrove.otf
+            sh "sudo chmod -R +r #{src_path}"
+            rm_rf dst_path
+            cp_r src_path, dst_path
+        end
     end
 
 end
@@ -81,24 +127,16 @@ class PluginTask
     end
 
     def bundle options
-        options = { :install => true }.merge(options)
-        options = options.merge(:install => false) if %w/false no 0/.include? ENV['INSTALL']
-
-        if options[:install] && !@gems.empty?
-            prerelease_flag = (options[:prerelease] ? "--prerelease" : "")
-            sh "sudo gem install #{@gems.join(' ')} --no-rdoc --no-ri --verbose #{prerelease_flag}"
-        end
-
         dep_versions = (JSON.parse(File.read(@versions_json)) rescue {})
 
         gem_dependencies = @gems.map do |gem_name|
-            src_path, cur_version = find_gem(gem_name, options)
+            cur_version = GemHosting.latest_gem_version(gem_name, options[:prerelease]).to_s
 
             dst_path = File.join(@lib_dir, gem_name)
 
             requires_update = (dep_versions[gem_name] != cur_version) || !File.exists?(dst_path)
 
-            GemDependency.new(gem_name, cur_version, dep_versions[gem_name], requires_update, src_path, dst_path)
+            GemDependency.new(gem_name, cur_version, dep_versions[gem_name], requires_update, dst_path)
         end
 
         npm_dependencies = if @npm.empty?
@@ -118,7 +156,7 @@ class PluginTask
 
                     requires_update = (dep_versions[npm_name] != cur_version) || !File.exists?(dst_path)
 
-                    NpmDependency.new(npm_name, cur_version, dep_versions[npm_name], requires_update, nil, dst_path)
+                    NpmDependency.new(npm_name, cur_version, dep_versions[npm_name], requires_update, dst_path)
                 end
             end
         end
@@ -187,5 +225,5 @@ PluginTask.new 'SASS',       :gems => %w(sass compass chunky_png html5-boilerpla
 
 task :default do
     puts ENV['INSTALL']
-    puts find_gem('compass', :install => false, :prerelease => true )
+    puts find_gem('compass', :prerelease => true )
 end
