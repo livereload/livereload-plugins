@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Listen::Listener do
   let(:adapter)           { mock(Listen::Adapter, :start => true).as_null_object }
-  let(:watched_directory) { Dir.tmpdir }
+  let(:watched_directory) { File.dirname(__FILE__) }
 
   subject { described_class.new(watched_directory) }
 
@@ -20,21 +20,25 @@ describe Listen::Listener do
         subject.directory.should eq watched_directory
       end
 
+      it 'converts the passed path into an absolute path - #21' do
+        described_class.new(File.join(watched_directory, '..')).directory.should eq File.expand_path('..', watched_directory)
+      end
+
       it 'sets the option for using relative paths in the callback to the default one' do
         subject.instance_variable_get(:@use_relative_paths).should eq described_class::DEFAULT_TO_RELATIVE_PATHS
       end
     end
 
     context 'with custom options' do
-      subject { described_class.new(watched_directory, :ignore => '.ssh', :filter => [/.*\.rb/,/.*\.md/],
+      subject { described_class.new(watched_directory, :ignore => /\.ssh/, :filter => [/.*\.rb/,/.*\.md/],
                                     :latency => 0.5, :force_polling => true, :relative_paths => true) }
 
       it 'passes the custom ignored paths to the directory record' do
-        subject.directory_record.ignored_paths.should =~ %w[.bundle .git .DS_Store log tmp vendor .ssh]
+        subject.directory_record.ignoring_patterns.should include /\.ssh/
       end
 
       it 'passes the custom filters to the directory record' do
-        subject.directory_record.filters.should =~  [/.*\.rb/,/.*\.md/]
+        subject.directory_record.filtering_patterns.should =~  [/.*\.rb/,/.*\.md/]
       end
 
       it 'sets the cutom option for using relative paths in the callback' do

@@ -10,7 +10,7 @@ The Listen gem listens to file modifications and notifies you about the changes.
 * Automatic fallback to polling if OS-specific adapter doesn't work.
 * Detects files modification, addidation and removal.
 * Checksum comparaison for modifications made under the same second.
-* Allows ignoring paths and supplying filters for better results.
+* Allows supplying regexp-patterns to ignore and filter paths for better results.
 * Tested on all Ruby environments via [travis-ci](http://travis-ci.org/guard/listen).
 
 ## Install
@@ -26,18 +26,18 @@ There are **two ways** to use Listen:
 1. Call `Listen.to` with either a single directory or multiple directories, then define the `change` callback in a block.
 2. Create a `listener` object and use it in an (ARel style) chainable way.
 
-Feel free to give your feeback via [Listen issues](https://github.com/guard/listener/issues)
+Feel free to give your feeback via [Listen issues](https://github.com/guard/listen/issues)
 
 ### Block API
 
 ``` ruby
 # Listen to a single directory.
-Listen.to('dir/path/to/listen', filter: /.*\.rb/, ignore: '/ignored/path') do |modified, added, removed|
+Listen.to('dir/path/to/listen', filter: /\.rb$/, ignore: %r{ignored/path/}) do |modified, added, removed|
   # ...
 end
 
 # Listen to multiple directories.
-Listen.to('dir/to/awesome_app', 'dir/to/other_app', filter: /.*\.rb/, latency: 0.1) do |modified, added, removed|
+Listen.to('dir/to/awesome_app', 'dir/to/other_app', filter: /\.rb$/, latency: 0.1) do |modified, added, removed|
   # ...
 end
 ```
@@ -46,8 +46,8 @@ end
 
 ``` ruby
 listener = Listen.to('dir/path/to/listen')
-listener = listener.ignore('/ignored/path')
-listener = listener.filter(/.*\.rb/)
+listener = listener.ignore(%r{^ignored/path/})
+listener = listener.filter(/\.rb$/)
 listener = listener.latency(0.5)
 listener = listener.force_polling(true)
 listener = listener.polling_fallback_message(false)
@@ -59,8 +59,8 @@ listener.start # blocks execution!
 
 ``` ruby
 Listen.to('dir/path/to/listen')
-      .ignore('/ignored/path')
-      .filter(/.*\.rb/)
+      .ignore(%r{^ignored/path/})
+      .filter(/\.rb$/)
       .latency(0.5)
       .force_polling(true)
       .polling_fallback_message('custom message')
@@ -99,7 +99,7 @@ For an easier access, the `Listen.to` method can also be used to create a multi-
 
 ``` ruby
 listener = Listen.to('app/css', 'app/js')
-                 .ignore('vendor') # both js/vendor and css/vendor will be ignored
+                 .ignore(%r{^vendor/}) # both js/vendor and css/vendor will be ignored
                  .change(&assets_callback)
 
 listener.start # blocks execution!
@@ -184,14 +184,17 @@ end
 These options can be set through `Listen.to` params or via methods (see the "Object" API)
 
 ```ruby
-:filter => /.*\.rb/, /.*\.coffee/              # Filter files to listen to via a regexps list.
+:filter => /\.rb$/, /\.coffee$/                # Filter files to listen to via a regexps list.
                                                # default: none
 
-:ignore => 'path1', 'path2'                    # Ignore a list of paths (root directory or sub-dir)
-                                               # default: '.bundle', '.git', '.DS_Store', 'log', 'tmp', 'vendor'
+:ignore => %r{app/CMake/}, /\.pid$/            # Ignore a list of paths (root directory or sub-dir)
+                                               # default: See DEFAULT_IGNORED_DIRECTORIES and DEFAULT_IGNORED_EXTENSIONS in Listen::DirectoryRecord
 
 :latency => 0.5                                # Set the delay (**in seconds**) between checking for changes
                                                # default: 0.1 sec (1.0 sec for polling)
+
+:relative_paths => true                        # Enable the use of relative paths in the callback.
+                                               # default: false
 
 :force_polling => true                         # Force the use of the polling adapter
                                                # default: none
@@ -199,6 +202,18 @@ These options can be set through `Listen.to` params or via methods (see the "Obj
 :polling_fallback_message => 'custom message'  # Set a custom polling fallback message (or disable it with `false`)
                                                # default: "WARNING: Listen fallen back to polling, learn more at https://github.com/guard/listen#fallback."
 ```
+
+### The patterns for filtering and ignoring paths
+
+Just like the unix convention of beginning absolute paths with the
+directory-separator (forward slash `/` in unix) and with no prefix for relative paths,
+Listen doesn't prefix relative paths (to the watched directory) with a directory-separator.
+
+Therefore make sure _NOT_ to prefix your regexp-patterns for filtering or ignoring paths
+with a directory-separator, otherwise they won't work as expected.
+
+As an example: to ignore the `build` directory in a C-project, use `%r{build/}`
+and not `%r{/build/}`.
 
 ### Non-blocking listening to changes
 

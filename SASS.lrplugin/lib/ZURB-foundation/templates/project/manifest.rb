@@ -12,7 +12,7 @@ javascript 'javascripts/modernizr.foundation.js', :to => 'modernizr.foundation.j
 javascript 'javascripts/jquery.customforms.js', :to => 'jquery.customforms.js'
 javascript 'javascripts/jquery.reveal.js', :to => 'jquery.reveal.js'
 javascript 'javascripts/jquery.orbit-1.4.0.js', :to => 'jquery.orbit-1.4.0.js'
-javascript 'javascripts/jquery.tooltips.js', :to => 'jquery.tooltips.min.js'
+javascript 'javascripts/jquery.tooltips.js', :to => 'jquery.tooltips.js'
 javascript 'javascripts/jquery.placeholder.min.js', :to => 'jquery.placeholder.min.js'
 javascript 'javascripts/app.js', :to => 'app.js'
 

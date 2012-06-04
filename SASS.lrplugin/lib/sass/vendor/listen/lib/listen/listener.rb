@@ -1,3 +1,5 @@
+require 'pathname'
+
 module Listen
   class Listener
     attr_reader :directory, :directory_record, :adapter
@@ -9,8 +11,8 @@ module Listen
     #
     # @param [String] directory the directory to listen to
     # @param [Hash] options the listen options
-    # @option options [String] ignore a list of paths to ignore
-    # @option options [Regexp] filter a list of regexps file filters
+    # @option options [Regexp] ignore a pattern for ignoring paths
+    # @option options [Regexp] filter a pattern for filtering paths
     # @option options [Float] latency the delay between checking for changes in seconds
     # @option options [Boolean] relative_paths whether or not to use relative-paths in the callback
     # @option options [Boolean] force_polling whether to force the polling adapter or not
@@ -23,8 +25,8 @@ module Listen
     #
     def initialize(directory, options = {}, &block)
       @block              = block
-      @directory          = directory
-      @directory_record   = DirectoryRecord.new(directory)
+      @directory          = Pathname.new(directory).realpath.to_s
+      @directory_record   = DirectoryRecord.new(@directory)
       @use_relative_paths = DEFAULT_TO_RELATIVE_PATHS
 
       @use_relative_paths = options.delete(:relative_paths) if options[:relative_paths]
@@ -41,8 +43,8 @@ module Listen
     # @param [Boolean] blocking whether or not to block the current thread after starting
     #
     def start(blocking = true)
-      t = Thread.new { @adapter = initialize_adapter }
-      @directory_record.build
+      t = Thread.new { @directory_record.build }
+      @adapter = initialize_adapter
       t.join
       @adapter.start(blocking)
     end
@@ -80,18 +82,18 @@ module Listen
       !!@adapter && @adapter.paused == true
     end
 
-    # Adds ignored paths to the listener.
+    # Adds ignoring patterns to the listener.
     #
     # @param (see Listen::DirectoryRecord#ignore)
     #
     # @return [Listen::Listener] the listener
     #
-    def ignore(*paths)
-      @directory_record.ignore(*paths)
+    def ignore(*regexps)
+      @directory_record.ignore(*regexps)
       self
     end
 
-    # Adds file filters to the listener.
+    # Adds filtering patterns to the listener.
     #
     # @param (see Listen::DirectoryRecord#filter)
     #
@@ -117,7 +119,7 @@ module Listen
       self
     end
 
-    # Defines whether the use of the polling adapter
+    # Sets whether the use of the polling adapter
     # should be forced or not.
     #
     # @example Forcing the use of the polling adapter
@@ -129,6 +131,21 @@ module Listen
     #
     def force_polling(value)
       @adapter_options[:force_polling] = value
+      self
+    end
+
+    # Sets whether the paths in the callback should be
+    # relative or absolute.
+    #
+    # @example Enabling relative paths in the callback
+    #   relative_paths true
+    #
+    # @param [Boolean] value whether to enable relative paths in the callback or not
+    #
+    # @return [Listen::Listener] the listener
+    #
+    def relative_paths(value)
+      @use_relative_paths = value
       self
     end
 

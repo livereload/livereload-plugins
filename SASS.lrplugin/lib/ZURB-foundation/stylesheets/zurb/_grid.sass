@@ -23,6 +23,8 @@
     margin-left: 0
 [class*="column"]+[class*='column']:last-child
   float: right
+[class*="column"]+.end[class*="column"]
+  float: left
 
 .row
   .one.columns
@@ -96,7 +98,7 @@
   .centered
     float: none
     margin: 0 auto
-    
+
 // Source Ordering
 .push-two
   left: 17.4%
@@ -141,7 +143,7 @@ img, object, embed
   height: auto
 img
   -ms-interpolation-mode: bicubic
-#map_canvas img, .map_canvas img 
+#map_canvas img, .map_canvas img
   max-width: none !important
 
 // Nicolas Gallagher's micro clearfix
@@ -152,7 +154,7 @@ img
   clear: both
 .row, .clearfix
   zoom: 1
-  
+
 // Blockgrids
 //----------------------------------------------------------------------------------------------------
 

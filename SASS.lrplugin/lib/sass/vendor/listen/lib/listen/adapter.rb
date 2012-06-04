@@ -83,6 +83,14 @@ module Listen
       @turnstile.signal # ensure no thread is blocked
     end
 
+    # Returns whether the adapter is statred or not
+    #
+    # @return [Boolean] whether the adapter is started or not
+    #
+    def started?
+      @stop.nil? ? false : !@stop
+    end
+
     # Blocks the main thread until the poll thread
     # calls the callback.
     #
@@ -129,7 +137,7 @@ module Listen
     ensure
       Thread.kill(t) if t
       FileUtils.rm(test_file) if File.exists?(test_file)
-      adapter.stop
+      adapter.stop if adapter && adapter.started?
     end
 
     private

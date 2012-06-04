@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Listen::MultiListener do
   let(:adapter)             { mock(Listen::Adapter, :start => true).as_null_object }
-  let(:watched_directories) { [File.dirname(__FILE__), Dir.tmpdir] }
+  let(:watched_directories) { [File.dirname(__FILE__), File.expand_path('../..', __FILE__)] }
 
   subject { described_class.new(*watched_directories) }
 
@@ -19,23 +19,28 @@ describe Listen::MultiListener do
       it 'sets the directories' do
         subject.directories.should =~ watched_directories
       end
+
+      it 'converts the passed paths into absolute paths - #21' do
+        paths = watched_directories.map { |d| File.join(d, '..') }
+        described_class.new(*paths).directories.should =~ watched_directories.map{ |d| File.expand_path('..', d) }
+      end
     end
 
     context 'with custom options' do
       subject do
-        args = watched_directories << {:ignore => '.ssh', :filter => [/.*\.rb/,/.*\.md/], :latency => 0.5, :force_polling => true}
+        args = watched_directories << {:ignore => /\.ssh/, :filter => [/.*\.rb/,/.*\.md/], :latency => 0.5, :force_polling => true}
         described_class.new(*args)
       end
 
       it 'passes the custom ignored paths to each directory record' do
         subject.directories_records.each do |r|
-          r.ignored_paths.should =~ %w[.bundle .git .DS_Store log tmp vendor .ssh]
+          r.ignoring_patterns.should include /\.ssh/
         end
       end
 
       it 'passes the custom filters to each directory record' do
         subject.directories_records.each do |r|
-          r.filters.should =~  [/.*\.rb/,/.*\.md/]
+          r.filtering_patterns.should =~  [/.*\.rb/,/.*\.md/]
         end
       end
 

@@ -233,6 +233,43 @@ module Sass
       return hash.sort_by {|k, v| k}
     end
 
+    # Asserts that `value` falls within `range` (inclusive), leaving
+    # room for slight floating-point errors.
+    #
+    # @param name [String] The name of the value. Used in the error message.
+    # @param range [Range] The allowed range of values.
+    # @param value [Numeric, Sass::Script::Number] The value to check.
+    # @param unit [String] The unit of the value. Used in error reporting.
+    # @return [Numeric] `value` adjusted to fall within range, if it
+    #   was outside by a floating-point margin.
+    def check_range(name, range, value, unit='')
+      grace = (-0.00001..0.00001)
+      str = value.to_s
+      value = value.value if value.is_a?(Sass::Script::Number)
+      return value if range.include?(value)
+      return range.first if grace.include?(value - range.first)
+      return range.last if grace.include?(value - range.last)
+      raise ArgumentError.new(
+        "#{name} #{str} must be between #{range.first}#{unit} and #{range.last}#{unit}")
+    end
+
+    # Returns whether or not `seq1` is a subsequence of `seq2`. That is, whether
+    # or not `seq2` contains every element in `seq1` in the same order (and
+    # possibly more elements besides).
+    #
+    # @param seq1 [Array]
+    # @param seq2 [Array]
+    # @return [Boolean]
+    def subsequence?(seq1, seq2)
+      i = j = 0
+      loop do
+        return true if i == seq1.size
+        return false if j == seq2.size
+        i += 1 if seq1[i] == seq2[j]
+        j += 1
+      end
+    end
+
     # Returns information about the caller of the previous method.
     #
     # @param entry [String] An entry in the `#caller` list, or a similarly formatted string
@@ -397,6 +434,14 @@ module Sass
     # @return [Boolean]
     def ironruby?
       RUBY_ENGINE == "ironruby"
+    end
+
+    # Like `Dir.glob`, but works with backslash-separated paths on Windows.
+    #
+    # @param path [String]
+    def glob(path)
+      path = path.gsub('\\', '/') if windows?
+      Dir.glob(path)
     end
 
     ## Cross-Ruby-Version Compatibility

@@ -6,8 +6,8 @@ module Listen
     #
     # @param [String] directories the directories to listen to
     # @param [Hash] options the listen options
-    # @option options [String] ignore a list of paths to ignore
-    # @option options [Regexp] filter a list of regexps file filters
+    # @option options [Regexp] ignore a pattern for ignoring paths
+    # @option options [Regexp] filter a pattern for filtering paths
     # @option options [Float] latency the delay between checking for changes in seconds
     # @option options [Boolean] force_polling whether to force the polling adapter or not
     # @option options [String, Boolean] polling_fallback_message to change polling fallback message or remove it
@@ -22,8 +22,8 @@ module Listen
       directories = args
 
       @block               = block
-      @directories         = directories
-      @directories_records = directories.map { |d| DirectoryRecord.new(d) }
+      @directories         = directories.map  { |d| Pathname.new(d).realpath.to_s }
+      @directories_records = @directories.map { |d| DirectoryRecord.new(d) }
 
       ignore(*options.delete(:ignore)) if options[:ignore]
       filter(*options.delete(:filter)) if options[:filter]
@@ -38,8 +38,8 @@ module Listen
     # @param [Boolean] blocking whether or not to block the current thread after starting
     #
     def start(blocking = true)
-      t = Thread.new { @adapter = initialize_adapter }
-      @directories_records.each { |r| r.build }
+      t = Thread.new { @directories_records.each { |r| r.build } }
+      @adapter = initialize_adapter
       t.join
       @adapter.start(blocking)
     end

@@ -1,6 +1,5 @@
 require 'set'
 require 'find'
-require 'pathname'
 require 'digest/sha1'
 
 module Listen
@@ -12,61 +11,92 @@ module Listen
   class DirectoryRecord
     attr_reader :directory, :paths, :sha1_checksums
 
-    # Default paths' beginnings that doesn't get stored in the record
-    DEFAULT_IGNORED_PATHS = %w[.bundle .git .DS_Store log tmp vendor]
+    DEFAULT_IGNORED_DIRECTORIES = %w[.rbx .bundle .git .svn log tmp vendor]
+
+    DEFAULT_IGNORED_EXTENSIONS  = %w[.DS_Store]
+
+    # Defines the used precision based on the type of mtime returned by the
+    # system (whether its in milliseconds or just seconds)
+    #
+    HIGH_PRECISION_SUPPORTED = File.mtime(__FILE__).to_f.to_s[-2..-1] != '.0'
+
+    # Data structure used to save meta data about a path
+    #
+    MetaData = Struct.new(:type, :mtime)
+
+    # Class methods
+    #
+    class << self
+
+      # Creates the ignoring patterns from the default ignored
+      # directories and extensions. It memoizes the generated patterns
+      # to avoid unnecessary computation.
+      #
+      def generate_default_ignoring_patterns
+        @@default_ignoring_patterns ||= Array.new.tap do |default_patterns|
+          # Add directories
+          ignored_directories = DEFAULT_IGNORED_DIRECTORIES.map { |d| Regexp.escape(d) }
+          default_patterns << %r{^(?:#{ignored_directories.join('|')})/}
+
+          # Add extensions
+          ignored_extensions = DEFAULT_IGNORED_EXTENSIONS.map { |e| Regexp.escape(e) }
+          default_patterns << %r{(?:#{ignored_extensions.join('|')})$}
+        end
+      end
+    end
 
     # Initializes a directory record.
     #
     # @option [String] directory the directory to keep track of
     #
     def initialize(directory)
-      @directory = directory
-      raise ArgumentError, "The path '#{directory}' is not a directory!" unless File.directory?(@directory)
+      raise ArgumentError, "The path '#{directory}' is not a directory!" unless File.directory?(directory)
 
-      @ignored_paths  = Set.new(DEFAULT_IGNORED_PATHS)
-      @filters        = Set.new
-      @sha1_checksums = Hash.new
+      @directory          = directory
+      @ignoring_patterns  = Set.new
+      @filtering_patterns = Set.new
+      @sha1_checksums     = Hash.new
+
+      @ignoring_patterns.merge(DirectoryRecord.generate_default_ignoring_patterns)
     end
 
-    # Returns the ignored paths in the record
+    # Returns the ignoring patterns in the record
     #
-    # @return [Array<String>] the ignored paths
+    # @return [Array<Regexp>] the ignoring patterns
     #
-    def ignored_paths
-      @ignored_paths.to_a
+    def ignoring_patterns
+      @ignoring_patterns.to_a
     end
 
-    # Returns the filters used in the record to know
+    # Returns the filtering patterns used in the record to know
     # which paths should be stored.
     #
-    # @return [Array<String>] the used filters
+    # @return [Array<Regexp>] the filtering patterns
     #
-    def filters
-      @filters.to_a
+    def filtering_patterns
+      @filtering_patterns.to_a
     end
 
-    # Adds ignored path to the record.
+    # Adds ignoring patterns to the record.
     #
     # @example Ignore some paths
-    #   ignore ".git", ".svn"
+    #   ignore %r{^ignored/path/}, /man/
     #
-    # @param [String, Array<String>] paths a path or a list of paths to ignore
+    # @param [Regexp] regexp a pattern for ignoring paths
     #
-    def ignore(*paths)
-      @ignored_paths.merge(paths)
+    def ignore(*regexps)
+      @ignoring_patterns.merge(regexps)
     end
 
-    # Adds file filters to the listener.
+    # Adds filtering patterns to the listener.
     #
     # @example Filter some files
     #   ignore /\.txt$/, /.*\.zip/
     #
-    # @param [Array<Regexp>] regexps a list of regexps file filters
-    #
-    # @return [Listen::Listener] the listener itself
+    # @param [Regexp] regexp a pattern for filtering paths
     #
     def filter(*regexps)
-      @filters.merge(regexps)
+      @filtering_patterns.merge(regexps)
     end
 
     # Returns whether a path should be ignored or not.
@@ -76,7 +106,8 @@ module Listen
     # @return [Boolean]
     #
     def ignored?(path)
-      @ignored_paths.any? { |ignored_path| path =~ /#{ignored_path}$/ }
+      path = relative_to_base(path)
+      @ignoring_patterns.any? { |pattern| pattern =~ path }
     end
 
     # Returns whether a path should be filtered or not.
@@ -86,7 +117,11 @@ module Listen
     # @return [Boolean]
     #
     def filtered?(path)
-      @filters.empty? || @filters.any? { |filter| path =~ filter }
+      # When no filtering patterns are set, ALL files are stored.
+      return true if @filtering_patterns.empty?
+
+      path = relative_to_base(path)
+      @filtering_patterns.any? { |pattern| pattern =~ path }
     end
 
     # Finds the paths that should be stored and adds them
@@ -95,7 +130,6 @@ module Listen
     def build
       @paths = Hash.new { |h, k| h[k] = Hash.new }
       important_paths { |path| insert_path(path) }
-      @updated_at = Time.now.to_i
     end
 
     # Detects changes in the passed directories, updates
@@ -111,13 +145,25 @@ module Listen
     def fetch_changes(directories, options = {})
       @changes    = { :modified => [], :added => [], :removed => [] }
       directories = directories.sort_by { |el| el.length }.reverse # diff sub-dir first
+
       directories.each do |directory|
         next unless directory[@directory] # Path is or inside directory
         detect_modifications_and_removals(directory, options)
         detect_additions(directory, options)
       end
-      @updated_at = Time.now.to_i
+
       @changes
+    end
+
+    # Converts an absolute path to a path that's relative to the base directory.
+    #
+    # @param [String] path the path to convert
+    #
+    # @return [String] the relative path
+    #
+    def relative_to_base(path)
+      return nil unless path[@directory]
+      path.sub(%r{^#{@directory}#{File::SEPARATOR}?}, '')
     end
 
     private
@@ -134,10 +180,10 @@ module Listen
     # @option options [Boolean] relative_paths whether or not to use relative paths for changes
     #
     def detect_modifications_and_removals(directory, options = {})
-      @paths[directory].each do |basename, type|
+      @paths[directory].each do |basename, meta_data|
         path = File.join(directory, basename)
 
-        case type
+        case meta_data.type
         when 'Dir'
           if File.directory?(path)
             detect_modifications_and_removals(path, options) if options[:recursive]
@@ -148,8 +194,15 @@ module Listen
           end
         when 'File'
           if File.exist?(path)
-            new_mtime = File.mtime(path).to_i
-            if @updated_at < new_mtime || (@updated_at == new_mtime && content_modified?(path))
+            new_mtime = mtime_of(path)
+
+            # First check if we are in the same second (to update checksums)
+            # before checking the time difference
+            if  (meta_data.mtime.to_i == new_mtime.to_i && content_modified?(path)) || meta_data.mtime < new_mtime
+              # Update the meta data of the files
+              meta_data.mtime = new_mtime
+              @paths[directory][basename] = meta_data
+
               @changes[:modified] << (options[:relative_paths] ? relative_to_base(path) : path)
             end
           else
@@ -176,7 +229,9 @@ module Listen
         next if path == @directory
 
         if File.directory?(path)
-          if ignored?(path) || (directory != path && (!options[:recursive] && existing_path?(path)))
+          # Add a trailing slash to directories when checking if a directory is
+          # ignored to optimize finding them as Find.find doesn't.
+          if ignored?(path + File::SEPARATOR) || (directory != path && (!options[:recursive] && existing_path?(path)))
             Find.prune # Don't look any further into this directory.
           else
             insert_path(path)
@@ -197,12 +252,12 @@ module Listen
     #
     def content_modified?(path)
       sha1_checksum = Digest::SHA1.file(path).to_s
-      if @sha1_checksums[path] != sha1_checksum
-        @sha1_checksums[path] = sha1_checksum
-        true
-      else
-        false
-      end
+      return false if @sha1_checksums[path] == sha1_checksum
+
+      had_no_checksum = @sha1_checksums[path].nil?
+      @sha1_checksums[path] = sha1_checksum
+
+      had_no_checksum ? false : true
     end
 
     # Traverses the base directory looking for paths that should
@@ -215,7 +270,9 @@ module Listen
         next if path == @directory
 
         if File.directory?(path)
-          if ignored?(path)
+          # Add a trailing slash to directories when checking if a directory is
+          # ignored to optimize finding them as Find.find doesn't.
+          if ignored?(path + File::SEPARATOR)
             Find.prune # Don't look any further into this directory.
           else
             yield(path)
@@ -231,7 +288,10 @@ module Listen
     # @param [String] path the path to insert in @paths.
     #
     def insert_path(path)
-      @paths[File.dirname(path)][File.basename(path)] = File.directory?(path) ? 'Dir' : 'File'
+      meta_data = MetaData.new
+      meta_data.type = File.directory?(path) ? 'Dir' : 'File'
+      meta_data.mtime = mtime_of(path) unless meta_data.type == 'Dir' # mtimes of dirs are not used yet
+      @paths[File.dirname(path)][File.basename(path)] = meta_data
     end
 
     # Returns whether or not a path exists in the paths hash.
@@ -244,14 +304,14 @@ module Listen
       @paths[File.dirname(path)][File.basename(path)] != nil
     end
 
-    # Converts an absolute path to a path that's relative to the base directory.
+    # Returns the modification time of a file based on the precision defined by the system
     #
-    # @param [String] path the path to convert
+    # @param [String] file the file for which the mtime must be returned
     #
-    # @return [String] the relative path
+    # @return [Fixnum, Float] the mtime of the file
     #
-    def relative_to_base(path)
-      path.sub(%r(^#{@directory}/?/), '')
+    def mtime_of(file)
+      File.mtime(file).send(HIGH_PRECISION_SUPPORTED ? :to_f : :to_i)
     end
   end
 end
