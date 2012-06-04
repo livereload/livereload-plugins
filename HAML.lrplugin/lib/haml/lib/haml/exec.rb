@@ -1,5 +1,6 @@
 require 'optparse'
 require 'fileutils'
+require 'rbconfig'
 
 module Haml
   # This module handles the various Haml executables (`haml` and `haml-convert`).
@@ -80,7 +81,11 @@ module Haml
         end
 
         opts.on('--unix-newlines', 'Use Unix-style newlines in written files.') do
-          @options[:unix_newlines] = true if ::Haml::Util.windows?
+          # Note that this is the preferred way to check for Windows, since
+          # JRuby and Rubinius also run there.
+          if RbConfig::CONFIG['host_os'] =~ /mswin|windows|mingw/i
+            @options[:unix_newlines] = true
+          end
         end
 
         opts.on_tail("-?", "-h", "--help", "Show this message") do
@@ -128,9 +133,9 @@ module Haml
         printf color(color, "%11s %s\n"), name, arg
       end
 
-      # Same as \{Kernel.puts}, but doesn't print anything if the `--quiet` option is set.
+      # Same as `Kernel.puts`, but doesn't print anything if the `--quiet` option is set.
       #
-      # @param args [Array] Passed on to \{Kernel.puts}
+      # @param args [Array] Passed on to `Kernel.puts`
       def puts(*args)
         return if @options[:for_engine][:quiet]
         Kernel.puts(*args)
@@ -239,7 +244,7 @@ END
           @options[:load_paths] << path
         end
 
-        unless ::Haml::Util.ruby1_8?
+        unless RUBY_VERSION < "1.9"
           opts.on('-E ex[:in]', 'Specify the default external and internal character encodings.') do |encoding|
             external, internal = encoding.split(':')
             Encoding.default_external = external if external && !external.empty?
@@ -332,6 +337,18 @@ END
 
         opts.on('-x', '--xhtml', 'Parse the input using the more strict XHTML parser.') do
           @module_opts[:xhtml] = true
+        end
+
+        opts.on("--html-attributes", "Use HTML style attributes instead of Ruby hash style.") do
+          @module_opts[:html_style_attributes] = true
+        end
+
+        unless RUBY_VERSION < "1.9"
+          opts.on('-E ex[:in]', 'Specify the default external and internal character encodings.') do |encoding|
+            external, internal = encoding.split(':')
+            Encoding.default_external = external if external && !external.empty?
+            Encoding.default_internal = internal if internal && !internal.empty?
+          end
         end
 
         super
