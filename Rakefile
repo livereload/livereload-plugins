@@ -174,16 +174,16 @@ task 'all'
 desc "Bundle the latest prerelease versions of all compilers"
 task 'all:pre'
 
-PluginTask.new 'SASS',       :gems => %w(sass compass chunky_png html5-boilerplate compass-h5bp compass-960-plugin compass-susy-plugin ZURB-foundation compass-colors fancy-buttons compass-slickmap grid-coordinates compass-rgbapng compass-baseline compass-vgrid-plugin compass-less-plugin sassy-buttons compass-thesquaregrid compass-fancybox-plugin font-stack compass-squaregrid-plugin compass_formalize compass-lucid-grid stitch), :important => %w(sass compass)
-PluginTask.new 'HAML',       :gems => %w(haml)
-PluginTask.new 'SLIM',       :gems => %w(slim temple tilt)
-
 PluginTask.new 'CoffeeScript', :npm => %w(coffee-script)
 PluginTask.new 'IcedCoffeeScript', :npm => %w(iced-coffee-script)
 PluginTask.new 'Eco',        :npm => %w(eco)
 PluginTask.new 'LESS',       :npm => %w(less)
 PluginTask.new 'Stylus',     :npm => %w(stylus nib canvas)
 PluginTask.new 'Jade',       :npm => %w(jade markdown)
+
+PluginTask.new 'HAML',       :gems => %w(haml)
+PluginTask.new 'SLIM',       :gems => %w(slim temple tilt)
+PluginTask.new 'SASS',       :gems => %w(sass compass chunky_png html5-boilerplate compass-h5bp compass-960-plugin compass-susy-plugin ZURB-foundation compass-colors fancy-buttons compass-slickmap grid-coordinates compass-rgbapng compass-baseline compass-vgrid-plugin compass-less-plugin sassy-buttons compass-thesquaregrid compass-fancybox-plugin font-stack compass-squaregrid-plugin compass_formalize compass-lucid-grid stitch), :important => %w(sass compass)
 
 task :default do
     puts ENV['INSTALL']
