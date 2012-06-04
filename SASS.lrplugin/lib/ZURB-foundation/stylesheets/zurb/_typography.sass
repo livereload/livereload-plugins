@@ -1,10 +1,12 @@
-// Typography
-//------------------------------------------------
+@import includes
 
-#{headings(all)}
+/* Typography */
+h1,h2,h3,h4,h5,h6
   color: #181818
   font-weight: bold
   line-height: 1.25
+  small
+    color: #777
   a
     font-weight: inherit
 h1
@@ -27,20 +29,19 @@ h6
   +font-size(15)
   font-weight: normal
 
-.subheader
+.subhead
   color: #777
   font-weight: 300
   margin-bottom: 24px
 
 p
-  +font-size(13)
-  line-height: 1.25
+  line-height: 17px
   margin: 0 0 18px
   img
     margin: 0
   &.lead
     +font-size(18)
-    line-height: 1.5
+    line-height: 24px
 
 em, i
   font-style: italic
@@ -51,24 +52,23 @@ strong, b
 small
   font-size: 60%
   line-height: inherit
-h1 small, h2 small, h3 small, h4 small, h5 small
-  color: #777
 
-// Blockquotes
-//--------------------------------------------
-blockquote, blockquote p
+/* Blockquotes */
+blockquote
   line-height: 20px
   color: #777
-blockquote
   margin: 0 0 18px
   padding: 9px 20px 0 19px
   border-left: 1px solid #ddd
+  p
+    line-height: 20px
+    color: #777
   cite
     display: block
     +font-size(12)
     color: #555
     &:before
-      content: "\2014 \0020"
+      content: "/2014 /0020"
     a, a:visited
       color: #555
 
@@ -87,19 +87,11 @@ abbr, acronym
   cursor: help
 abbr
   text-transform: none
-
-// Print styles
-//-------------------------------------------
-
-// Notes:
-//
-//  Using "@media print" to avoid additional HTTP request to print.css
-//  Source: http://www.phpied.com/delay-loading-your-print-css/
-//  Credit: Paul Irish & HTML5 Boilerplate (http://html5boilerplate.com/)
-
+  
+/* Print styles. Inlined to avoid required HTTP connection: */ /* www.phpied.com/delay-loading-your-print-css/ */
+/* Credit to Paul Irish and HTML5 Boilerplate (html5boilerplate.com) */
 .print-only
-  display: none !important
-
+  display: block !important
 @media print
   *
     background: transparent !important

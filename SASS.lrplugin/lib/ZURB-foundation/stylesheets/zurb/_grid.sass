@@ -1,19 +1,16 @@
-// Grid
-//--------------------------------------
-// This is the mobile-friendly, responsive grid that
-// lets Foundation work much of its magic
+/* Arfully Masterminded by ZURB */
+/* Grid :: This is the mobile-friendly, responsive grid that lets Foundation work much of its magic. */
 
 .container
   padding: 0 20px
-
+// To set the grid to a certain size, set max-width to width
 .row
   width: 100%
-  max-width: $grid-max-width
-  min-width: $grid-min-width
+  max-width: 980px
+  min-width: 727px
   margin: 0 auto
   .row
     min-width: 0
-
 .column, .columns
   margin-left: 4.4%
   float: left
@@ -21,10 +18,6 @@
   position: relative
   &:first-child
     margin-left: 0
-[class*="column"]+[class*='column']:last-child
-  float: right
-[class*="column"]+.end[class*="column"]
-  float: left
 
 .row
   .one.columns
@@ -32,7 +25,7 @@
   .two.columns
     width: 13%
   .three.columns
-    width: 21.679%
+    width: 21.7%
   .four.columns
     width: 30.37%
   .five.columns
@@ -51,7 +44,7 @@
     width: 91.3%
   .twelve.columns
     width: 100%
-
+    
   .offset-by-one
     margin-left: 13.1%
     &:first-child
@@ -95,11 +88,8 @@
   .offset-by-eleven
     &:first-child
       margin-left: 95.7%
-  .centered
-    float: none
-    margin: 0 auto
 
-// Source Ordering
+/* Source Ordering */
 .push-two
   left: 17.4%
 .push-three
@@ -138,15 +128,14 @@
 .pull-ten
   right: 87%
 
+
 img, object, embed
   max-width: 100%
   height: auto
 img
   -ms-interpolation-mode: bicubic
-#map_canvas img, .map_canvas img
-  max-width: none !important
-
-// Nicolas Gallagher's micro clearfix
+  
+/* Nicolas Gallagher's micro clearfix */
 .row:before, .row:after, .clearfix:before, .clearfix:after
   content: ""
   display: table
@@ -154,55 +143,44 @@ img
   clear: both
 .row, .clearfix
   zoom: 1
+  
+/* Blockgrids */
+/* These are 2-up, 3-up, 4-up and 5-up ULs, suited for repeating block of content. Add 'mobile' to them to switch them just like the layout grid (one item per line) on phones */
 
-// Blockgrids
-//----------------------------------------------------------------------------------------------------
-
-// Notes:
-//
-//    These are 2-up, 3-up, 4-up and 5-up ULs suited for repeating blocks of content.
-//    Add 'mobile' to them to switch them just like the layout grid (one item per line) on phones
-//
-//    For IE7/8 compatibility, block-grid items need to be the same height.
-//    To support arbitrary height, set $support-block-grid-nth-child to true
-//    Just know that IE7/8 do not support :nth-child
-
+/*For IE7/8 compatibility block-grid items need to be	the same height. You can optionally uncomment the lines below to support arbitrary height, but know that IE7/8 do not support :nth-child. */
 .block-grid
   display: block
   overflow: hidden
-  & > li
+  &>li
     display: block
     height: auto
     float: left
   &.two-up
     margin-left: -4%
-    & > li
+    &>li
       margin-left: 4%
       width: 46%
-      @if $support-block-grid-nth-child
-        &:nth-child(2n+1)
-          clear: left
+      //&:nth-child(2n+1)
+      //  clear: left
   &.three-up
     margin-left: -2%
-    & > li
+    &>li
       margin-left: 2%
       width: 31.3%
-      @if $support-block-grid-nth-child
-        &:nth-child(3n+1)
-          clear: left
+      //&:nth-child(3n+1)
+      //  clear: left
   &.four-up
-    margin-left: -2%
-    & > li
-      margin-left: 2%
+    margin-left: -4%
+    &>li
+      margin-left: 4%
       width: 23%
-      @if $support-block-grid-nth-child
-        &:nth-child(4n+1)
-          clear: left
+      //&:nth-child(4n+1)
+      //  clear: left
   &.five-up
     margin-left: -1.5%
-    & > li
+    &>li
       margin-left: 1.5%
       width: 18.5%
-      @if $support-block-grid-nth-child
-        &:nth-child(5n+1)
-          clear: left
+      //&:nth-child(5n+1)
+      //  clear: left
+  

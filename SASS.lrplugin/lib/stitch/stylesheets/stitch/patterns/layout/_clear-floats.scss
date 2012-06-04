@@ -4,7 +4,7 @@
 // Normally the parent will have no height. 
 // @see http://nicolasgallagher.com/micro-clearfix-hack/
 //
-%stitch-clearfix {
+.__clearfix {
 	&:before,
 	&:after {
 	    content:"";
@@ -17,5 +17,5 @@
 }
 
 @mixin clear-floats {
-	@extend %stitch-clearfix;
+	@extend .__clearfix;
 }

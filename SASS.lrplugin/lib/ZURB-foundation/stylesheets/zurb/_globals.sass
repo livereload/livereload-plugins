@@ -1,72 +1,66 @@
-// Table of Contents:
-//
-// Reset & Standards
-// Links
-// Lists
-// Tables
-// Misc
-//                     
+@import includes
+
+/* Artfully masterminded by ZURB */
+/* Table of Contents */
+/*  :: Reset & Standards */    
+/*  :: Links */                       
+/*  :: Lists */                       
+/*  :: Tables */                      
+/*  :: Misc */                        
                                                           
-// Global Reset & Standards
-//-----------------------------------------
+/* Global Reset & Standards */
+/* Eric Meyer's CSS Reset :: http://meyerweb.com/eric/tools/css/reset/ :: v2.0 | 20110126 :: License: none (public domain) */
 
-//	Eric Meyer's CSS Reset
-//	http://meyerweb.com/eric/tools/css/reset/ 
-//	v2.0 | 20110126
-//  License: none (public domain)
-
-html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed,  figure, figcaption, footer, header, hgroup,  menu, nav, output, ruby, section, summary, time, mark, audio, video
-  margin: 0
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video
+  margin: 0 
   padding: 0
   border: 0
   font: inherit
   vertical-align: baseline
 html
   font-size: 62.5%
-// HTML5 display-role reset for older browsers
+  
+/* HTML 5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section
   display: block
 body
   line-height: 1
-ol,ul
+ol, ul
   list-style: none
 blockquote, q
   quotes: none
-blockquote:before, blockquote:after, q:before, q:after
-  content: ""
-  content: none
+  &:before, &:after
+    content: ""
+    content: none
 table
   border-collapse: collapse
   border-spacing: 0
-
+  
 body
-  background: $body-background
-  font-family: $body-font-family
-  +font-size($body-font-size)
+  background: #fff
+  +HelveticaFontStack
+  +font-size(13)
   +font-smoothing(antialiased)
-  line-height: $body-line-height
-  color: $body-color
+  line-height: 18px
+  color: #555
   position: relative
 
-// Links
-//-----------------------------------------
-
+/* Links */
 a
-  color: $default-color
+  color: $blue
   text-decoration: none
   line-height: inherit
   &:hover
-    color: lighten($default-color, 10%)
+    color: lighten($blue, 10%)
   &:focus
-    color: $orange
+    color: #cc4714
     outline: none
+    
 p
   a, a:visited
     line-height: inherit
 
-// Lists
-//-----------------------------------------
-
+/* Lists */
 ul, ol
   margin-bottom: 18px
 ul
@@ -86,9 +80,7 @@ li
 ul.large li
   line-height: 21px
   
-// Tables
-//-----------------------------------------
-
+/* Tables */
 table
   background: $white
   +border-radius(3px)
@@ -104,7 +96,7 @@ table
   thead
     tr
       th
-        padding: 8px 10px 9px
+        padding: 8px 10 9px
         +font-size(14)
         font-weight: bold
         color: #222
@@ -114,15 +106,10 @@ table
           border-right: none
   tbody
     tr
-      &.alt
-        background: #f9f9f9
-      &:nth-child(even)
-        background: #f9f9f9
       td
-        color: #333
-        padding: 9px 10px
-        vertical-align: top
-        border: none
+        +font-size(12)
+        line-height: 18px
+        text-align: left
   tfoot
     tr
       td
@@ -134,23 +121,12 @@ table
         &:last-child
           border-right: none
         
-// Misc
-//-----------------------------------------
-
+/* Misc */
 .left 
   float: left
 .right
   float: right
-.text-left
-  text-align: left
-.text-right
-  text-align: right
-.text-center
-  text-align: center
 .hide
   display: none
 .highlight
-  background: $yellow
-
-#googlemap img, object, embed, #map_canvas embed, #map_canvas img, #map_canvas object
-  max-width: none
+  background: #ff0

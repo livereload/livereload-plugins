@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 require 'pathname'
 
 class UtilTest < Test::Unit::TestCase
@@ -118,6 +118,13 @@ class UtilTest < Test::Unit::TestCase
       lcs([1, 4, 2, 5, 3], [1, 2, 3]) {|a, b| a == b && a.to_s})
     assert_equal([-4, 2, 8],
       lcs([-5, 3, 2, 8], [-4, 1, 8]) {|a, b| (a - b).abs <= 1 && [a, b].max})
+  end
+
+  def test_group_by_to_a
+    assert_equal([[1, [1, 3, 5, 7]], [0, [2, 4, 6, 8]]],
+      group_by_to_a(1..8) {|i| i % 2})
+    assert_equal([[1, [1, 4, 7, 10]], [2, [2, 5, 8, 11]], [0, [3, 6, 9, 12]]],
+      group_by_to_a(1..12) {|i| i % 3})
   end
 
   def test_subsequence

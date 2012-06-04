@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'test/unit'
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 require 'sass/css'
 
 class CSS2SassTest < Test::Unit::TestCase
@@ -298,6 +298,22 @@ CSS
 SASS
 .foo::bar {a: b}
 .foo::baz {c: d}
+CSS
+  end
+
+  def test_triple_nesting
+    assert_equal(<<SASS, css2sass(<<CSS))
+.foo .bar .baz
+  a: b
+SASS
+.foo .bar .baz {a: b}
+CSS
+
+    assert_equal(<<SASS, css2sass(<<CSS))
+.bar > .baz
+  c: d
+SASS
+.bar > .baz {c: d}
 CSS
   end
 

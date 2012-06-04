@@ -132,10 +132,3 @@ Mixins
    of given columns with a margin to the right; to disable the margin, set
    `$last` to `false`
 * `selection-color($color)` - Sets the background color used for text selection
-
-
-Special Thanks
-==============
-
-Thanks to Joni Korpi for providing the Less Framework to the community, and to
-Samson Ootoovak for helping me test the version 1 beta.

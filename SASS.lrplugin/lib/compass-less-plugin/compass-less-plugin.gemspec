@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "compass-less-plugin"
-  s.version     = "1.0"
+  s.version     = "1.0.beta.0"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["William Wells"]
   s.email       = ["less@hapa.me"]

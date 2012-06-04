@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
-require File.dirname(__FILE__) + '/../test_helper'
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
+require 'sass/test_helper'
 require 'sass/plugin'
 require 'fileutils'
 
@@ -8,7 +8,7 @@ class SassPluginTest < Test::Unit::TestCase
   @@templates = %w{
     complex script parent_ref import scss_import alt
     subdir/subdir subdir/nested_subdir/nested_subdir
-    options
+    options import_content
   }
   @@templates += %w[import_charset import_charset_ibm866] unless Sass::Util.ruby1_8?
   @@templates << 'import_charset_1_8' if Sass::Util.ruby1_8?

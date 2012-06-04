@@ -1,10 +1,20 @@
-// Imports -------------------------------------------------------------------
+//** SCREEN STYLES **//
 
+// Imports --------------------------------------------------------------
+
+@import "compass/reset";
 @import "base";
 
-/* Layout ------------------------------------------------------------------*/
+/* Layout -------------------------------------------------------------- */
 
+// establish your vertical baseline grid.
+// see the compass typography module for details on vertical rhythm.
+@include establish-baseline;
+
+// change '.container' to match your HTML container element
+// or @extend it to apply multiple containers on your site.
 .container {
   @include container;
-  @include susy-grid-background;
-}
+  @include show-grid; }
+
+/* Styles -------------------------------------------------------------- */

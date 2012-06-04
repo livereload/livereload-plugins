@@ -1,6 +1,5 @@
-@mixin keyframes($name) {
-  @-webkit-keyframes #{$name} { @content; }
-  @-moz-keyframes #{$name} { @content; }
-  @-o-keyframes #{$name} { @content; }
-  @keyframes #{$name} { @content; }
+@mixin keyframes {
+  @-webkit-keyframes { @content; }
+  @-moz-keyframes { @content; }
+  @keyframes { @content; }
 }

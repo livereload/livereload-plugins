@@ -1,11 +1,18 @@
-// CSS for jQuery Orbit Plugin 1.4.0
-// Maintained for Foundation. foundation.zurb.com
-// Free to use under the MIT license.
-// http://www.opensource.org/licenses/mit-license.php
+@import includes/settings
+@import includes/mixins
+@import includes/colors
+/* CSS for jQuery Orbit Plugin 1.2.3 :: www.ZURB.com/playground :: Copyright 2010, ZURB :: Free to use under the MIT license. :: http://www.opensource.org/licenses/mit-license.php */
 
-// Orbit container
-//-------------------------------------------------
+/*  PUT IN YOUR SLIDER ID AND SIZE TO MAKE LOAD BEAUTIFULLY */                    
+#featured
+  width: 940px
+  height: 450px
+  background: #000 image-url('orbit/loading.gif') no-repeat center center
+  overflow: hidden
+  &>img, &>div, &>a
+    display: none
 
+/* Container */
 div.orbit-wrapper
   width: 1px
   height: 1px
@@ -17,83 +24,77 @@ div.orbit
   overflow: hidden
   &.with-bullets
     margin-bottom: 40px
-  .orbit-slide
-    max-width: 100%
+  &>img
     position: absolute
     top: 0
     left: 0
-  a.orbit-slide
+  &>a
     border: none
+    position: absolute
+    top: 0
+    left: 0
     line-height: 0
     display: none
-  div.orbit-slide
-    width: 100%
-    height: 100%
 
-// If your slider only uses content or anchors, you're going to want to put the width and height declarations on the .orbit > div and div.orbit > a tags in addition to just the .orbit-wrapper
-
-// Timer
-//--------------------------------------------------
-div.orbit-wrapper
-  div.timer
-    width: 40px
-    height: 40px
-    overflow: hidden
-    position: absolute
-    top: 10px
-    right: 10px
-    +opacity(0.6)
-    cursor: pointer
-    z-index: 31
-  span.rotator
-    display: block
-    width: 40px
-    height: 40px
-    position: absolute
-    top: 0
-    left: -20px
-    background: image-url('orbit/rotator-black.png') no-repeat
-    z-index: 3
-    &.move
-      left: 0
-  span.mask
-    display: block
-    width: 20px
-    height: 40px
-    position: absolute
-    top: 0
-    right: 0
-    z-index: 2
-    overflow: hidden
-    &.move
-      width: 40px
-      left: 0
-      background: image-url('orbit/timer-black.png') repeat 0 0
-  span.pause
-    display: block
-    width: 40px
-    height: 40px
-    position: absolute
-    top: 0
+/* Note: If your slider only uses content or anchors, you're going to want to put the width and height declarations on the ".orbit>div" and "div.orbit>a" tags in addition to just the .orbit-wrapper */
+/* Timer */
+div.timer
+  width: 40px
+  height: 40px
+  overflow: hidden
+  position: absolute
+  top: 10px
+  right: 10px
+  +opacity(0.6)
+  cursor: pointer
+  z-index: 1001
+span.rotator
+  display: block
+  width: 40px
+  height: 40px
+  position: absolute
+  top: 0
+  left: -20px
+  background: image-url('orbit/rotator-black.png') no-repeat
+  z-index: 3
+  &.move
     left: 0
-    background: image-url('orbit/pause-black.png') no-repeat
-    z-index: 4
-    +opacity(0)
-    &.active
-      background: image-url('orbit/pause-black.png') no-repeat 0 -40px
-  div.timer:hover span.pause, span.pause.active
-    +opacity(1)
-
-// Orbit captions
-//-------------------------------------------------
-
+span.mask
+  display: block
+  width: 20px
+  height: 40px
+  position: absolute
+  top: 0
+  right: 0
+  z-index: 2
+  overflow: hidden
+  &.move
+    width: 40px
+    left: 0
+    background: image-url('orbit/timer-black.png') repeat 0 0
+span.pause
+  display: block
+  width: 40px
+  height: 40px
+  position: absolute
+  top: 0
+  left: 0
+  background: image-url('orbit/pause-black.png') no-repeat
+  z-index: 4
+  +opacity(0)
+  &.active
+    background: image-url('orbit/pause-black.png') no-repeat 0 -40
+div.timer:hover span.pause, span.pause.active
+  +opacity(1)
+  
+/* Captions */
 .orbit-caption
   display: none
   +HelveticaFontStack
 .orbit-wrapper .orbit-caption
   background: #000
   background: rgba(0,0,0,0.6)
-  z-index: 30
+  z-index: 1000
   color: #fff
   text-align: center
   padding: 7px 0
@@ -102,35 +103,30 @@ div.orbit-wrapper
   right: 0
   bottom: 0
   width: 100%
+  
+/* Directional Nav */
+div.slider-nav
+  display: block
+  span
+    width: 78px
+    height: 100px
+    text-indent: -99999px
+    position: absolute
+    z-index: 1000
+    top: 50%
+    margin-top: -50px
+    cursor: pointer
+    &.right
+      background: image-url('orbit/right-arrow.png')
+      right: 0
+    &.left
+      background: image-url('orbit/left-arrow.png')
+      left: 0
 
-// Directional Nav
-//----------------------------------------------------
-
-div.orbit-wrapper
-  div.slider-nav
-    display: block
-    span
-      width: 78px
-      height: 100px
-      text-indent: -99999px
-      position: absolute
-      z-index: 30
-      top: 50%
-      margin-top: -50px
-      cursor: pointer
-      &.right
-        background: image-url('orbit/right-arrow.png')
-        right: 0
-      &.left
-        background: image-url('orbit/left-arrow.png')
-        left: 0
-
-// Bullet Nav
-//--------------------------------------------------
-
-ul.orbit-bullets
+/* Bullet Nav */
+.orbit-bullets
   position: absolute
-  z-index: 30
+  z-index: 1000
   list-style: none
   bottom: -40px
   left: 50%
@@ -156,53 +152,5 @@ ul.orbit-bullets
     &.active
       &.has-thumb
         background-position: 0 0
-        border-top: solid 2px $black
-
-// Fluid Layout
-//-------------------------------------------------------------------------------------
-
-div.orbit img.fluid-placeholder
-  visibility: hidden
-  position: static
-  display: block
-  width: 100%
-div.orbit, div.orbit-wrapper
-  width: 100% !important
-
-ul.orbit-bullets
-  position: absolute
-  z-index: 30
-  list-style: none
-  bottom: -50px
-  left: 50%
-  margin-left: -50px
-  padding: 0
-  li
-    float: left
-    margin-left: 5px
-    cursor: pointer
-    color: #999
-    text-indent: -9999px
-    background: image-url('orbit/bullets.jpg') no-repeat 4px 0
-    width: 13px
-    height: 12px
-    overflow: hidden
-    &.has-thumb
-      background: none
-      width: 100px
-      height: 75px
-    &.active
-      color: #222
-      background-position: -8px 0
-      &.has-thumb
-        background-position: 0 0
-        border-top: 2px solid #000
-
-// Correct timer in IE
-.timer
-  display: none !important
-div.caption
-  background: transparent
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000,endColorstr=#99000000)
-  zoom: 1
-
+        border-top: solid 2px $black  
+    
