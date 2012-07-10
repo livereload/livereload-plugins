@@ -67,6 +67,7 @@ function Lexer(str, options) {
   };
 
   this.str = str
+    .replace(/\s+$/, '\n')
     .replace(/\r\n?/g, '\n')
     .replace(/\\ *\n/g, ' ')
     .replace(/([,:(]) *\n\s*/g, comment)
@@ -430,6 +431,7 @@ Lexer.prototype = {
       op = alias[op] || op;
       var tok = new Token(op, op);
       tok.space = captures[2];
+      this.isURL = false;
       return tok;
     }
   },
