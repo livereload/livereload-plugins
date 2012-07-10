@@ -7,85 +7,77 @@ class EngineTest < MiniTest::Unit::TestCase
   # if so, the second element should be the line number that should be reported for the error.
   # If this isn't provided, the tests will assume the line number should be the last line of the document.
   EXCEPTION_MAP = {
-    "!!!\n  a" => "Illegal nesting: nesting within a header command is illegal.",
-    "a\n  b" => "Illegal nesting: nesting within plain text is illegal.",
-    "/ a\n  b" => "Illegal nesting: nesting within a tag that already has content is illegal.",
-    "% a" => 'Invalid tag: "% a".',
-    "%p a\n  b" => "Illegal nesting: content can't be both given on the same line as %p and nested within it.",
-    "%p=" => "There's no Ruby code for = to evaluate.",
-    "%p~" => "There's no Ruby code for ~ to evaluate.",
-    "~" => "There's no Ruby code for ~ to evaluate.",
-    "=" => "There's no Ruby code for = to evaluate.",
-    "%p/\n  a" => "Illegal nesting: nesting within a self-closing tag is illegal.",
-    ":a\n  b" => ['Filter "a" is not defined.', 1],
-    ":a= b" => 'Invalid filter name ":a= b".',
-    "." => "Illegal element: classes and ids must have values.",
-    ".#" => "Illegal element: classes and ids must have values.",
-    ".{} a" => "Illegal element: classes and ids must have values.",
-    ".() a" => "Illegal element: classes and ids must have values.",
-    ".= a" => "Illegal element: classes and ids must have values.",
-    "%p..a" => "Illegal element: classes and ids must have values.",
-    "%a/ b" => "Self-closing tags can't have content.",
-    "%p{:a => 'b',\n:c => 'd'}/ e" => ["Self-closing tags can't have content.", 2],
-    "%p{:a => 'b',\n:c => 'd'}=" => ["There's no Ruby code for = to evaluate.", 2],
-    "%p.{:a => 'b',\n:c => 'd'} e" => ["Illegal element: classes and ids must have values.", 1],
-    "%p{:a => 'b',\n:c => 'd',\n:e => 'f'}\n%p/ a" => ["Self-closing tags can't have content.", 4],
+    "!!!\n  a"                                             => error(:illegal_nesting_header),
+    "a\n  b"                                               => error(:illegal_nesting_plain),
+    "/ a\n  b"                                             => error(:illegal_nesting_content),
+    "% a"                                                  => error(:invalid_tag, '% a'),
+    "%p a\n  b"                                            => error(:illegal_nesting_line, 'p'),
+    "%p="                                                  => error(:no_ruby_code, '='),
+    "%p~"                                                  => error(:no_ruby_code, '~'),
+    "~"                                                    => error(:no_ruby_code, '~'),
+    "="                                                    => error(:no_ruby_code, '='),
+    "%p/\n  a"                                             => error(:illegal_nesting_self_closing),
+    ":a\n  b"                                              => [error(:filter_not_defined, 'a'), 1],
+    ":a= b"                                                => error(:invalid_filter_name, 'a= b'),
+    "."                                                    => error(:illegal_element),
+    ".#"                                                   => error(:illegal_element),
+    ".{} a"                                                => error(:illegal_element),
+    ".() a"                                                => error(:illegal_element),
+    ".= a"                                                 => error(:illegal_element),
+    "%p..a"                                                => error(:illegal_element),
+    "%a/ b"                                                => error(:self_closing_content),
+    " %p foo"                                              => error(:indenting_at_start),
+    "  %p foo"                                             => error(:indenting_at_start),
+    "- end"                                                => error(:no_end),
+    "%p{:a => 'b',\n:c => 'd'}/ e"                         => [error(:self_closing_content), 2],
+    "%p{:a => 'b',\n:c => 'd'}="                           => [error(:no_ruby_code, '='), 2],
+    "%p.{:a => 'b',\n:c => 'd'} e"                         => [error(:illegal_element), 1],
+    "%p{:a => 'b',\n:c => 'd',\n:e => 'f'}\n%p/ a"         => [error(:self_closing_content), 4],
     "%p{:a => 'b',\n:c => 'd',\n:e => 'f'}\n- raise 'foo'" => ["foo", 4],
-    "%p{:a => 'b',\n:c => raise('foo'),\n:e => 'f'}" => ["foo", 2],
-    "%p{:a => 'b',\n:c => 'd',\n:e => raise('foo')}" => ["foo", 3],
-    " %p foo" => "Indenting at the beginning of the document is illegal.",
-    "  %p foo" => "Indenting at the beginning of the document is illegal.",
-    "- end" => <<MESSAGE.rstrip,
-You don't need to use "- end" in Haml. Un-indent to close a block:
-- if foo?
-  %strong Foo!
-- else
-  Not foo.
-%p This line is un-indented, so it isn't part of the "if" block
-MESSAGE
-    " \n\t\n %p foo" => ["Indenting at the beginning of the document is illegal.", 3],
-    "\n\n %p foo" => ["Indenting at the beginning of the document is illegal.", 3],
-    "%p\n  foo\n foo" => ["Inconsistent indentation: 1 space was used for indentation, but the rest of the document was indented using 2 spaces.", 3],
-    "%p\n  foo\n%p\n foo" => ["Inconsistent indentation: 1 space was used for indentation, but the rest of the document was indented using 2 spaces.", 4],
-    "%p\n\t\tfoo\n\tfoo" => ["Inconsistent indentation: 1 tab was used for indentation, but the rest of the document was indented using 2 tabs.", 3],
-    "%p\n  foo\n   foo" => ["Inconsistent indentation: 3 spaces were used for indentation, but the rest of the document was indented using 2 spaces.", 3],
-    "%p\n  foo\n  %p\n   bar" => ["Inconsistent indentation: 3 spaces were used for indentation, but the rest of the document was indented using 2 spaces.", 4],
-    "%p\n  :plain\n     bar\n   \t  baz" => ['Inconsistent indentation: "   \t  " was used for indentation, but the rest of the document was indented using 2 spaces.', 4],
-    "%p\n  foo\n%p\n    bar" => ["The line was indented 2 levels deeper than the previous line.", 4],
-    "%p\n  foo\n  %p\n        bar" => ["The line was indented 3 levels deeper than the previous line.", 4],
-    "%p\n \tfoo" => ["Indentation can't use both tabs and spaces.", 2],
-    "%p(" => "Invalid attribute list: \"(\".",
-    "%p(foo=\nbar)" => ["Invalid attribute list: \"(foo=\".", 1],
-    "%p(foo=)" => "Invalid attribute list: \"(foo=)\".",
-    "%p(foo 'bar')" => "Invalid attribute list: \"(foo 'bar')\".",
-    "%p(foo 'bar'\nbaz='bang')" => ["Invalid attribute list: \"(foo 'bar'\".", 1],
-    "%p(foo='bar'\nbaz 'bang'\nbip='bop')" => ["Invalid attribute list: \"(foo='bar' baz 'bang'\".", 2],
-    "%p{'foo' => 'bar' 'bar' => 'baz'}" => :compile,
-    "%p{:foo => }" => :compile,
-    "%p{=> 'bar'}" => :compile,
-    "%p{'foo => 'bar'}" => :compile,
-    "%p{:foo => 'bar}" => :compile,
-    "%p{:foo => 'bar\"}" => :compile,
-
+    "%p{:a => 'b',\n:c => raise('foo'),\n:e => 'f'}"       => ["foo", 2],
+    "%p{:a => 'b',\n:c => 'd',\n:e => raise('foo')}"       => ["foo", 3],
+    " \n\t\n %p foo"                                       => [error(:indenting_at_start), 3],
+    "\n\n %p foo"                                          => [error(:indenting_at_start), 3],
+    "%p\n  foo\n foo"                                      => [error(:inconsistent_indentation, "1 space", "2 spaces"), 3],
+    "%p\n  foo\n%p\n foo"                                  => [error(:inconsistent_indentation, "1 space", "2 spaces"), 4],
+    "%p\n\t\tfoo\n\tfoo"                                   => [error(:inconsistent_indentation, "1 tab", "2 tabs"), 3],
+    "%p\n  foo\n   foo"                                    => [error(:inconsistent_indentation, "3 spaces", "2 spaces"), 3],
+    "%p\n  foo\n  %p\n   bar"                              => [error(:inconsistent_indentation, "3 spaces", "2 spaces"), 4],
+    "%p\n  :plain\n     bar\n   \t  baz"                   => [error(:inconsistent_indentation, '"   \t  "', "2 spaces"), 4],
+    "%p\n  foo\n%p\n    bar"                               => [error(:deeper_indenting, 2), 4],
+    "%p\n  foo\n  %p\n        bar"                         => [error(:deeper_indenting, 3), 4],
+    "%p\n \tfoo"                                           => [error(:cant_use_tabs_and_spaces), 2],
+    "%p("                                                  => error(:invalid_attribute_list, '"("'),
+    "%p(foo=)"                                             => error(:invalid_attribute_list, '"(foo=)"'),
+    "%p(foo 'bar')"                                        => error(:invalid_attribute_list, '"(foo \'bar\')"'),
+    "%p(foo=\nbar)"                                        => [error(:invalid_attribute_list, '"(foo="'), 1],
+    "%p(foo 'bar'\nbaz='bang')"                            => [error(:invalid_attribute_list, '"(foo \'bar\'"'), 1],
+    "%p(foo='bar'\nbaz 'bang'\nbip='bop')"                 => [error(:invalid_attribute_list, '"(foo=\'bar\' baz \'bang\'"'), 2],
+    "%p{'foo' => 'bar' 'bar' => 'baz'}"                    => :compile,
+    "%p{:foo => }"                                         => :compile,
+    "%p{=> 'bar'}"                                         => :compile,
+    "%p{'foo => 'bar'}"                                    => :compile,
+    "%p{:foo => 'bar}"                                     => :compile,
+    "%p{:foo => 'bar\"}"                                   => :compile,
     # Regression tests
-    "- raise 'foo'\n\n\n\nbar" => ["foo", 1],
-    "= 'foo'\n-raise 'foo'" => ["foo", 2],
-    "\n\n\n- raise 'foo'" => ["foo", 4],
-    "%p foo |\n   bar |\n   baz |\nbop\n- raise 'foo'" => ["foo", 5],
-    "foo\n\n\n  bar" => ["Illegal nesting: nesting within plain text is illegal.", 4],
-    "%p/\n\n  bar" => ["Illegal nesting: nesting within a self-closing tag is illegal.", 3],
-    "%p foo\n\n  bar" => ["Illegal nesting: content can't be both given on the same line as %p and nested within it.", 3],
-    "/ foo\n\n  bar" => ["Illegal nesting: nesting within a tag that already has content is illegal.", 3],
-    "!!!\n\n  bar" => ["Illegal nesting: nesting within a header command is illegal.", 3],
-    "foo\n:ruby\n  1\n  2\n  3\n- raise 'foo'" => ["foo", 6],
-    "foo\n:erb\n  1\n  2\n  3\n- raise 'foo'" => ["foo", 6],
-    "foo\n:plain\n  1\n  2\n  3\n- raise 'foo'" => ["foo", 6],
-    "foo\n:plain\n  1\n  2\n  3\n4\n- raise 'foo'" => ["foo", 7],
-    "foo\n:plain\n  1\n  2\n  3\#{''}\n- raise 'foo'" => ["foo", 6],
-    "foo\n:plain\n  1\n  2\n  3\#{''}\n4\n- raise 'foo'" => ["foo", 7],
-    "foo\n:plain\n  1\n  2\n  \#{raise 'foo'}" => ["foo", 5],
-    "= raise 'foo'\nfoo\nbar\nbaz\nbang" => ["foo", 1],
-    "- case 1\n\n- when 1\n  - raise 'foo'" => ["foo", 4],
+    "foo\n\n\n  bar"                                       => [error(:illegal_nesting_plain), 4],
+    "%p/\n\n  bar"                                         => [error(:illegal_nesting_self_closing), 3],
+    "%p foo\n\n  bar"                                      => [error(:illegal_nesting_line, 'p'), 3],
+    "/ foo\n\n  bar"                                       => [error(:illegal_nesting_content), 3],
+    "!!!\n\n  bar"                                         => [error(:illegal_nesting_header), 3],
+    "- raise 'foo'\n\n\n\nbar"                             => ["foo", 1],
+    "= 'foo'\n-raise 'foo'"                                => ["foo", 2],
+    "\n\n\n- raise 'foo'"                                  => ["foo", 4],
+    "%p foo |\n   bar |\n   baz |\nbop\n- raise 'foo'"     => ["foo", 5],
+    "foo\n:ruby\n  1\n  2\n  3\n- raise 'foo'"             => ["foo", 6],
+    "foo\n:erb\n  1\n  2\n  3\n- raise 'foo'"              => ["foo", 6],
+    "foo\n:plain\n  1\n  2\n  3\n- raise 'foo'"            => ["foo", 6],
+    "foo\n:plain\n  1\n  2\n  3\n4\n- raise 'foo'"         => ["foo", 7],
+    "foo\n:plain\n  1\n  2\n  3\#{''}\n- raise 'foo'"      => ["foo", 6],
+    "foo\n:plain\n  1\n  2\n  3\#{''}\n4\n- raise 'foo'"   => ["foo", 7],
+    "foo\n:plain\n  1\n  2\n  \#{raise 'foo'}"             => ["foo", 5],
+    "= raise 'foo'\nfoo\nbar\nbaz\nbang"                   => ["foo", 1],
+    "- case 1\n\n- when 1\n  - raise 'foo'"                => ["foo", 4],
   }
 
   User = Struct.new('User', :id)
@@ -181,11 +173,11 @@ MESSAGE
   end
 
   def test_colon_in_class_attr
-    assert_equal("<p class='foo:bar' />\n", render("%p.foo:bar/"))
+    assert_equal("<p class='foo:bar'>\n", render("%p.foo:bar/"))
   end
 
   def test_colon_in_id_attr
-    assert_equal("<p id='foo:bar' />\n", render("%p#foo:bar/"))
+    assert_equal("<p id='foo:bar'>\n", render("%p#foo:bar/"))
   end
 
   def test_dynamic_attributes_with_no_content
@@ -266,17 +258,17 @@ HAML
   end
 
   def test_static_attributes_with_empty_attr
-    assert_equal("<img alt='' src='/foo.png' />\n", render("%img{:src => '/foo.png', :alt => ''}"))
+    assert_equal("<img alt='' src='/foo.png'>\n", render("%img{:src => '/foo.png', :alt => ''}"))
   end
 
   def test_dynamic_attributes_with_empty_attr
-    assert_equal("<img alt='' src='/foo.png' />\n", render("%img{:width => nil, :src => '/foo.png', :alt => String.new}"))
+    assert_equal("<img alt='' src='/foo.png'>\n", render("%img{:width => nil, :src => '/foo.png', :alt => String.new}"))
   end
 
   def test_attribute_hash_with_newlines
     assert_equal("<p a='b' c='d'>foop</p>\n", render("%p{:a => 'b',\n   :c => 'd'} foop"))
     assert_equal("<p a='b' c='d'>\n  foop\n</p>\n", render("%p{:a => 'b',\n   :c => 'd'}\n  foop"))
-    assert_equal("<p a='b' c='d' />\n", render("%p{:a => 'b',\n   :c => 'd'}/"))
+    assert_equal("<p a='b' c='d'>\n", render("%p{:a => 'b',\n   :c => 'd'}/"))
     assert_equal("<p a='b' c='d' e='f'></p>\n", render("%p{:a => 'b',\n   :c => 'd',\n   :e => 'f'}"))
   end
 
@@ -298,7 +290,7 @@ HAML
     assert_equal(<<HTML, render(<<HAML, :ugly => true))
 <p a='2'></p>
 <p a='2'>foo</p>
-<p a='2' />
+<p a='2'>
 <p a='2'>foo</p>
 <p a='2'>foo
 bar</p>
@@ -416,7 +408,7 @@ HAML
       assert_equal(<<HTML, render(<<HAML))
 <html>
   <body>
-    <img src='test' />
+    <img src='test'>
     foo
     bar
   </body>
@@ -731,7 +723,8 @@ HAML
   end
 
   def test_silent_script_with_hyphen_end_and_block
-    assert_equal(<<HTML, render(<<HAML))
+    silence_warnings do
+      assert_equal(<<HTML, render(<<HAML))
 <p>foo-end</p>
 <p>bar-end</p>
 HTML
@@ -739,6 +732,7 @@ HTML
   %p= s
 - end; nil)
 HAML
+    end
   end
 
   def test_if_without_content_and_else
@@ -915,7 +909,7 @@ HAML
   end
 
   def test_static_attributes_should_be_escaped
-    assert_equal("<img class='atlantis' style='ugly&amp;stupid' />\n",
+    assert_equal("<img class='atlantis' style='ugly&amp;stupid'>\n",
                  render("%img.atlantis{:style => 'ugly&stupid'}"))
     assert_equal("<div class='atlantis' style='ugly&amp;stupid'>foo</div>\n",
                  render(".atlantis{:style => 'ugly&stupid'} foo"))
@@ -926,13 +920,13 @@ HAML
   end
 
   def test_dynamic_attributes_should_be_escaped
-    assert_equal("<img alt='' src='&amp;foo.png' />\n",
+    assert_equal("<img alt='' src='&amp;foo.png'>\n",
                  render("%img{:width => nil, :src => '&foo.png', :alt => String.new}"))
     assert_equal("<p alt='' src='&amp;foo.png'>foo</p>\n",
                  render("%p{:width => nil, :src => '&foo.png', :alt => String.new} foo"))
     assert_equal("<div alt='' src='&amp;foo.png'>foo</div>\n",
                  render("%div{:width => nil, :src => '&foo.png', :alt => String.new}= 'foo'"))
-    assert_equal("<img alt='' src='foo&#x000A;.png' />\n",
+    assert_equal("<img alt='' src='foo&#x000A;.png'>\n",
                  render("%img{:width => nil, :src => \"foo\\n.png\", :alt => String.new}"))
   end
 
@@ -1033,9 +1027,9 @@ HAML
   def test_stop_eval
     assert_equal("", render("= 'Hello'", :suppress_eval => true))
     assert_equal("", render("- haml_concat 'foo'", :suppress_eval => true))
-    assert_equal("<div id='foo' yes='no' />\n", render("#foo{:yes => 'no'}/", :suppress_eval => true))
-    assert_equal("<div id='foo' />\n", render("#foo{:yes => 'no', :call => a_function() }/", :suppress_eval => true))
-    assert_equal("<div />\n", render("%div[1]/", :suppress_eval => true))
+    assert_equal("<div id='foo' yes='no'>\n", render("#foo{:yes => 'no'}/", :suppress_eval => true))
+    assert_equal("<div id='foo'>\n", render("#foo{:yes => 'no', :call => a_function() }/", :suppress_eval => true))
+    assert_equal("<div>\n", render("%div[1]/", :suppress_eval => true))
     assert_equal("", render(":ruby\n  Kernel.puts 'hello'", :suppress_eval => true))
   end
 
@@ -1044,17 +1038,17 @@ HAML
       render('!!!', :format => :html5).strip)
     assert_equal('<!DOCTYPE html>', render('!!! 5').strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
-      render('!!! strict').strip)
+      render('!!! strict', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">',
-      render('!!! frameset').strip)
+      render('!!! frameset', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">',
-      render('!!! mobile').strip)
+      render('!!! mobile', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">',
-      render('!!! basic').strip)
+      render('!!! basic', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
-      render('!!! transitional').strip)
+      render('!!! transitional', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
-      render('!!!').strip)
+      render('!!!', :format => :xhtml).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">',
       render('!!! strict', :format => :html4).strip)
     assert_equal('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">',
@@ -1070,14 +1064,14 @@ HAML
     assert_equal("<p escaped='quo\"te'></p>\n", render("%p{ :escaped => 'quo\"te'}", :attr_wrapper => '"'))
     assert_equal("<p escaped=\"quo'te\"></p>\n", render("%p{ :escaped => 'quo\\'te'}", :attr_wrapper => '"'))
     assert_equal("<p escaped=\"q'uo&#x0022;te\"></p>\n", render("%p{ :escaped => 'q\\'uo\"te'}", :attr_wrapper => '"'))
-    assert_equal("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n", render("!!! XML", :attr_wrapper => '"'))
+    assert_equal("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n", render("!!! XML", :attr_wrapper => '"', :format => :xhtml))
   end
 
   def test_autoclose_option
-    assert_equal("<flaz foo='bar' />\n", render("%flaz{:foo => 'bar'}", :autoclose => ["flaz"]))
+    assert_equal("<flaz foo='bar'>\n", render("%flaz{:foo => 'bar'}", :autoclose => ["flaz"]))
     assert_equal(<<HTML, render(<<HAML, :autoclose => [/^flaz/]))
-<flaz />
-<flaznicate />
+<flaz>
+<flaznicate>
 <flan></flan>
 HTML
 %flaz
@@ -1146,13 +1140,15 @@ HAML
   end
 
   def test_dynamic_attrs_with_self_closed_tag
-    assert_equal("<a b='2' />\nc\n", render("%a{'b' => 1 + 1}/\n= 'c'\n"))
+    assert_equal("<a b='2'>\nc\n", render("%a{'b' => 1 + 1}/\n= 'c'\n"))
   end
 
   EXCEPTION_MAP.each do |key, value|
     define_method("test_exception (#{key.inspect})") do
       begin
-        render(key, :filename => "(test_exception (#{key.inspect}))")
+        silence_warnings do
+          render(key, :filename => "(test_exception (#{key.inspect}))")
+        end
       rescue Exception => err
         value = [value] unless value.is_a?(Array)
         expected_message, line_no = value
@@ -1202,7 +1198,7 @@ HAML
   def test_unbalanced_brackets
     render('foo #{1 + 5} foo #{6 + 7 bar #{8 + 9}')
   rescue Haml::SyntaxError => e
-    assert_equal("Unbalanced brackets.", e.message)
+    assert_equal(Haml::Error.message(:unbalanced_brackets), e.message)
   end
 
   def test_balanced_conditional_comments
@@ -1240,8 +1236,8 @@ HAML
   end
 
   def test_non_literal_attributes
-    assert_equal("<p a1='foo' a2='bar' a3='baz' />\n",
-                 render("%p{a2, a1, :a3 => 'baz'}/",
+    assert_equal("<p a1='foo' a2='bar' a3='baz'></p>\n",
+                 render("%p{a2, a1, :a3 => 'baz'}",
                         :locals => {:a1 => {:a1 => 'foo'}, :a2 => {:a2 => 'bar'}}))
   end
 
@@ -1325,6 +1321,20 @@ HAML
 
     assert_equal("<p>#{'s' * 75}</p>\n",
                  render("%p= 's' * 75", :ugly => true))
+  end
+
+  def test_remove_whitespace_true
+    assert_equal("<div id='outer'><div id='inner'><p>hello world</p></div></div>",
+                 render("#outer\n  #inner\n    %p hello world", :remove_whitespace => true))
+    assert_equal("<p>hello world<pre>foo   bar\nbaz</pre></p>", render(<<HAML, :remove_whitespace => true))
+%p
+  hello world
+  %pre
+    foo   bar
+    baz
+HAML
+    assert_equal("<div><span>foo</span> <span>bar</span></div>",
+                 render('%div <span>foo</span> <span>bar</span>', :remove_whitespace => true))
   end
 
   def test_auto_preserve_unless_ugly
@@ -1543,9 +1553,9 @@ HAML
   end
 
   def test_truthy_new_attributes
-    assert_equal("<a href='href'>bar</a>\n", render("%a(href) bar"))
+    assert_equal("<a href='href'>bar</a>\n", render("%a(href) bar", :format => :xhtml))
     assert_equal("<a bar='baz' href>bar</a>\n", render("%a(href bar='baz') bar", :format => :html5))
-    assert_equal("<a href='href'>bar</a>\n", render("%a(href=true) bar"))
+    assert_equal("<a href>bar</a>\n", render("%a(href=true) bar"))
     assert_equal("<a>bar</a>\n", render("%a(href=false) bar"))
   end
 
@@ -1910,6 +1920,18 @@ HAML
 HTML
 %p тАЬ
 HAML
+    end
+  end
+
+  def test_block_spacing
+    begin
+      assert render(<<-HAML)
+- foo = ["bar", "baz", "kni"]
+- foo.each do | item |
+  = item
+HAML
+    rescue ::SyntaxError => e
+      flunk("Should not have raised syntax error")
     end
   end
 

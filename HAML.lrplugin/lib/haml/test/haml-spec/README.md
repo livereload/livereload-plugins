@@ -32,19 +32,19 @@ feature.
 
 ### Ruby ###
 
-In order to make it as easy as possible for non-Ruby programmers to run the
-Ruby Haml tests, the Ruby test runner uses test/unit, rather than something
-fancier like Rspec.  To run them you probably only need to install `haml`, and
+The Ruby test runner uses minitest, the same as the Ruby Haml implementation.
+To run the tests you probably only need to install `haml`, `minitest` and
 possibly `ruby` if your platform doesn't come with it by default. If you're
 using Ruby 1.8.x, you'll also need to install `json`:
 
     sudo gem install haml
+    sudo gem install minitest
     # for Ruby 1.8.x; check using "ruby --version" if unsure
     sudo gem install json
 
 Then, running the Ruby test suite is easy:
 
-    ruby -rminitest/autorun ruby_haml_test.rb
+    ruby ruby_haml_test.rb
 
 At the moment, running the tests with Ruby 1.8.7 fails because of issues with
 the JSON library. Please use 1.9.2 until this is resolved.

@@ -5,7 +5,7 @@ require 'haml/helpers/action_view_extensions'
 require 'haml/helpers/xss_mods'
 
 module Haml
-  module Compiler
+  class Compiler
     def precompiled_method_return_value_with_haml_xss
       "::Haml::Util.html_safe(#{precompiled_method_return_value_without_haml_xss})"
     end
@@ -25,8 +25,7 @@ module Haml
 end
 
 
-Haml::Template.options[:ugly] ||= Rails.env.development?
+Haml::Template.options[:ugly]        = !Rails.env.development?
 Haml::Template.options[:escape_html] = true
-Haml::Template.options[:format] ||= :html5
 
 require 'haml/template/plugin'

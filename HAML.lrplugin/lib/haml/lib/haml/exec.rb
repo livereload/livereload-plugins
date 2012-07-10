@@ -1,6 +1,7 @@
 require 'optparse'
 require 'fileutils'
 require 'rbconfig'
+require 'pp'
 
 module Haml
   # This module handles the various Haml executables (`haml` and `haml-convert`).
@@ -94,7 +95,7 @@ module Haml
         end
 
         opts.on_tail("-v", "--version", "Print version") do
-          puts("Haml #{::Haml.version[:string]}")
+          puts("Haml #{::Haml::VERSION}")
           exit
         end
       end
@@ -217,7 +218,7 @@ END
         end
 
         opts.on('-f', '--format NAME',
-                'Output format. Can be xhtml (default), html4, or html5.') do |name|
+                'Output format. Can be html5 (default), xhtml, or html4.') do |name|
           @options[:for_engine][:format] = name.to_sym
         end
 
@@ -252,9 +253,14 @@ END
           end
         end
 
-        opts.on('--debug', "Print out the precompiled Ruby source.") do
+        opts.on('-d', '--debug', "Print out the precompiled Ruby source.") do
           @options[:debug] = true
         end
+
+        opts.on('-p', '--parse', "Print out Haml parse tree.") do
+          @options[:parse] = true
+        end
+
       end
 
       # Processes the options set by the command-line arguments,
@@ -272,9 +278,15 @@ END
         @options[:requires].each {|f| require f}
 
         begin
+
           engine = ::Haml::Engine.new(template, @options[:for_engine])
           if @options[:check_syntax]
             puts "Syntax OK"
+            return
+          end
+
+          if @options[:parse]
+            pp engine.parser.root
             return
           end
 
@@ -296,83 +308,6 @@ END
 
         output.write(result)
         output.close() if output.is_a? File
-      end
-    end
-
-    # The `html2haml` executable.
-    class HTML2Haml < Generic
-      # @param args [Array<String>] The command-line arguments
-      def initialize(args)
-        super
-        @module_opts = {}
-      end
-
-      # Tells optparse how to parse the arguments.
-      #
-      # @param opts [OptionParser]
-      def set_opts(opts)
-        opts.banner = <<END
-Usage: html2haml [options] [INPUT] [OUTPUT]
-
-Description: Transforms an HTML file into corresponding Haml code.
-
-Options:
-END
-
-        opts.on('-e', '--erb', 'Parse ERb tags.') do
-          @module_opts[:erb] = true
-        end
-
-        opts.on('--no-erb', "Don't parse ERb tags.") do
-          @options[:no_erb] = true
-        end
-
-        opts.on('-r', '--rhtml', 'Deprecated; same as --erb.') do
-          @module_opts[:erb] = true
-        end
-
-        opts.on('--no-rhtml', "Deprecated; same as --no-erb.") do
-          @options[:no_erb] = true
-        end
-
-        opts.on('-x', '--xhtml', 'Parse the input using the more strict XHTML parser.') do
-          @module_opts[:xhtml] = true
-        end
-
-        opts.on("--html-attributes", "Use HTML style attributes instead of Ruby hash style.") do
-          @module_opts[:html_style_attributes] = true
-        end
-
-        unless RUBY_VERSION < "1.9"
-          opts.on('-E ex[:in]', 'Specify the default external and internal character encodings.') do |encoding|
-            external, internal = encoding.split(':')
-            Encoding.default_external = external if external && !external.empty?
-            Encoding.default_internal = internal if internal && !internal.empty?
-          end
-        end
-
-        super
-      end
-
-      # Processes the options set by the command-line arguments,
-      # and runs the HTML compiler appropriately.
-      def process_result
-        super
-
-        require 'haml/html'
-
-        input = @options[:input]
-        output = @options[:output]
-
-        @module_opts[:erb] ||= input.respond_to?(:path) && input.path =~ /\.(rhtml|erb)$/
-        @module_opts[:erb] &&= @options[:no_erb] != false
-
-        output.write(::Haml::HTML.new(input, @module_opts).render)
-      rescue ::Haml::Error => e
-        raise "#{e.is_a?(::Haml::SyntaxError) ? "Syntax error" : "Error"} on line " +
-          "#{get_line e}: #{e.message}"
-      rescue LoadError => err
-        handle_load_error(err)
       end
     end
   end

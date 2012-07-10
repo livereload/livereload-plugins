@@ -1,9 +1,9 @@
 require "rubygems"
-require "test/unit"
+require "minitest/autorun"
 require "json"
 require "haml"
 
-class HamlTest < Test::Unit::TestCase
+class HamlTest < MiniTest::Unit::TestCase
   contexts = JSON.parse(File.read(File.dirname(__FILE__) + "/tests.json"))
   contexts.each do |context|
     context[1].each do |name, test|

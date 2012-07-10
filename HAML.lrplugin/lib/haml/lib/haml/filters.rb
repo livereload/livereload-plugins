@@ -31,6 +31,9 @@ module Haml
     #   engine when there are more than one.
     # @option options [String,Array<String>] :alias Any aliases for the filter.
     #   For example, :coffee is also available as :coffeescript.
+    # @option options [String] :extend The name of a module to extend when
+    #   defining the filter. Defaults to "Plain". This allows filters such as
+    #   Coffee to "inherit" from Javascript, wrapping its output in script tags.
     # @since 3.2.0
     def register_tilt_filter(name, options = {})
       if constants.map(&:to_s).include?(name.to_s)
@@ -38,8 +41,8 @@ module Haml
       end
 
       filter = const_set(name, Module.new)
+      filter.extend const_get(options[:extend] || "Plain")
       filter.extend TiltFilter
-
       filter.extend PrecompiledTiltFilter if options.has_key? :precompiled
 
       if options.has_key? :template_class
@@ -193,19 +196,20 @@ RUBY
 
       # @see Base#render_with_options
       def render_with_options(text, options)
+        indent = options[:cdata] ? '    ' : '  ' # 4 or 2 spaces
         if options[:format] == :html5
           type = ''
         else
           type = " type=#{options[:attr_wrapper]}text/javascript#{options[:attr_wrapper]}"
         end
 
-        <<END
-<script#{type}>
-  //<![CDATA[
-    #{text.rstrip.gsub("\n", "\n    ")}
-  //]]>
-</script>
-END
+        str = "<script#{type}>\n"
+        str << "  //<![CDATA[\n" if options[:cdata]
+        str << "#{indent}#{text.rstrip.gsub("\n", "\n#{indent}")}\n"
+        str << "  //]]>\n" if options[:cdata]
+        str << "</script>"
+
+        str
       end
     end
 
@@ -216,19 +220,20 @@ END
 
       # @see Base#render_with_options
       def render_with_options(text, options)
+        indent = options[:cdata] ? '    ' : '  ' # 4 or 2 spaces
         if options[:format] == :html5
           type = ''
         else
           type = " type=#{options[:attr_wrapper]}text/css#{options[:attr_wrapper]}"
         end
 
-        <<END
-<style#{type}>
-  /*<![CDATA[*/
-    #{text.rstrip.gsub("\n", "\n    ")}
-  /*]]>*/
-</style>
-END
+        str = "<style#{type}>\n"
+        str << "  /*<![CDATA[*/\n" if options[:cdata]
+        str << "#{indent}#{text.rstrip.gsub("\n", "\n#{indent}")}\n"
+        str << "  /*]]>*/\n" if options[:cdata]
+        str << "</style>"
+
+        str
       end
     end
 
@@ -300,9 +305,10 @@ END
       def template_class
         (@template_class if defined? @template_class) or begin
           @template_class = Tilt["t.#{tilt_extension}"] or
-            raise "Can't run #{self} filter; you must require its dependencies first"
-        rescue LoadError
-          raise Error.new("Can't run #{self} filter; required dependencies not available")
+            raise Error.new(Error.message(:cant_run_filter, tilt_extension))
+        rescue LoadError => e
+          dep = e.message.split('--').last.strip
+          raise Error.new(Error.message(:gem_install_filter_deps, tilt_extension, dep))
         end
       end
 
@@ -310,10 +316,10 @@ END
         base.options = {}
         base.instance_eval do
           include Base
-          def render(text)
-            Haml::Util.silence_warnings do
-              template_class.new(nil, 1, options) {text}.render
-            end
+
+          def render_with_options(text, compiler_options)
+            text = template_class.new(nil, 1, options) {text}.render
+            super(text, compiler_options)
           end
         end
       end
@@ -332,13 +338,13 @@ END
     end
 
     # @!parse module Sass; end
-    register_tilt_filter "Sass"
+    register_tilt_filter "Sass", :extend => "Css"
 
     # @!parse module Scss; end
-    register_tilt_filter "Scss"
+    register_tilt_filter "Scss", :extend => "Css"
 
     # @!parse module Less; end
-    register_tilt_filter "Less"
+    register_tilt_filter "Less", :extend => "Css"
 
     # @!parse module Markdown; end
     register_tilt_filter "Markdown"
@@ -347,7 +353,7 @@ END
     register_tilt_filter "Erb", :precompiled => true
 
     # @!parse module Coffee; end
-    register_tilt_filter "Coffee", :alias => "coffeescript"
+    register_tilt_filter "Coffee", :alias => "coffeescript", :extend => "Javascript"
 
     # Parses the filtered text with ERB.
     # Not available if the {file:REFERENCE.md#suppress_eval-option

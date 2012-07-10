@@ -3,37 +3,58 @@
 
     "an XHTML XML prolog" : {
       "haml" : "!!! XML",
-      "html" : "<?xml version='1.0' encoding='utf-8' ?>"
+      "html" : "<?xml version='1.0' encoding='utf-8' ?>",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an XHTML default (transitional) doctype" : {
       "haml" : "!!!",
-      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an XHTML 1.1 doctype" : {
       "haml" : "!!! 1.1",
-      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">"
+      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an XHTML 1.2 mobile doctype" : {
       "haml" : "!!! mobile",
-      "html" : "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.2//EN\" \"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd\">"
+      "html" : "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.2//EN\" \"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd\">",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an XHTML 1.1 basic doctype" : {
       "haml" : "!!! basic",
-      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML Basic 1.1//EN\" \"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd\">"
+      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML Basic 1.1//EN\" \"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd\">",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an XHTML 1.0 frameset doctype" : {
       "haml" : "!!! frameset",
-      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\">"
+      "html" : "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\">",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an HTML 5 doctype with XHTML syntax" : {
       "haml" : "!!! 5",
-      "html" : "<!DOCTYPE html>"
+      "html" : "<!DOCTYPE html>",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "an HTML 5 XML prolog (silent)" : {
@@ -95,7 +116,10 @@
 
     "a self-closing tag (XHTML)" : {
       "haml" : "%meta",
-      "html" : "<meta />"
+      "html" : "<meta />",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "a self-closing tag (HTML4)" : {
@@ -116,7 +140,10 @@
 
     "a self-closing tag ('/' modifier + XHTML)" : {
       "haml" : "%zzz/",
-      "html" : "<zzz />"
+      "html" : "<zzz />",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
     "a self-closing tag ('/' modifier + HTML5)" : {
@@ -478,16 +505,37 @@
       "html" : "hello\n<p></p>"
     },
 
-    "content in a 'css' filter" : {
+    "content in a 'css' filter (XHTML)" : {
       "haml" : ":css\n  hello\n\n%p",
-      "html" : "<style type='text/css'>\n  /*<![CDATA[*/\n    hello\n  /*]]>*/\n</style>\n<p></p>"
+      "html" : "<style type='text/css'>\n  /*<![CDATA[*/\n    hello\n  /*]]>*/\n</style>\n<p></p>",
+      "config" : {
+        "format" : "xhtml"
+      }
     },
 
-    "content in a 'javascript' filter" : {
+    "content in a 'javascript' filter (XHTML)" : {
       "haml" : ":javascript\n  a();\n%p",
-      "html" : "<script type='text/javascript'>\n  //<![CDATA[\n    a();\n  //]]>\n</script>\n<p></p>"
-    }
+      "html" : "<script type='text/javascript'>\n  //<![CDATA[\n    a();\n  //]]>\n</script>\n<p></p>",
+      "config" : {
+        "format" : "xhtml"
+      }
+    },
 
+    "content in a 'css' filter (HTML)" : {
+      "haml" : ":css\n  hello\n\n%p",
+      "html" : "<style>\n  hello\n</style>\n<p></p>",
+      "config" : {
+        "format" : "html5"
+      }
+    },
+
+    "content in a 'javascript' filter (HTML)" : {
+      "haml" : ":javascript\n  a();\n%p",
+      "html" : "<script>\n  a();\n</script>\n<p></p>",
+      "config" : {
+        "format" : "html5"
+      }
+    }
   },
 
   "Ruby-style interpolation": {

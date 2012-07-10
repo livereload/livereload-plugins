@@ -2,6 +2,29 @@
 
 ## 3.2.0 (Unreleased)
 
+* HTML5 is now the default output format rather than XHTML. This was already
+  the default on Rails 3+, so many users will notice no difference.
+
+* The :javascript and :css filters no longer add CDATA tags when the format is
+  html4 or html5. This can be overridden by setting the `cdata` option to
+  `true`. CDATA tags are always added when the format is xhtml.
+
+* HTML2Haml has been extracted to a separate gem, creatively named "html2haml".
+
+* Haml's internals have been refactored to move the parser, compiler and options
+  handling into independent classes, rather than including them all in the
+  Engine module.
+
+* The :sass filter now wraps its output in a script tag, as do the new :less and
+  :scss filters. The :coffee filter wraps its output in a script tag.
+
+* Haml now supports only Rails 3 and above, and Ruby 1.8.7 and above. If you
+  still need support for Rails 2 and Ruby 1.8.6, please use Haml 3.1.x which
+  will continue to be maintained for bug fixes.
+
+* Added `remove_whitespace` option to always remove all whitespace around Haml
+  tags. (thanks to [Tim van der Horst](https://github.com/vdh))
+
 * Haml now flattens deeply nested data attribute hashes. For example:
 
   `.foo{:data => {:a => "b", :c => {:d => "e", :f => "g"}}}`
@@ -716,7 +739,7 @@ Thanks to [Josh Peek](http://joshpeek.com/).
 
 [Tagged on GitHub](http://github.com/nex3/haml/commit/2.2.21).
 
-* Fix a few bugs in the git-revision-reporting in {Haml::Version#version}.
+* Fix a few bugs in the git-revision-reporting in Haml::Version.
   In particular, it will still work if `git gc` has been called recently,
   or if various files are missing.
 

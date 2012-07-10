@@ -8,14 +8,6 @@ module Haml
   module Util
     extend self
 
-    # Returns the path of a file relative to the Haml root directory.
-    #
-    # @param file [String] The filename relative to the Haml root
-    # @return [String] The filename relative to the the working directory
-    def scope(file)
-      File.expand_path("../../../#{file}", __FILE__)
-    end
-
     # Computes the powerset of the given array.
     # This is the set of all subsets of the array.
     #
@@ -90,8 +82,7 @@ module Haml
     # @return [String, nil] `text`, marked as HTML-safe
     def html_safe(text)
       return unless text
-      return text.html_safe if defined?(ActiveSupport::SafeBuffer)
-      text.html_safe!
+      text.html_safe
     end
 
     # Checks that the encoding of a string is valid in Ruby 1.9
@@ -172,17 +163,22 @@ MSG
       end
     end
 
-    # Like `Object#inspect`, but preserves non-ASCII characters rather than escaping them under Ruby 1.9.2.
-    # This is necessary so that the precompiled Haml template can be `#encode`d into `@options[:encoding]`
-    # before being evaluated.
-    #
-    # @param obj {Object}
-    # @return {String}
-    def inspect_obj(obj)
-      return obj.inspect unless (::RUBY_VERSION >= "1.9.2")
-      return ':' + inspect_obj(obj.to_s) if obj.is_a?(Symbol)
-      return obj.inspect unless obj.is_a?(String)
-      '"' + obj.gsub(/[\x00-\x7F]+/) {|s| s.inspect[1...-1]} + '"'
+    if RUBY_VERSION < "1.9.2"
+      def inspect_obj(obj)
+        return obj.inspect
+      end
+    else
+      # Like `Object#inspect`, but preserves non-ASCII characters rather than escaping them under Ruby 1.9.2.
+      # This is necessary so that the precompiled Haml template can be `#encode`d into `@options[:encoding]`
+      # before being evaluated.
+      #
+      # @param obj {Object}
+      # @return {String}
+      def inspect_obj(obj)
+        return ':' + inspect_obj(obj.to_s) if obj.is_a?(Symbol)
+        return obj.inspect unless obj.is_a?(String)
+        '"' + obj.gsub(/[\x00-\x7F]+/) {|s| s.inspect[1...-1]} + '"'
+      end
     end
 
     ## Static Method Stuff
@@ -308,23 +304,37 @@ METHOD
     # @param was [Boolean] Whether or not to add `"was"` or `"were"`
     #   (depending on how many characters were in `indentation`)
     # @return [String] The name of the indentation (e.g. `"12 spaces"`, `"1 tab"`)
-    def human_indentation(indentation, was = false)
+    def human_indentation(indentation)
       if !indentation.include?(?\t)
         noun = 'space'
       elsif !indentation.include?(?\s)
         noun = 'tab'
       else
-        return indentation.inspect + (was ? ' was' : '')
+        return indentation.inspect
       end
 
       singular = indentation.length == 1
-      if was
-        was = singular ? ' was' : ' were'
-      else
-        was = ''
-      end
+      "#{indentation.length} #{noun}#{'s' unless singular}"
+    end
 
-      "#{indentation.length} #{noun}#{'s' unless singular}#{was}"
+    def contains_interpolation?(str)
+      str.include?('#{')
+    end
+
+    def unescape_interpolation(str, escape_html = nil)
+      res = ''
+      rest = Haml::Util.handle_interpolation str.dump do |scan|
+        escapes = (scan[2].size - 1) / 2
+        res << scan.matched[0...-3 - escapes]
+        if escapes % 2 == 1
+          res << '#{'
+        else
+          content = eval('"' + balance(scan, ?{, ?}, 1)[0][0...-1] + '"')
+          content = "Haml::Helpers.html_escape((#{content}))" if escape_html
+          res << '#{' + content + "}"# Use eval to get rid of string escapes
+        end
+      end
+      res + rest
     end
 
     private

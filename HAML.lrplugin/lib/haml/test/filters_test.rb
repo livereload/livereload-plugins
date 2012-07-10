@@ -24,6 +24,48 @@ class FiltersTest < MiniTest::Unit::TestCase
     end
   end
 
+  test "should raise error when a Tilt filters dependencies are unavailable for extension" do
+    begin
+      assert_raises Haml::Error do
+        Haml::Filters.register_tilt_filter "Textile"
+        Haml::Filters.defined["textile"].template_class
+      end
+    ensure
+      Haml::Filters.defined.delete "textile"
+      Haml::Filters.send :remove_const, :Textile
+    end
+  end
+
+  test "should raise error when a Tilt filters dependencies are unavailable for filter without extension" do
+    begin
+      assert_raises Haml::Error do
+        Haml::Filters.register_tilt_filter "Maruku"
+        Haml::Filters.defined["maruku"].template_class
+      end
+    ensure
+      Haml::Filters.defined.delete "maruku"
+      Haml::Filters.send :remove_const, :Maruku
+    end
+  end
+
+  test "should raise informative error about Maruku being moved to haml-contrib" do
+    begin
+      render(":maruku\n  # foo")
+      flunk("Should have raised error with message about the haml-contrib gem.")
+    rescue Haml::Error => e
+      assert_equal e.message, Haml::Error.message(:install_haml_contrib, "maruku")
+    end
+  end
+
+  test "should raise informative error about Textile being moved to haml-contrib" do
+    begin
+      render(":textile\n  h1. foo")
+      flunk("Should have raised error with message about the haml-contrib gem.")
+    rescue Haml::Error => e
+      assert_equal e.message, Haml::Error.message(:install_haml_contrib, "textile")
+    end
+  end
+
   test "should respect escaped newlines and interpolation" do
     html = "\\n\n"
     haml = ":plain\n  \\n\#{""}"
@@ -41,9 +83,9 @@ class FiltersTest < MiniTest::Unit::TestCase
 
   test "should pass options to Tilt filters that precompile" do
     haml  = ":erb\n  <%= 'foo' %>"
-    refute_match('TEST_VAR', Haml::Engine.new(haml).precompiled)
+    refute_match('TEST_VAR', Haml::Engine.new(haml).compiler.precompiled)
     Haml::Filters::Erb.options = {:outvar => 'TEST_VAR'}
-    assert_match('TEST_VAR', Haml::Engine.new(haml).precompiled)
+    assert_match('TEST_VAR', Haml::Engine.new(haml).compiler.precompiled)
   end
 
   test "should pass options to Tilt filters that don't precompile" do
@@ -98,29 +140,79 @@ class JavascriptFilterTest < MiniTest::Unit::TestCase
   end
 
   test "should never HTML-escape ampersands" do
-    html = "<script type='text/javascript'>\n  //<![CDATA[\n    & < > &\n  //]]>\n</script>\n"
+    html = "<script>\n  & < > &\n</script>\n"
     haml = %Q{:javascript\n  & < > \#{"&"}}
     assert_equal(html, render(haml, :escape_html => true))
   end
 
   test "should not include type in HTML 5 output" do
-    html = "<script>\n  //<![CDATA[\n    foo bar\n  //]]>\n</script>\n"
+    html = "<script>\n  foo bar\n</script>\n"
     haml = ":javascript\n  foo bar"
     assert_equal(html, render(haml, :format => :html5))
+  end
+
+  test "should always include CDATA when format is xhtml" do
+    html = "<script type='text/javascript'>\n  //<![CDATA[\n    foo bar\n  //]]>\n</script>\n"
+    haml = ":javascript\n  foo bar"
+    assert_equal(html, render(haml, :format => :xhtml, :cdata => false))
+  end
+
+  test "should omit CDATA when cdata option is false" do
+    html = "<script>\n  foo bar\n</script>\n"
+    haml = ":javascript\n  foo bar"
+    assert_equal(html, render(haml, :format => :html5, :cdata => false))
+  end
+
+  test "should include CDATA when cdata option is true" do
+    html = "<script>\n  //<![CDATA[\n    foo bar\n  //]]>\n</script>\n"
+    haml = ":javascript\n  foo bar"
+    assert_equal(html, render(haml, :format => :html5, :cdata => true))
+  end
+
+  test "should default to no CDATA when format is html5" do
+    haml = ":javascript\n  foo bar"
+    out = render(haml, :format => :html5)
+    refute_match('//<![CDATA[', out)
+    refute_match('//]]>', out)
   end
 end
 
 class CSSFilterTest < MiniTest::Unit::TestCase
-  test "should wrap output in CDATA and a CSS tag" do
+  test "should wrap output in CDATA and a CSS tag when output is XHTML" do
     html = "<style type='text/css'>\n  /*<![CDATA[*/\n    foo\n  /*]]>*/\n</style>\n"
     haml = ":css\n  foo"
-    assert_equal(html, render(haml))
+    assert_equal(html, render(haml, :format => :xhtml))
   end
 
   test "should not include type in HTML 5 output" do
-    html = "<style>\n  /*<![CDATA[*/\n    foo bar\n  /*]]>*/\n</style>\n"
+    html = "<style>\n  foo bar\n</style>\n"
     haml = ":css\n  foo bar"
     assert_equal(html, render(haml, :format => :html5))
+  end
+
+  test "should always include CDATA when format is xhtml" do
+    html = "<style type='text/css'>\n  /*<![CDATA[*/\n    foo bar\n  /*]]>*/\n</style>\n"
+    haml = ":css\n  foo bar"
+    assert_equal(html, render(haml, :format => :xhtml, :cdata => false))
+  end
+
+  test "should omit CDATA when cdata option is false" do
+    html = "<style>\n  foo bar\n</style>\n"
+    haml = ":css\n  foo bar"
+    assert_equal(html, render(haml, :format => :html5, :cdata => false))
+  end
+
+  test "should include CDATA when cdata option is true" do
+    html = "<style>\n  /*<![CDATA[*/\n    foo bar\n  /*]]>*/\n</style>\n"
+    haml = ":css\n  foo bar"
+    assert_equal(html, render(haml, :format => :html5, :cdata => true))
+  end
+
+  test "should default to no CDATA when format is html5" do
+    haml = ":css\n  foo bar"
+    out = render(haml, :format => :html5)
+    refute_match('<![CDATA[', out)
+    refute_match(']]>', out)
   end
 end
 

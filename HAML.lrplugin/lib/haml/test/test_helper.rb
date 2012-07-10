@@ -6,7 +6,6 @@ end
 require 'rubygems'
 gem "minitest"
 require 'bundler/setup'
-require 'test/unit' # On JRuby, tests won't run unless we include this. WTF?
 require 'minitest/autorun'
 require 'action_pack'
 require 'action_controller'
@@ -21,6 +20,9 @@ Rails.application = TestApp
 ActionController::Base.logger = Logger.new(nil)
 
 require 'fileutils'
+
+$VERBOSE = true
+
 require 'haml'
 require 'haml/template'
 
@@ -73,11 +75,8 @@ class MiniTest::Unit::TestCase
     flunk "Expected exception #{klass}, none raised"
   end
 
-  def assert_raises_line(line)
-    yield
-  rescue Sass::SyntaxError => e
-    assert_equal(line, e.sass_line)
-  else
-    flunk "Expected exception on line #{line}, none raised"
+  def self.error(*args)
+    Haml::Error.message(*args)
   end
+
 end

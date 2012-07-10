@@ -70,7 +70,7 @@ MESSAGE
     #     context.haml_tag :p, "Stuff"
     #
     def init_haml_helpers
-      @haml_buffer = Haml::Buffer.new(haml_buffer, Haml::Engine.new('').send(:options_for_buffer))
+      @haml_buffer = Haml::Buffer.new(haml_buffer, Options.new.for_buffer)
       nil
     end
 
@@ -190,6 +190,7 @@ MESSAGE
     # @yield [item] A block which contains Haml code that goes within list items
     # @yieldparam item An element of `enum`
     def list_of(enum, opts={}, &block)
+      opts_attributes = opts.empty? ? "" : " ".<<(opts.map{|k,v| "#{k}='#{v}'" }.join(" "))
       to_return = enum.collect do |i|
         result = capture_haml(i, &block)
 
@@ -200,7 +201,7 @@ MESSAGE
           result = result.strip
         end
 
-        %Q!<li#{opts.empty? ? "" : " ".<<(opts.map{|k,v| "#{k}='#{v}'" }.join(" "))}>#{result}</li>!
+        %Q!<li#{opts_attributes}>#{result}</li>!
       end
       to_return.join("\n")
     end
@@ -484,8 +485,8 @@ MESSAGE
       end
 
       if flags.include?(:/)
-        raise Error.new("Self-closing tags can't have content.") if text
-        raise Error.new("Illegal nesting: nesting within a self-closing tag is illegal.") if block
+        raise Error.new(Error.message(:self_closing_content)) if text
+        raise Error.new(Error.message(:illegal_nesting_self_closing)) if block
       end
 
       tag = "<#{name}#{attributes}>"
@@ -505,7 +506,7 @@ MESSAGE
       end
 
       if text
-        raise Error.new("Illegal nesting: content can't be both given to haml_tag :#{name} and nested within it.")
+        raise Error.new(Error.message(:illegal_nesting_line, name))
       end
 
       if flags.include?(:<)

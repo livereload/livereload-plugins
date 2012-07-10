@@ -1,13 +1,11 @@
 # Haml (XHTML Abstraction Markup Language)
 
-Haml is a markup language
-that's used to cleanly and simply describe the XHTML of any web document,
-without the use of inline code.
-Haml functions as a replacement
-for inline page templating systems such as PHP, ERB, and ASP.
-However, Haml avoids the need for explicitly coding XHTML into the template,
-because it is actually an abstract description of the XHTML,
-with some code to generate dynamic content.
+Haml is a markup language that's used to cleanly and simply describe the HTML of
+any web document, without the use of inline code. Haml functions as a
+replacement for inline page templating systems such as PHP, ERB, and ASP.
+However, Haml avoids the need for explicitly coding HTML into the template,
+because it is actually an abstract description of the HTML, with some code to
+generate dynamic content.
 
 ## Features
 
@@ -21,9 +19,11 @@ with some code to generate dynamic content.
 ## Using Haml
 
 Haml can be used in three ways:
-as a command-line tool,
-as a plugin for Ruby on Rails,
-and as a standalone Ruby module.
+
+* as a command-line tool,
+* as a plugin for Ruby on Rails,
+* and as a standalone Ruby module.
+
 The first step for all of these is to install the Haml gem:
 
     gem install haml
@@ -34,25 +34,15 @@ To run Haml from the command line, just use
 
 Use `haml --help` for full documentation.
 
-### Rails/Merb Plugin {#plugin}
-
-To enable Haml in Rails versions before Rails 3,
-add the following line to `environment.rb`:
-
-    config.gem "haml"
-
-For Rails 3, instead add the following line to the Gemfile:
+To use Haml with Rails, add the following line to the Gemfile:
 
     gem "haml"
 
-Once it's installed, all view files with the `".html.haml"` extension
-will be compiled using Haml.
-Haml is enabled by default in Merb.
+Once it's installed, all view files with the `".html.haml"` extension will be
+compiled using Haml.
 
-You can access instance variables in Haml templates
-the same way you do in ERB templates.
-Helper methods are also available in Haml templates.
-For example (this example uses Rails, but the principle for Merb is the same):
+You can access instance variables in Haml templates the same way you do in ERB
+templates. Helper methods are also available in Haml templates. For example:
 
     # file: app/controllers/movies_controller.rb
 
@@ -62,7 +52,7 @@ For example (this example uses Rails, but the principle for Merb is the same):
       end
     end
 
-    -# file: app/views/movies/index.haml
+    -# file: app/views/movies/index.html.haml
 
     #content
      .title
@@ -78,178 +68,80 @@ may be compiled to:
       </div>
     </div>
 
-#### Rails XSS Protection
+### Rails XSS Protection
 
-Haml supports Rails' XSS protection scheme,
-which was introduced in Rails 2.3.5+ and is enabled by default in 3.0.0+.
-If it's enabled, Haml's [`:escape_html`](#escape_html-option)
-option is set to `true` by default -
-like in ERB, all strings printed to a Haml template are escaped by default.
-Also like ERB, strings marked as HTML safe are not escaped.
-Haml also has [its own syntax for printing a raw string to the template](#unescaping_html).
+Haml supports Rails' XSS protection scheme, which was introduced in Rails 2.3.5+
+and is enabled by default in 3.0.0+. If it's enabled, Haml's
+{Haml::Options#escape_html `:escape_html`} option is set to `true` by default -
+like in ERB, all strings printed to a Haml template are escaped by default. Also
+like ERB, strings marked as HTML safe are not escaped. Haml also has [its own
+syntax for printing a raw string to the template](#unescaping_html).
 
 If the `:escape_html` option is set to false when XSS protection is enabled,
-Haml doesn't escape Ruby strings by default.
-However, if a string marked HTML-safe is passed to [Haml's escaping syntax](#escaping_html),
-it won't be escaped.
+Haml doesn't escape Ruby strings by default. However, if a string marked
+HTML-safe is passed to [Haml's escaping syntax](#escaping_html), it won't be
+escaped.
 
-Finally, all the {Haml::Helpers Haml helpers} that return strings
-that are known to be HTML safe are marked as such.
-In addition, string input is escaped unless it's HTML safe.
+Finally, all the {Haml::Helpers Haml helpers} that return strings that are known
+to be HTML safe are marked as such. In addition, string input is escaped unless
+it's HTML safe.
 
 ### Ruby Module
 
-Haml can also be used completely separately from Rails and ActionView.
-To do this, install the gem with RubyGems:
+Haml can also be used completely separately from Rails and ActionView. To do
+this, install the gem with RubyGems:
 
     gem install haml
 
-You can then use it by including the "haml" gem in Ruby code,
-and using {Haml::Engine} like so:
+You can then use it by including the "haml" gem in Ruby code, and using
+{Haml::Engine} like so:
 
     engine = Haml::Engine.new("%p Haml code!")
     engine.render #=> "<p>Haml code!</p>\n"
 
 ### Options
 
-Options can be set by setting the {Haml::Template#options Haml::Template.options} hash
-in `environment.rb` in Rails...
+Haml understands various configuration options that affect its performance and
+output.
 
+In Rails, options can be set by setting the {Haml::Template#options Haml::Template.options}
+hash in an initializer:
+
+    # config/initializers/haml.rb
     Haml::Template.options[:format] = :html5
 
-...or by setting the `Merb::Plugin.config[:haml]` hash in `init.rb` in Merb...
+Outside Rails, you can set them by configuring them globally in
+Haml::Options.defaults:
 
-    Merb::Plugin.config[:haml][:format] = :html5
+    Haml::Options.defaults[:format] = :html5
 
-...or by passing an options hash to {Haml::Engine#initialize}.
-Available options are:
-
-{#format-option} `:format`
-: Determines the output format. Normally the default is `:xhtml`,
-  although under Rails 3 it's `:html5`, since that's the Rails 3's default format.
-  Other options are `:html4` and `:html5`, which are
-  identical to `:xhtml` except there are no self-closing tags,
-  the XML prolog is ignored and correct DOCTYPEs are generated.
-  <br/><br/> <!-- There's no better way to do a paragraph break in a dl in Maruku -->
-  If the mime_type of the template being rendered is `text/xml` then
-  a format of `:xhtml` will be used even if the global output format
-  is set to `:html4` or `:html5`.
-
-{#escape_html-option} `:escape_html`
-: Sets whether or not to escape HTML-sensitive characters in script.
-  If this is true, `=` behaves like [`&=`](#escaping_html);
-  otherwise, it behaves like [`!=`](#unescaping_html).
-  Note that if this is set, `!=` should be used for yielding to subtemplates
-  and rendering partials.
-  See also [Escaping HTML](#escaping_html) and [Unescaping HTML](#unescaping_html)
-  Defaults to false.
-
-{#escape_attrs-option} `:escape_attrs`
-: Sets whether or not to escape HTML-sensitive characters in attributes.
-  If this is true, all HTML-sensitive characters in attributes are escaped.
-  If it's set to false, no HTML-sensitive characters in attributes are escaped.
-  If it's set to `:once`, existing HTML escape sequences are preserved,
-  but other HTML-sensitive characters are escaped.
-  Defaults to `:once`.
-
-{#ugly-option} `:ugly`
-: If set to `true`, Haml makes no attempt to properly
-  indent or format the HTML output.
-  This significantly improves rendering performance
-  but makes viewing the source unpleasant.
-  Defaults to `true` in Rails production mode, and `false`
-  everywhere else.
-
-{#suppress_eval-option} `:suppress_eval`
-: Whether or not attribute hashes and Ruby scripts
-  designated by `=` or `~` should be
-  evaluated. If this is `true`, said scripts are
-  rendered as empty strings. Defaults to `false`.
-
-{#attr_wrapper-option} `:attr_wrapper`
-: The character that should wrap element attributes.
-  This defaults to `'` (an apostrophe). Characters
-  of this type within the attributes will be escaped
-  (e.g. by replacing them with `&apos;`) if
-  the character is an apostrophe or a quotation mark.
-
-{#hyphenate_data_attrs} `:hyphenate_data_attrs`
-: If set to `true`, Haml will convert underscores to hyphens in all
-  [Custom Data Attributes](#html5_custom_data_attributes)
-  As of Haml 3.2, this defaults to `true`.
-
-{#filename-option} `:filename`
-: The name of the Haml file being parsed.
-  This is only used as information when exceptions are raised.
-  This is automatically assigned when working through ActionView,
-  so it's really only useful for the user to assign
-  when dealing with Haml programatically.
-
-{#line-option} `:line`
-: The line offset of the Haml template being parsed.
-  This is useful for inline templates,
-  similar to the last argument to `Kernel#eval`.
-
-{#autoclose-option} `:autoclose`
-: A list of tag names that should be automatically self-closed
-  if they have no content.
-  This can also contain regular expressions that match tag names
-  (or any object which responds to `#===`).
-  Defaults to `['meta', 'img', 'link', 'br', 'hr', 'input', 'area', 'param', 'col', 'base']`.
-
-{#preserve-option} `:preserve`
-: A list of tag names that should automatically have their newlines preserved
-  using the {Haml::Helpers#preserve} helper.
-  This means that any content given on the same line as the tag will be preserved.
-  For example, `%textarea= "Foo\nBar"` compiles to `<textarea>Foo&#x000A;Bar</textarea>`.
-  Defaults to `['textarea', 'pre']`.
-  See also [Whitespace Preservation](#whitespace_preservation).
-
-{#encoding-option} `:encoding`
-: The encoding to use for the HTML output.
-  Only available in Ruby 1.9 or higher.
-  This can be a string or an `Encoding` Object.
-  Note that Haml **does not** automatically re-encode Ruby values;
-  any strings coming from outside the application should be converted
-  before being passed into the Haml template.
-  Defaults to `Encoding.default_internal`; if that's not set,
-  defaults to the encoding of the Haml template;
-  if that's `us-ascii`, defaults to `"utf-8"`.
-  <br/><br/> <!-- There's no better way to do a paragraph break in a dl in Maruku -->
-  Many Ruby database drivers are not yet Ruby 1.9 compatible;
-  in particular, they return strings marked as ASCII-encoded
-  even when those strings contain non-ASCII characters (such as UTF-8).
-  **This will cause encoding errors** if the Haml encoding isn't set to `"ascii-8bit"`.
-  To solve this, either call `#force_encoding` on all the strings returned from the database,
-  set `:encoding` to `"ascii-8bit"`, or try to get the authors of the database drivers
-  to make them Ruby 1.9 compatible.
+Finally, you can also set them by passing an options hash to
+{Haml::Engine#initialize}. For the complete list of available options, please
+see {Haml::Options}.
 
 ### Encodings
 
-When using Ruby 1.9 or later,
-Haml supports the same sorts of encoding-declaration comments that Ruby does.
-Although both Ruby and Haml support several different styles,
-the easiest it just to add `-# coding: encoding-name`
-at the beginning of the Haml template
-(it must come before all other lines).
-This will tell Haml that the template is encoded using the named encoding.
+When using Ruby 1.9 or later, Haml supports the same sorts of
+encoding-declaration comments that Ruby does. Although both Ruby and Haml
+support several different styles, the easiest it just to add `-# coding:
+encoding-name` at the beginning of the Haml template (it must come before all
+other lines). This will tell Haml that the template is encoded using the named
+encoding.
 
-By default, the HTML generated by Haml has the same encoding as the Haml template.
-However, if `Encoding.default_internal` is set, Haml will attempt to use that instead.
-In addition, the [`:encoding` option](#encoding-option) can be used
-to specify an output encoding manually.
+By default, the HTML generated by Haml has the same encoding as the Haml
+template. However, if `Encoding.default_internal` is set, Haml will attempt to
+use that instead. In addition, the [`:encoding` option](#encoding-option) can be
+used to specify an output encoding manually.
 
-Note that, like Ruby, Haml does not support templates encoded in UTF-16 or UTF-32,
-since these encodings are not compatible with ASCII.
-It is possible to use these as the output encoding, though.
+Note that, like Ruby, Haml does not support templates encoded in UTF-16 or
+UTF-32, since these encodings are not compatible with ASCII. It is possible to
+use these as the output encoding, though.
 
 ## Plain Text
 
-A substantial portion of any HTML document is its content,
-which is plain old text.
-Any Haml line that's not interpreted as something else
-is taken to be plain text, and passed through unmodified.
-For example:
+A substantial portion of any HTML document is its content, which is plain old
+text. Any Haml line that's not interpreted as something else is taken to be
+plain text, and passed through unmodified. For example:
 
     %gee
       %whiz
@@ -263,11 +155,9 @@ is compiled to:
       </whiz>
     </gee>
 
-Note that HTML tags are passed through unmodified as well.
-If you have some HTML you don't want to convert to Haml,
-or you're converting a file line-by-line,
-you can just include it as-is.
-For example:
+Note that HTML tags are passed through unmodified as well. If you have some HTML
+you don't want to convert to Haml, or you're converting a file line-by-line, you
+can just include it as-is. For example:
 
     %p
       <div id="blah">Blah!</div>
@@ -280,9 +170,8 @@ is compiled to:
 
 ### Escaping: `\`
 
-The backslash character escapes the first character of a line,
-allowing use of otherwise interpreted characters as plain text.
-For example:
+The backslash character escapes the first character of a line, allowing use of
+otherwise interpreted characters as plain text. For example:
 
     %title
       = @title
@@ -300,12 +189,10 @@ is compiled to:
 
 ### Element Name: `%`
 
-The percent character is placed at the beginning of a line.
-It's followed immediately by the name of an element,
-then optionally by modifiers (see below), a space,
-and text to be rendered inside the element.
-It creates an element in the form of `<element></element>`.
-For example:
+The percent character is placed at the beginning of a line. It's followed
+immediately by the name of an element, then optionally by modifiers (see below),
+a space, and text to be rendered inside the element. It creates an element in
+the form of `<element></element>`. For example:
 
     %one
       %two
@@ -319,19 +206,16 @@ is compiled to:
       </two>
     </one>
 
-Any string is a valid element name;
-Haml will automatically generate opening and closing tags for any element.
+Any string is a valid element name; Haml will automatically generate opening and
+closing tags for any element.
 
 ### Attributes: `{}` or `()` {#attributes}
 
-Brackets represent a Ruby hash
-that is used for specifying the attributes of an element.
-It is literally evaluated as a Ruby hash,
-so logic will work in it and local variables may be used.
-Quote characters within the attribute
-will be replaced by appropriate escape sequences.
-The hash is placed after the tag is defined.
-For example:
+Brackets represent a Ruby hash that is used for specifying the attributes of an
+element. It is literally evaluated as a Ruby hash, so logic will work in it and
+local variables may be used. Quote characters within the attribute will be
+replaced by appropriate escape sequences. The hash is placed after the tag is
+defined. For example:
 
     %html{:xmlns => "http://www.w3.org/1999/xhtml", "xml:lang" => "en", :lang => "en"}
 
@@ -339,9 +223,8 @@ is compiled to:
 
     <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'></html>
 
-Attribute hashes can also be stretched out over multiple lines
-to accommodate many attributes.
-However, newlines may only be placed immediately after commas.
+Attribute hashes can also be stretched out over multiple lines to accommodate
+many attributes. However, newlines may only be placed immediately after commas.
 For example:
 
     %script{:type => "text/javascript",
@@ -354,11 +237,9 @@ is compiled to:
 #### `:class` and `:id` Attributes
 {#class-and-id-attributes}
 
-The `:class` and `:id` attributes can also be specified as a Ruby array
-whose elements will be joined together.
-A `:class` array is joined with `" "`
-and an `:id` array is joined with `"_"`.
-For example:
+The `:class` and `:id` attributes can also be specified as a Ruby array whose
+elements will be joined together. A `:class` array is joined with `" "` and an
+`:id` array is joined with `"_"`. For example:
 
     %div{:id => [@item.type, @item.number], :class => [@item.type, @item.urgency]}
 
@@ -366,10 +247,8 @@ is equivalent to:
 
     %div{:id => "#{@item.type}_#{@item.number}", :class => "#{@item.type} #{@item.urgency}"}
 
-The array will first be flattened
-and any elements that do not test as true will be removed.
-The remaining elements will be converted to strings.
-For example:
+The array will first be flattened and any elements that do not test as true will
+be removed. The remaining elements will be converted to strings. For example:
 
     %div{:class => [@item.type, @item == @sortcol && [:sort, @sortdir]] } Contents
 
@@ -380,13 +259,11 @@ could render as any of:
     <div class="sort descending">Contents</div>
     <div>Contents</div>
 
-depending on whether `@item.type` is `"numeric"` or `nil`,
-whether `@item == @sortcol`,
+depending on whether `@item.type` is `"numeric"` or `nil`, whether `@item == @sortcol`,
 and whether `@sortdir` is `"ascending"` or `"descending"`.
 
 If a single value is specified and it evaluates to false it is ignored;
-otherwise it gets converted to a string.
-For example:
+otherwise it gets converted to a string. For example:
 
     .item{:class => @item.is_empty? && "empty"}
 
@@ -397,15 +274,13 @@ could render as either of:
 
 #### HTML-style Attributes: `()`
 
-Haml also supports a terser, less Ruby-specific attribute syntax
-based on HTML's attributes.
-These are used with parentheses instead of brackets, like so:
+Haml also supports a terser, less Ruby-specific attribute syntax based on HTML's
+attributes. These are used with parentheses instead of brackets, like so:
 
     %html(xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en")
 
-Ruby variables can be used by omitting the quotes.
-Local variables or instance variables can be used.
-For example:
+Ruby variables can be used by omitting the quotes. Local variables or instance
+variables can be used. For example:
 
     %a(title=@title href=href) Stuff
 
@@ -413,28 +288,32 @@ This is the same as:
 
     %a{:title => @title, :href => href} Stuff
 
-Because there are no commas separating attributes, though,
-more complicated expressions aren't allowed.
-For those you'll have to use the `{}` syntax.
-You can, however, use both syntaxes together:
+Because there are no commas separating attributes, though, more complicated
+expressions aren't allowed. For those you'll have to use the `{}` syntax. You
+can, however, use both syntaxes together:
 
     %a(title=@title){:href => @link.href} Stuff
 
-You can also use `#{}` interpolation to insert complicated expressions
-in a HTML-style attribute:
+You can also use `#{}` interpolation to insert complicated expressions in a
+HTML-style attribute:
 
     %span(class="widget_#{@widget.number}")
 
-HTML-style attributes can be stretched across multiple lines
-just like hash-style attributes:
+HTML-style attributes can be stretched across multiple lines just like
+hash-style attributes:
 
     %script(type="text/javascript"
             src="javascripts/script_#{2 + 7}")
 
+#### Ruby 1.9-style Hashes
+
+On Ruby 1.9, Haml also supports Ruby's new hash syntax:
+
+    %a{title: @title, href: href} Stuff
+
 #### Attribute Methods
 
-A Ruby method call that returns a hash
-can be substituted for the hash contents.
+A Ruby method call that returns a hash can be substituted for the hash contents.
 For example, {Haml::Helpers} defines the following method:
 
     def html_attrs(lang = 'en-US')
@@ -450,11 +329,9 @@ This is compiled to:
     <html lang='fr-fr' xml:lang='fr-fr' xmlns='http://www.w3.org/1999/xhtml'>
     </html>
 
-You can use as many such attribute methods as you want
-by separating them with commas,
-like a Ruby argument list.
-All the hashes will me merged together, from left to right.
-For example, if you defined
+You can use as many such attribute methods as you want by separating them with
+commas, like a Ruby argument list. All the hashes will me merged together, from
+left to right. For example, if you defined
 
     def hash1
       {:bread => 'white', :filling => 'peanut butter and jelly'}
@@ -479,29 +356,29 @@ Attribute methods aren't supported for HTML-style attributes.
 
 #### Boolean Attributes
 
-Some attributes, such as "checked" for `input` tags or "selected" for `option` tags,
-are "boolean" in the sense that their values don't matter -
-it only matters whether or not they're present.
-In HTML (but not XHTML), these attributes can be written as
+Some attributes, such as "checked" for `input` tags or "selected" for `option`
+tags, are "boolean" in the sense that their values don't matter - it only
+matters whether or not they're present. In HTML (but not XHTML), these
+attributes can be written as
 
     <input selected>
 
-To do this in Haml using hash-style attributes, just assign a Ruby
-`true` value to the attribute:
+To do this in Haml using hash-style attributes, just assign a Ruby `true` value
+to the attribute:
 
     %input{:selected => true}
 
 In XHTML, the only valid value for these attributes is the name of the
-attribute.  Thus this will render in XHTML as
+attribute. Thus this will render in XHTML as
 
     <input selected='selected'>
 
-To set these attributes to false, simply assign them to a Ruby false value.
-In both XHTML and HTML
+To set these attributes to false, simply assign them to a Ruby false value. In
+both XHTML and HTML,
 
     %input{:selected => false}
 
-will just render as
+will just render as:
 
     <input>
 
@@ -515,12 +392,12 @@ or using `true` and `false`:
 
 #### HTML5 Custom Data Attributes
 
-HTML5 allows for adding [custom non-visible data attributes](http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#embedding-custom-non-visible-data)
-to elements using attribute names beginning with `data-`.
-Custom data attributes can be used in Haml by using the key `:data` with a Hash value
-in an attribute hash.
-Each of the key/value pairs in the Hash will be transformed into a custom data attribute.
-For example:
+HTML5 allows for adding [custom non-visible data
+attributes](http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#embedding-custom-non-visible-data)
+to elements using attribute names beginning with `data-`. Custom data attributes
+can be used in Haml by using the key `:data` with a Hash value in an attribute
+hash. Each of the key/value pairs in the Hash will be transformed into a custom
+data attribute. For example:
 
     %a{:href=>"/posts", :data => {:author_id => 123}} Posts By Author
 
@@ -537,13 +414,11 @@ rendered as:
 
 ### Class and ID: `.` and `#`
 
-The period and pound sign are borrowed from CSS.
-They are used as shortcuts to specify the `class`
-and `id` attributes of an element, respectively.
-Multiple class names can be specified in a similar way to CSS,
-by chaining the class names together with periods.
-They are placed immediately after the tag and before an attributes hash.
-For example:
+The period and pound sign are borrowed from CSS. They are used as shortcuts to
+specify the `class` and `id` attributes of an element, respectively. Multiple
+class names can be specified in a similar way to CSS, by chaining the class
+names together with periods. They are placed immediately after the tag and
+before an attributes hash. For example:
 
     %div#things
       %span#rice Chicken Fried
@@ -579,11 +454,10 @@ is compiled to:
       </div>
     </div>
 
-These shortcuts can be combined with long-hand attributes;
-the two values will be merged together
-as though they were all placed in an array
-(see [the documentation on `:class` and `:id` attributes](#class-and-id-attributes)).
-For example:
+These shortcuts can be combined with long-hand attributes; the two values will
+be merged together as though they were all placed in an array (see [the
+documentation on `:class` and `:id` attributes](#class-and-id-attributes)). For
+example:
 
     %div#Article.article.entry{:id => @article.number, :class => @article.visibility}
 
@@ -597,10 +471,8 @@ and could compile to:
 
 #### Implicit Div Elements
 
-Because divs are used so often, they're the default elements.
-If you only define a class and/or id using `.` or `#`,
-a div is automatically used.
-For example:
+Because divs are used so often, they're the default elements. If you only define
+a class and/or id using `.` or `#`, a div is automatically used. For example:
 
     #collection
       .item
@@ -622,9 +494,8 @@ and is compiled to:
 
 ### Self-Closing Tags: `/`
 
-The forward slash character, when placed at the end of a tag definition,
-causes the tag to be self-closed.
-For example:
+The forward slash character, when placed at the end of a tag definition, causes
+the tag to be self-closed. For example:
 
     %br/
     %meta{'http-equiv' => 'Content-Type', :content => 'text/html'}/
@@ -634,10 +505,10 @@ is compiled to:
     <br />
     <meta http-equiv='Content-Type' content='text/html' />
 
-Some tags are automatically closed, as long as they have no content.
-`meta`, `img`, `link`, `script`, `br`, and `hr` tags are closed by default.
-This list can be customized by setting the [`:autoclose`](#autoclose-option) option.
-For example:
+Some tags are automatically closed, as long as they have no content. `meta`,
+`img`, `link`, `script`, `br`, and `hr` tags are closed by default. This list
+can be customized by setting the [`:autoclose`](#autoclose-option) option. For
+example:
 
     %br
     %meta{'http-equiv' => 'Content-Type', :content => 'text/html'}
@@ -649,16 +520,13 @@ is also compiled to:
 
 ### Whitespace Removal: `>` and `<`
 
-`>` and `<` give you more control over the whitespace near a tag.
-`>` will remove all whitespace surrounding a tag,
-while `<` will remove all whitespace immediately within a tag.
-You can think of them as alligators eating the whitespace:
-`>` faces out of the tag and eats the whitespace on the outside,
-and `<` faces into the tag and eats the whitespace on the inside.
-They're placed at the end of a tag definition,
-after class, id, and attribute declarations
-but before `/` or `=`.
-For example:
+`>` and `<` give you more control over the whitespace near a tag. `>` will
+remove all whitespace surrounding a tag, while `<` will remove all whitespace
+immediately within a tag. You can think of them as alligators eating the
+whitespace: `>` faces out of the tag and eats the whitespace on the outside, and
+`<` faces into the tag and eats the whitespace on the inside. They're placed at
+the end of a tag definition, after class, id, and attribute declarations but
+before `/` or `=`. For example:
 
     %blockquote<
       %div
@@ -704,16 +572,13 @@ is compiled to:
 
 ### Object Reference: `[]`
 
-Square brackets follow a tag definition and contain a Ruby object
-that is used to set the class and id of that tag.
-The class is set to the object's class
-(transformed to use underlines rather than camel case)
-and the id is set to the object's class, followed by the value
-of its `#to_key` or `#id` method (in that order).
-This is most useful for elements that represent instances of Models.
-Additionally, the second argument (if present) will be used as a prefix for
-both the id and class attributes.
-For example:
+Square brackets follow a tag definition and contain a Ruby object that is used
+to set the class and id of that tag. The class is set to the object's class
+(transformed to use underlines rather than camel case) and the id is set to the
+object's class, followed by the value of its `#to_key` or `#id` method (in that
+order). This is most useful for elements that represent instances of Active
+Model models. Additionally, the second argument (if present) will be used as a
+prefix for both the id and class attributes. For example:
 
     # file: app/controllers/users_controller.rb
 
@@ -734,8 +599,8 @@ is compiled to:
       Hello!
     </div>
 
-If you require that the class be something other than the underscored
-object's class, you can implement the `haml_object_ref` method on the object.
+If you require that the class be something other than the underscored object's
+class, you can implement the `haml_object_ref` method on the object.
 
     # file: app/models/crazy_user.rb
 
@@ -759,10 +624,8 @@ is compiled to:
 
 ## Doctype: `!!!`
 
-When describing HTML documents with Haml,
-you can have a document type or XML prolog generated automatically
-by including the characters `!!!`.
-For example:
+When describing HTML documents with Haml, you can have a document type or XML
+prolog generated automatically by including the characters `!!!`. For example:
 
     !!! XML
     !!!
@@ -787,9 +650,9 @@ is compiled to:
       </body>
     </html>
 
-You can also specify the specific doctype after the `!!!`
-When the [`:format`](#format-option) is set to `:xhtml` (the default except in Rails 3),
-the following doctypes are supported:
+You can also specify the specific doctype after the `!!!` When the
+[`:format`](#format-option) is set to `:xhtml`. The following doctypes are
+supported:
 
 `!!!`
 : XHTML 1.0 Transitional<br/>
@@ -823,8 +686,8 @@ the following doctypes are supported:
 : XHTML+RDFa 1.0<br/>
  `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">`
 
-When the [`:format`](#format-option) option is set to `:html4`,
-the following doctypes are supported:
+When the [`:format`](#format-option) option is set to `:html4`, the following
+doctypes are supported:
 
 `!!!`
 : HTML 4.01 Transitional<br/>
@@ -841,10 +704,8 @@ the following doctypes are supported:
 When the [`:format`](#format-option) option is set to `:html5`,
 `!!!` is always `<!DOCTYPE html>`.
 
-If you're not using the UTF-8 character set for your document,
-you can specify which encoding should appear
-in the XML prolog in a similar way.
-For example:
+If you're not using the UTF-8 character set for your document, you can specify
+which encoding should appear in the XML prolog in a similar way. For example:
 
     !!! XML iso-8859-1
 
@@ -852,21 +713,19 @@ is compiled to:
 
     <?xml version='1.0' encoding='iso-8859-1' ?>
 
-If the mime_type of the template being rendered is `text/xml` then
-a format of `:xhtml` will be used even if the global output format
-is set to `:html4` or `:html5`.
+If the mime_type of the template being rendered is `text/xml` then a format of
+`:xhtml` will be used even if the global output format is set to `:html4` or
+`:html5`.
 
 ## Comments
 
-Haml supports two sorts of comments:
-those that show up in the HTML output
-and those that don't.
+Haml supports two sorts of comments: those that show up in the HTML output and
+those that don't.
 
 ### HTML Comments: `/`
 
-The forward slash character, when placed at the beginning of a line,
-wraps all text after it in an HTML comment.
-For example:
+The forward slash character, when placed at the beginning of a line, wraps all
+text after it in an HTML comment. For example:
 
     %peanutbutterjelly
       / This is the peanutbutterjelly element
@@ -897,9 +756,9 @@ is compiled to:
 
 #### Conditional Comments: `/[]`
 
-You can also use [Internet Explorer conditional comments](http://www.quirksmode.org/css/condcom.html)
-by enclosing the condition in square brackets after the `/`.
-For example:
+You can also use [Internet Explorer conditional
+comments](http://www.quirksmode.org/css/condcom.html) by enclosing the condition
+in square brackets after the `/`. For example:
 
     /[if IE]
       %a{ :href => 'http://www.mozilla.com/en-US/firefox/' }
@@ -915,10 +774,8 @@ is compiled to:
 
 ### Haml Comments: `-#`
 
-The hyphen followed immediately by the pound sign
-signifies a silent comment.
-Any text following this isn't rendered in the resulting document
-at all.
+The hyphen followed immediately by the pound sign signifies a silent comment.
+Any text following this isn't rendered in the resulting document at all.
 
 For example:
 
@@ -931,9 +788,8 @@ is compiled to:
     <p>foo</p>
     <p>bar</p>
 
-You can also nest text beneath a silent comment.
-None of this text will be rendered.
-For example:
+You can also nest text beneath a silent comment. None of this text will be
+rendered. For example:
 
     %p foo
     -#
@@ -951,9 +807,8 @@ is compiled to:
 
 ### Inserting Ruby: `=`
 
-The equals character is followed by Ruby code.
-This code is evaluated and the output is inserted into the document.
-For example:
+The equals character is followed by Ruby code. This code is evaluated and the
+output is inserted into the document. For example:
 
     %p
       = ['hi', 'there', 'reader!'].join " "
@@ -966,8 +821,8 @@ is compiled to:
       yo
     </p>
 
-If the [`:escape_html`](#escape_html-option) option is set, `=` will sanitize any
-HTML-sensitive characters generated by the script. For example:
+If the [`:escape_html`](#escape_html-option) option is set, `=` will sanitize
+any HTML-sensitive characters generated by the script. For example:
 
     = '<script>alert("I\'m evil!");</script>'
 
@@ -980,13 +835,12 @@ For example:
 
     %p= "hello"
 
-would be compiled to
+would be compiled to:
 
     <p>hello</p>
 
-A line of Ruby code can be stretched over multiple lines
-as long as each line but the last ends with a comma.
-For example:
+A line of Ruby code can be stretched over multiple lines as long as each line
+but the last ends with a comma. For example:
 
     = link_to_remote "Add to cart",
         :url => { :action => "add", :id => product.id },
@@ -996,12 +850,11 @@ Note that it's illegal to nest code within a tag that ends with `=`.
 
 ### Running Ruby: `-`
 
-The hyphen character is also followed by Ruby code.
-This code is evaluated but *not* inserted into the document.
+The hyphen character is also followed by Ruby code. This code is evaluated but
+*not* inserted into the document.
 
-**It is not recommended that you use this widely;
-almost all processing code and logic should be restricted
-to the Controller, the Helper, or partials.**
+**It is not recommended that you use this widely; almost all processing code and
+logic should be restricted to Controllers, Helpers, or partials.**
 
 For example:
 
@@ -1016,9 +869,8 @@ is compiled to:
       hello there you!
     </p>
 
-A line of Ruby code can be stretched over multiple lines
-as long as each line but the last ends with a comma.
-For example:
+A line of Ruby code can be stretched over multiple lines as long as each line
+but the last ends with a comma. For example:
 
     - links = {:home => "/",
         :docs => "/docs",
@@ -1027,12 +879,10 @@ For example:
 #### Ruby Blocks
 
 Ruby blocks, like XHTML tags, don't need to be explicitly closed in Haml.
-Rather, they're automatically closed, based on indentation.
-A block begins whenever the indentation is increased
-after a Ruby evaluation command.
-It ends when the indentation decreases
-(as long as it's not an `else` clause or something similar).
-For example:
+Rather, they're automatically closed, based on indentation. A block begins
+whenever the indentation is increased after a Ruby evaluation command. It ends
+when the indentation decreases (as long as it's not an `else` clause or
+something similar). For example:
 
     - (42...47).each do |i|
       %p= i
@@ -1066,8 +916,8 @@ is compiled to:
 
 ### Whitespace Preservation: `~` {#tilde}
 
-`~` works just like `=`, except that it runs {Haml::Helpers#find\_and\_preserve} on its input.
-For example,
+`~` works just like `=`, except that it runs {Haml::Helpers#find\_and\_preserve}
+on its input. For example,
 
     ~ "Foo\n<pre>Bar\nBaz</pre>"
 
@@ -1084,9 +934,8 @@ See also [Whitespace Preservation](#whitespace_preservation).
 
 ### Ruby Interpolation: `#{}`
 
-Ruby code can also be interpolated within plain text using `#{}`,
-similarly to Ruby string interpolation.
-For example,
+Ruby code can also be interpolated within plain text using `#{}`, similarly to
+Ruby string interpolation. For example,
 
     %p This is #{h quality} cake!
 
@@ -1094,34 +943,32 @@ is the same as
 
     %p= "This is the #{h quality} cake!"
 
-and might compile to
+and might compile to:
 
     <p>This is scrumptious cake!</p>
 
-Backslashes can be used to escape `#{}` strings,
-but they don't act as escapes anywhere else in the string.
-For example:
+Backslashes can be used to escape `#{}` strings, but they don't act as escapes
+anywhere else in the string. For example:
 
     %p
       Look at \\#{h word} lack of backslash: \#{foo}
       And yon presence thereof: \{foo}
 
-might compile to
+might compile to:
 
     <p>
       Look at \yon lack of backslash: #{foo}
       And yon presence thereof: \{foo}
     </p>
 
-Interpolation can also be used within [filters](#filters).
-For example:
+Interpolation can also be used within [filters](#filters). For example:
 
     :javascript
       $(document).ready(function() {
         alert(#{@message.to_json});
       });
 
-might compile to
+might compile to:
 
     <script type='text/javascript'>
       //<![CDATA[
@@ -1133,10 +980,9 @@ might compile to
 
 ### Escaping HTML: `&=` {#escaping_html}
 
-An ampersand followed by one or two equals characters
-evaluates Ruby code just like the equals without the ampersand,
-but sanitizes any HTML-sensitive characters in the result of the code.
-For example:
+An ampersand followed by one or two equals characters evaluates Ruby code just
+like the equals without the ampersand, but sanitizes any HTML-sensitive
+characters in the result of the code. For example:
 
     &= "I like cheese & crackers"
 
@@ -1144,28 +990,26 @@ compiles to
 
     I like cheese &amp; crackers
 
-If the [`:escape_html`](#escape_html-option) option is set,
-`&=` behaves identically to `=`.
+If the {Haml::Options#escape_html `:escape_html`} option is set, `&=` behaves
+identically to `=`.
 
-`&` can also be used on its own so that `#{}` interpolation is escaped.
-For example,
+`&` can also be used on its own so that `#{}` interpolation is escaped. For
+example,
 
     & I like #{"cheese & crackers"}
 
-compiles to
+compiles to:
 
     I like cheese &amp; crackers
 
 ### Unescaping HTML: `!=` {#unescaping_html}
 
-An exclamation mark followed by one or two equals characters
-evaluates Ruby code just like the equals would,
-but never sanitizes the HTML.
+An exclamation mark followed by one or two equals characters evaluates Ruby code
+just like the equals would, but never sanitizes the HTML.
 
-By default, the single equals doesn't sanitize HTML either.
-However, if the [`:escape_html`](#escape_html-option) option is set,
-`=` will sanitize the HTML, but `!=` still won't.
-For example, if `:escape_html` is set:
+By default, the single equals doesn't sanitize HTML either. However, if the
+{Haml::Options#escape_html `:escape_html`} option is set, `=` will sanitize the
+HTML, but `!=` still won't. For example, if `:escape_html` is set:
 
     = "I feel <strong>!"
     != "I feel <strong>!"
@@ -1189,7 +1033,7 @@ compiles to
 The colon character designates a filter. This allows you to pass an indented
 block of text as input to another filtering program and add the result to the
 output of Haml. The syntax is simply a colon followed by the name of the filter.
-For example,
+For example:
 
     %p
       :markdown
@@ -1197,7 +1041,7 @@ For example,
 
         Hello, *World*
 
-is compiled to
+is compiled to:
 
     <p>
       <h1>Greetings</h1>
@@ -1205,7 +1049,7 @@ is compiled to
       <p>Hello, <em>World</em></p>
     </p>
 
-Filters can have Ruby code interpolated with `#{}`. For example,
+Filters can have Ruby code interpolated with `#{}`. For example:
 
     - flavor = "raspberry"
     #content
@@ -1218,16 +1062,16 @@ is compiled to
       <p>I <strong>really</strong> prefer <em>raspberry</em> jam.</p>
     </div>
 
-Currently, filters ignore the [`:escape_html`](#escape_html-option) option. This
-means that `#{}` interpolation within filters is never HTML-escaped.
+Currently, filters ignore the {Haml::Options#escape_html `:escape_html`} option.
+This means that `#{}` interpolation within filters is never HTML-escaped.
 
 The functionality of some filters such as Markdown can be provided by many
 different libraries. Usually you don't have to worry about this - you can just
 load the gem of your choice and Haml will automatically use it.
 
-However in some cases you may want to make Haml explicitly use a specific gem
-to be used by a filter. In these cases you can do this via Tilt, the library
-Haml uses to implement many filters:
+However in some cases you may want to make Haml explicitly use a specific gem to
+be used by a filter. In these cases you can do this via Tilt, the library Haml
+uses to implement many of its filters:
 
     Tilt.prefer Tilt::RedCarpetTemplate
 
@@ -1248,8 +1092,9 @@ Tilt.
 
 {#css-filter}
 ### `:css`
-Surrounds the filtered text with `<style>` and CDATA tags. Useful for including
-inline CSS.
+Surrounds the filtered text with `<style>` and (optionally) CDATA tags. Useful
+for including inline CSS. Use the {Haml::Options#cdata `:cdata` option} to
+control when CDATA tags are added.
 
 {#erb-filter}
 ### `:erb`
@@ -1265,8 +1110,9 @@ before placing it in the document.
 
 {#javascript-filter}
 ### `:javascript`
-Surrounds the filtered text with `<script>` and CDATA tags.
-Useful for including inline Javascript.
+Surrounds the filtered text with `<script>` and (optionally) CDATA tags.
+Useful for including inline Javascript. Use the {Haml::Options#cdata `:cdata`
+option} to control when CDATA tags are added.
 
 {#less-filter}
 ### `:less`
@@ -1386,7 +1232,7 @@ For example, tags like `pre` and `textarea` are whitespace-sensitive;
 indenting the text makes them render wrong.
 
 Haml deals with this by "preserving" newlines before they're put into the document --
-converting them to the XHTML whitespace escape code, `&#x000A;`.
+converting them to the HTML whitespace escape code, `&#x000A;`.
 Then Haml won't try to re-format the indentation.
 
 Literal `textarea` and `pre` tags automatically preserve content given through `=`.

@@ -166,7 +166,7 @@ HAML
 HTML
 - (foo = capture_haml(13) do |a|
   %p= a
-- end; nil)
+- end)
 = foo.inspect
 HAML
   end
@@ -275,7 +275,7 @@ HAML
   end
 
   def test_haml_tag_with_data_hash
-    assert_equal("<p data-baz='data-baz' data-foo='bar'>foo</p>\n",
+    assert_equal("<p data-baz data-foo='bar'>foo</p>\n",
       render("- haml_tag :p, 'foo', :data => {:foo => 'bar', :baz => true}"))
   end
 

@@ -1,8 +1,10 @@
 require 'strscan'
 
 module Haml
-  module Parser
+  class Parser
     include Haml::Util
+
+    attr_reader :root
 
     # Designates an XHTML/XML element.
     ELEMENT         = ?%
@@ -63,8 +65,16 @@ module Haml
     # of a multiline string.
     MULTILINE_CHAR_VALUE = ?|
 
+    # Regex to check for blocks with spaces around arguments. Not to be confused
+    # with multiline script.
+    # For example:
+    #     foo.each do | bar |
+    #       = bar
+    #
+    BLOCK_WITH_SPACES = /do[\s]*\|[\s]*[^\|]*[\s]+\|\z/
+
     MID_BLOCK_KEYWORDS = %w[else elsif rescue ensure end when]
-    START_BLOCK_KEYWORDS = %w[if begin case]
+    START_BLOCK_KEYWORDS = %w[if begin case unless]
     # Try to parse assignments to block starters as best as possible
     START_BLOCK_KEYWORD_REGEX = /(?:\w+(?:,\s*\w+)*\s*=\s*)?(#{START_BLOCK_KEYWORDS.join('|')})/
     BLOCK_KEYWORD_REGEX = /^-\s*(?:(#{MID_BLOCK_KEYWORDS.join('|')})|#{START_BLOCK_KEYWORD_REGEX.source})\b/
@@ -75,53 +85,18 @@ module Haml
     # The Regex that matches a literal string or symbol value
     LITERAL_VALUE_REGEX = /:(\w*)|(["'])((?![\\#]|\2).|\\.)*\2/
 
-    private
 
-    # @private
-    class Line < Struct.new(:text, :unstripped, :full, :index, :compiler, :eod)
-      alias_method :eod?, :eod
-
-      # @private
-      def tabs
-        line = self
-        @tabs ||= compiler.instance_eval do
-          break 0 if line.text.empty? || !(whitespace = line.full[/^\s+/])
-
-          if @indentation.nil?
-            @indentation = whitespace
-
-            if @indentation.include?(?\s) && @indentation.include?(?\t)
-              raise SyntaxError.new("Indentation can't use both tabs and spaces.", line.index)
-            end
-
-            @flat_spaces = @indentation * (@template_tabs+1) if flat?
-            break 1
-          end
-
-          tabs = whitespace.length / @indentation.length
-          break tabs if whitespace == @indentation * tabs
-          break @template_tabs + 1 if flat? && whitespace =~ /^#{@flat_spaces}/
-
-          raise SyntaxError.new(<<END.strip.gsub("\n", ' '), line.index)
-Inconsistent indentation: #{Haml::Util.human_indentation whitespace, true} used for indentation,
-but the rest of the document was indented using #{Haml::Util.human_indentation @indentation}.
-END
-        end
-      end
-    end
-
-    # @private
-    class ParseNode < Struct.new(:type, :line, :value, :parent, :children)
-      def initialize(*args)
-        super
-        self.children ||= []
-      end
-
-      def inspect
-        text = "(#{type} #{value.inspect}"
-        children.each {|c| text << "\n" << c.inspect.gsub(/^/, "  ")}
-        text + ")"
-      end
+    def initialize(template, options)
+      # :eod is a special end-of-document marker
+      @template           = (template.rstrip).split(/\r\n|\r|\n/) + [:eod, :eod]
+      @options            = options
+      @flat               = false
+      @index              = 0
+      # Record the indent levels of "if" statements to validate the subsequent
+      # elsif and else statements are indented at the appropriate level.
+      @script_level_stack = []
+      @template_index     = 0
+      @template_tabs      = 0
     end
 
     def parse
@@ -130,7 +105,7 @@ END
       @indentation = nil
       @line = next_line
 
-      raise SyntaxError.new("Indenting at the beginning of the document is illegal.", @line.index) if @line.tabs != 0
+      raise SyntaxError.new(Error.message(:indenting_at_start), @line.index) if @line.tabs != 0
 
       while next_line
         process_indent(@line) unless @line.text.empty?
@@ -151,7 +126,7 @@ END
         end
 
         if !@haml_comment && !flat? && @next_line.tabs - @line.tabs > 1
-          raise SyntaxError.new("The line was indented #{@next_line.tabs - @line.tabs} levels deeper than the previous line.", @next_line.index)
+          raise SyntaxError.new(Error.message(:deeper_indenting, @next_line.tabs - @line.tabs), @next_line.index)
         end
 
         @line = @next_line
@@ -160,6 +135,60 @@ END
       # Close all the open tags
       close until @parent.type == :root
       @root
+    rescue Haml::Error => e
+      e.backtrace.unshift "#{@options[:filename]}:#{(e.line ? e.line + 1 : @index) + @options[:line] - 1}"
+      raise
+    end
+
+
+    private
+
+    # @private
+    class Line < Struct.new(:text, :unstripped, :full, :index, :compiler, :eod)
+      alias_method :eod?, :eod
+
+      # @private
+      def tabs
+        line = self
+        @tabs ||= compiler.instance_eval do
+          break 0 if line.text.empty? || !(whitespace = line.full[/^\s+/])
+
+          if @indentation.nil?
+            @indentation = whitespace
+
+            if @indentation.include?(?\s) && @indentation.include?(?\t)
+              raise SyntaxError.new(Error.message(:cant_use_tabs_and_spaces), line.index)
+            end
+
+            @flat_spaces = @indentation * (@template_tabs+1) if flat?
+            break 1
+          end
+
+          tabs = whitespace.length / @indentation.length
+          break tabs if whitespace == @indentation * tabs
+          break @template_tabs + 1 if flat? && whitespace =~ /^#{@flat_spaces}/
+
+          message = Error.message(:inconsistent_indentation,
+            Haml::Util.human_indentation(whitespace),
+            Haml::Util.human_indentation(@indentation)
+          )
+          raise SyntaxError.new(message, line.index)
+        end
+      end
+    end
+
+    # @private
+    class ParseNode < Struct.new(:type, :line, :value, :parent, :children)
+      def initialize(*args)
+        super
+        self.children ||= []
+      end
+
+      def inspect
+        text = "(#{type} #{value.inspect}"
+        children.each {|c| text << "\n" << c.inspect.gsub(/^/, "  ")}
+        text + ")"
+      end
     end
 
     # Processes and deals with lowering indentation.
@@ -224,7 +253,7 @@ END
 
     def plain(text, escape_html = nil)
       if block_opened?
-        raise SyntaxError.new("Illegal nesting: nesting within plain text is illegal.", @next_line.index)
+        raise SyntaxError.new(Error.message(:illegal_nesting_plain), @next_line.index)
       end
 
       unless contains_interpolation?(text)
@@ -236,7 +265,7 @@ END
     end
 
     def script(text, escape_html = nil, preserve = false)
-      raise SyntaxError.new("There's no Ruby code for = to evaluate.") if text.empty?
+      raise SyntaxError.new(Error.message(:no_ruby_code, '=')) if text.empty?
       text = handle_ruby_multiline(text)
       escape_html = @options[:escape_html] if escape_html.nil?
 
@@ -245,26 +274,32 @@ END
     end
 
     def flat_script(text, escape_html = nil)
-      raise SyntaxError.new("There's no Ruby code for ~ to evaluate.") if text.empty?
+      raise SyntaxError.new(Error.message(:no_ruby_code, '~')) if text.empty?
       script(text, escape_html, :preserve)
     end
 
     def silent_script(text)
       return haml_comment(text[2..-1]) if text[1] == SILENT_COMMENT
 
-      raise SyntaxError.new(<<END.rstrip, @index - 1) if text[1..-1].strip == "end"
-You don't need to use "- end" in Haml. Un-indent to close a block:
-- if foo?
-  %strong Foo!
-- else
-  Not foo.
-%p This line is un-indented, so it isn't part of the "if" block
-END
+      raise SyntaxError.new(Error.message(:no_end), @index - 1) if text[1..-1].strip == "end"
 
       text = handle_ruby_multiline(text)
       keyword = block_keyword(text)
 
-      @tab_up = ["if", "case"].include?(keyword)
+      if ["if", "case", "unless"].include?(keyword)
+        @script_level_stack.push(@line.tabs)
+        @tab_up = true
+      end
+
+      if ["else", "elsif"].include?(keyword)
+        if @script_level_stack.empty?
+          raise Haml::SyntaxError.new(Error.message(:missing_if, keyword), @line.index)
+        elsif @script_level_stack.last != @line.tabs
+          message = Error.message(:bad_script_indent, keyword, @script_level_stack.last, @line.tabs)
+          raise Haml::SyntaxError.new(message, @line.index)
+        end
+      end
+
       ParseNode.new(:silent_script, @index,
         :text => text[1..-1], :keyword => keyword)
     end
@@ -332,12 +367,12 @@ END
 
       attributes_list.compact!
 
-      raise SyntaxError.new("Illegal nesting: nesting within a self-closing tag is illegal.", @next_line.index) if block_opened? && self_closing
-      raise SyntaxError.new("There's no Ruby code for #{action} to evaluate.", last_line - 1) if parse && value.empty?
-      raise SyntaxError.new("Self-closing tags can't have content.", last_line - 1) if self_closing && !value.empty?
+      raise SyntaxError.new(Error.message(:illegal_nesting_self_closing), @next_line.index) if block_opened? && self_closing
+      raise SyntaxError.new(Error.message(:no_ruby_code, action), last_line - 1) if parse && value.empty?
+      raise SyntaxError.new(Error.message(:self_closing_content), last_line - 1) if self_closing && !value.empty?
 
       if block_opened? && !value.empty? && !is_ruby_multiline?(value)
-        raise SyntaxError.new("Illegal nesting: content can't be both given on the same line as %#{tag_name} and nested within it.", @next_line.index)
+        raise SyntaxError.new(Error.message(:illegal_nesting_line, tag_name), @next_line.index)
       end
 
       self_closing ||= !!(!block_opened? && value.empty? && @options[:autoclose].any? {|t| t === tag_name})
@@ -365,7 +400,7 @@ END
       conditional << ">" if conditional
 
       if block_opened? && !line.empty?
-        raise SyntaxError.new('Illegal nesting: nesting within a tag that already has content is illegal.', @next_line.index)
+        raise SyntaxError.new(Haml::Error.message(:illegal_nesting_content), @next_line.index)
       end
 
       ParseNode.new(:comment, @index, :conditional => conditional, :text => line)
@@ -373,13 +408,13 @@ END
 
     # Renders an XHTML doctype or XML shebang.
     def doctype(line)
-      raise SyntaxError.new("Illegal nesting: nesting within a header command is illegal.", @next_line.index) if block_opened?
+      raise SyntaxError.new(Error.message(:illegal_nesting_header), @next_line.index) if block_opened?
       version, type, encoding = line[3..-1].strip.downcase.scan(DOCTYPE_REGEX)[0]
       ParseNode.new(:doctype, @index, :version => version, :type => type, :encoding => encoding)
     end
 
     def filter(name)
-      raise Error.new("Invalid filter name \":#{name}\".") unless name =~ /^\w+$/
+      raise Error.new(Error.message(:invalid_filter_name, name)) unless name =~ /^\w+$/
 
       @filter_buffer = String.new
 
@@ -409,6 +444,8 @@ END
     end
 
     def close_silent_script(node)
+      @script_level_stack.pop if node.value[:keyword] == "if"
+
       # Post-process case statements to normalize the nesting of "when" clauses
       return unless node.value[:keyword] == "case"
       return unless first = node.children.first
@@ -459,10 +496,14 @@ END
 
     # Parses a line into tag_name, attributes, attributes_hash, object_ref, action, value
     def parse_tag(line)
-      raise SyntaxError.new("Invalid tag: \"#{line}\".") unless match = line.scan(/%([-:\w]+)([-:\w\.\#]*)(.*)/)[0]
+      match = line.scan(/%([-:\w]+)([-:\w\.\#]*)(.*)/)[0]
+      raise SyntaxError.new(Error.message(:invalid_tag, line)) unless match
 
       tag_name, attributes, rest = match
-      raise SyntaxError.new("Illegal element: classes and ids must have values.") if attributes =~ /[\.#](\.|#|\z)/
+
+      if attributes =~ /[\.#](\.|#|\z)/
+        raise SyntaxError.new(Error.message(:illegal_element))
+      end
 
       new_attributes_hash = old_attributes_hash = last_line = nil
       object_ref = "nil"
@@ -491,6 +532,11 @@ END
         nuke_inner_whitespace = nuke_whitespace.include? '<'
       end
 
+      if @options[:remove_whitespace]
+        nuke_outer_whitespace = true
+        nuke_inner_whitespace = true
+      end
+
       value = value.to_s.strip
       [tag_name, attributes, attributes_hashes, object_ref, nuke_outer_whitespace,
        nuke_inner_whitespace, action, value, last_line || @index]
@@ -503,7 +549,7 @@ END
       begin
         attributes_hash, rest = balance(line, ?{, ?})
       rescue SyntaxError => e
-        if line.strip[-1] == ?, && e.message == "Unbalanced brackets."
+        if line.strip[-1] == ?, && e.message == Error.message(:unbalanced_brackets)
           line << "\n" << @next_line.text
           last_line += 1
           next_line
@@ -530,7 +576,7 @@ END
 
         if name == false
           text = (Haml::Util.balance(line, ?(, ?)) || [line]).first
-          raise Haml::SyntaxError.new("Invalid attribute list: #{text.inspect}.", last_line - 1)
+          raise Haml::SyntaxError.new(Error.message(:invalid_attribute_list, text.inspect), last_line - 1)
         end
         attributes[name] = value
         scanner.scan(/\s*/)
@@ -647,7 +693,7 @@ END
 
     # Checks whether or not `line` is in a multiline sequence.
     def is_multiline?(text)
-      text && text.length > 1 && text[-1] == MULTILINE_CHAR_VALUE && text[-2] == ?\s
+      text && text.length > 1 && text[-1] == MULTILINE_CHAR_VALUE && text[-2] == ?\s && text !~ BLOCK_WITH_SPACES
     end
 
     def handle_ruby_multiline(text)
@@ -675,30 +721,10 @@ END
         !((text[-3..-2] =~ /\W\?/) || text[-3..-2] == "?\\")
     end
 
-    def contains_interpolation?(str)
-      str.include?('#{')
-    end
-
-    def unescape_interpolation(str, escape_html = nil)
-      res = ''
-      rest = Haml::Util.handle_interpolation str.dump do |scan|
-        escapes = (scan[2].size - 1) / 2
-        res << scan.matched[0...-3 - escapes]
-        if escapes % 2 == 1
-          res << '#{'
-        else
-          content = eval('"' + balance(scan, ?{, ?}, 1)[0][0...-1] + '"')
-          content = "Haml::Helpers.html_escape((#{content}))" if escape_html
-          res << '#{' + content + "}"# Use eval to get rid of string escapes
-        end
-      end
-      res + rest
-    end
-
     def balance(*args)
       res = Haml::Util.balance(*args)
       return res if res
-      raise SyntaxError.new("Unbalanced brackets.")
+      raise SyntaxError.new(Error.message(:unbalanced_brackets))
     end
 
     def block_opened?
