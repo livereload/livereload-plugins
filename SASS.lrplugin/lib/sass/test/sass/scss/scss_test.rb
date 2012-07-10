@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require "sass/scss/test_helper"
+require File.dirname(__FILE__) + '/test_helper'
 
 class ScssTest < Test::Unit::TestCase
   include ScssTestHelper
@@ -517,6 +517,22 @@ foo {
 SCSS
   end
 
+  def test_parent_selector_with_subject
+    assert_equal <<CSS, render(<<SCSS)
+bar foo.baz! .bip {
+  a: b; }
+
+bar foo bar.baz! .bip {
+  c: d; }
+CSS
+foo {
+  bar &.baz! .bip {a: b}}
+
+foo bar {
+  bar &.baz! .bip {c: d}}
+SCSS
+  end
+
   ## Namespace Properties
 
   def test_namespace_properties
@@ -871,6 +887,29 @@ div { -foo-\#{$a}-\#{$b}-foo: foo }
 SCSS
   end
 
+  def test_selector_interpolation_in_reference_combinator
+    assert_equal <<CSS, render(<<SCSS)
+.foo /a/ .bar /b|c/ .baz {
+  a: b; }
+CSS
+$a: a;
+$b: b;
+$c: c;
+.foo /\#{$a}/ .bar /\#{$b}|\#{$c}/ .baz {a: b}
+SCSS
+  end
+
+  def test_parent_selector_with_parent_and_subject
+    assert_equal <<CSS, render(<<SCSS)
+bar foo.baz! .bip {
+  c: d; }
+CSS
+$subject: "!";
+foo {
+  bar &.baz\#{$subject} .bip {c: d}}
+SCSS
+  end
+
   def test_basic_prop_name_interpolation
     assert_equal <<CSS, render(<<SCSS)
 foo {
@@ -933,6 +972,31 @@ SCSS
 CSS
 $vals: 1 2 3;
 @media screen and (-webkit-min-device-pixel-ratio: 5 + 6 + nth($vals, 2)) {a: b}
+SCSS
+  end
+
+  def test_media_interpolation_with_reparse
+    assert_equal <<CSS, render(<<SCSS)
+@media screen and (max-width: 300px) {
+  a: b; }
+@media screen and (max-width: 300px) {
+  a: b; }
+@media screen and (max-width: 300px) {
+  a: b; }
+@media screen and (max-width: 300px), print and (max-width: 300px) {
+  a: b; }
+CSS
+$constraint: "(max-width: 300px)";
+$fragment: "nd \#{$constraint}";
+$comma: "een, pri";
+@media screen and \#{$constraint} {a: b}
+@media screen {
+  @media \#{$constraint} {a: b}
+}
+@media screen a\#{$fragment} {a: b}
+@media scr\#{$comma}nt {
+  @media \#{$constraint} {a: b}
+}
 SCSS
   end
 
@@ -1217,6 +1281,15 @@ SCSS
   end
 
   # Regression
+
+  def test_reference_combinator_with_parent_ref
+    assert_equal <<CSS, render(<<SCSS)
+a /foo/ b {
+  c: d; }
+CSS
+a {& /foo/ b {c: d}}
+SCSS
+  end
 
   def test_prop_name_interpolation_after_hyphen
     assert_equal <<CSS, render(<<SCSS)

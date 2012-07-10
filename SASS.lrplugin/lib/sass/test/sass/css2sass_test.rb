@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'test/unit'
-require 'test_helper'
+require File.dirname(__FILE__) + '/../test_helper'
 require 'sass/css'
 
 class CSS2SassTest < Test::Unit::TestCase
@@ -234,6 +234,32 @@ CSS
 SASS
 :focus {a: b;}
 :focus :foo {bar: baz;}
+CSS
+  end
+
+  def test_subject
+    assert_equal(<<SASS, css2sass(<<CSS))
+.foo
+  .bar!
+    .baz
+      a: b
+    .bip
+      c: d
+  .bar .bonk
+    e: f
+
+.flip!
+  &.bar
+    a: b
+  &.baz
+    c: d
+SASS
+.foo .bar! .baz {a: b;}
+.foo .bar! .bip {c: d;}
+.foo .bar .bonk {e: f;}
+
+.flip.bar! {a: b;}
+.flip.baz! {c: d;}
 CSS
   end
 

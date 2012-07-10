@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'test_helper'
+require File.dirname(__FILE__) + '/../test_helper'
 
 class ConversionTest < Test::Unit::TestCase
   def test_basic
@@ -74,8 +74,15 @@ SCSS
     assert_renders <<SASS, <<SCSS
 foo \#{$bar + "baz"}.bip
   baz: bang
+
+foo /\#{$bar + "baz"}/ .bip
+  baz: bang
 SASS
 foo \#{$bar + "baz"}.bip {
+  baz: bang;
+}
+
+foo /\#{$bar + "baz"}/ .bip {
   baz: bang;
 }
 SCSS
@@ -1153,13 +1160,33 @@ SCSS
   end
 
   def test_media_with_expressions
-    assert_renders <<SASS, <<SCSS
+    # TODO: get rid of the #{} in the expression output
+    assert_sass_to_scss <<SCSS, <<SASS
+$media1: screen;
+$media2: print;
+$var: -webkit-min-device-pixel-ratio;
+$val: 20;
+
+@media \#{$media1} and (\#{$var + "-foo"}: \#{$val + 5}), only \#{$media2} {
+  a: b;
+}
+SCSS
 $media1: screen
 $media2: print
 $var: -webkit-min-device-pixel-ratio
 $val: 20
 
 @media \#{$media1} and ($var + "-foo": $val + 5), only \#{$media2}
+  a: b
+SASS
+
+    assert_scss_to_sass <<SASS, <<SCSS
+$media1: screen
+$media2: print
+$var: -webkit-min-device-pixel-ratio
+$val: 20
+
+@media \#{$media1} and (\#{$var + "-foo"}: \#{$val + 5}), only \#{$media2}
   a: b
 SASS
 $media1: screen;
@@ -1383,6 +1410,28 @@ SASS
 SCSS
   end
 
+  def test_reference_selector
+    assert_renders(<<SASS, <<SCSS)
+foo /bar|baz/ bang
+  a: b
+SASS
+foo /bar|baz/ bang {
+  a: b;
+}
+SCSS
+  end
+
+  def test_subject
+    assert_renders(<<SASS, <<SCSS)
+foo bar! baz
+  a: b
+SASS
+foo bar! baz {
+  a: b;
+}
+SCSS
+  end
+
   def test_placeholder_interoplation_conversion
     assert_renders(<<SASS, <<SCSS)
 $foo: foo
@@ -1502,7 +1551,6 @@ foo bar {
 }
 SCSS
   end
-
 
   ## Regression Tests
 
