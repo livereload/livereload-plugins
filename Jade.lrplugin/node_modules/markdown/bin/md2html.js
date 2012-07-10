@@ -4,27 +4,49 @@
 
   var fs = require('fs')
     , markdown = require('markdown').markdown
-    , fullpath = process.argv[2]
+    , nopt = require("nopt")
+    , stream
+    , opts
+    , buffer = ""
     ;
 
-  function convert(err, data) {
-    var md
-      , html
-      ;
-
-    if (err) {
-      throw err;
+  opts = nopt(
+    { "dialect": [ "Gruber", "Maruku"]
+    , "help": Boolean
     }
+  );
 
-    md = data.toString('utf8');
-    html = markdown.toHTML(md);
+  if (opts.help) {
+    var name = process.argv[1].split('/').pop()
+    console.warn( require('util').format(
+      'usage: %s [--dialect=DIALECT] FILE\n\nValid dialects are Gruber (the default) or Maruku',
+      name
+    ) );
+    process.exit(0);
+  }
+
+  var fullpath = opts.argv.remain[0];
+
+  if (fullpath && fullpath !== "-") {
+    stream = fs.createReadStream(fullpath);
+  } else {
+    stream = process.stdin;
+  }
+  stream.resume();
+  stream.setEncoding('utf8');
+
+  stream.on('error', function(error) {
+    console.error(error.toString());
+    process.exit(1);
+  });
+
+  stream.on('data', function(data) {
+    buffer += data;
+  });
+
+  stream.on('end', function() {
+    var html = markdown.toHTML(buffer, opts.dialect);
     console.log(html);
-  }
+  });
 
-  if (!fullpath) {
-    console.error('try: ', process.argv[1].split('/').pop(), '/path/to/doc.md');
-    return;
-  }
-
-  fs.readFile(fullpath, convert);
 }())
