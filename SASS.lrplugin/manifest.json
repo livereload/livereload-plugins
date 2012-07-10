@@ -97,7 +97,7 @@
         "-I$(plugin)/lib/compass-h5bp/lib",
         "-I$(plugin)/lib/compass-960-plugin/lib",
         "-I$(plugin)/lib/compass-susy-plugin/lib",
-        "-I$(plugin)/lib/ZURB-foundation/lib",
+        "-I$(plugin)/lib/zurb-foundation/lib",
         "-I$(plugin)/lib/compass-colors/lib",
         "-I$(plugin)/lib/fancy-buttons/lib",
         "-I$(plugin)/lib/compass-slickmap/lib",
