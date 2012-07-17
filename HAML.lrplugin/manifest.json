@@ -4,6 +4,7 @@
       "Optional": true,
       "CommandLine": [
         "$(ruby)",
+        "-I$(plugin)/lib/tilt/lib",
         "$(plugin)/lib/haml/bin/haml",
         "$(additional)",
         "$(src_path)",
