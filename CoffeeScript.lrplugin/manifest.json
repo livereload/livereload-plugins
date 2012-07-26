@@ -3,11 +3,10 @@
     {
       "CommandLine": [
         "$(node)",
-        "$(plugin)/node_modules/coffee-script/bin/coffee",
+        "$(plugin)/scripts/compile-coffeescript.js",
         "$(additional)",
-        "-o",
-        "$(dst_dir)",
-        "$(src_path)"
+        "$(src_path)",
+        "$(dst_path)"
       ],
       "DestinationExtension": "js",
       "Errors": [
