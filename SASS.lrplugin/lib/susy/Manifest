@@ -1,7 +1,7 @@
 CHANGELOG.mkdn
 LICENSE.txt
 Manifest
-README.mkdn
+README.md
 Rakefile
 VERSION
 lib/susy.rb
