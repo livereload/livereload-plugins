@@ -13,12 +13,16 @@ $browser-default-font-size-pt       : 12pt;
 // Grid Functions
 
 // Returns the full width of a grid based on your grid settings.
-// 
+//
 //  $columns  : The number of columns to get width for.
 @function columns-width(
   $columns  : $total-columns
 ) {
-  @return ($columns * $column-width) + (ceil($columns - 1) * $gutter-width);
+  @if round($columns) != $columns {
+    @warn "Susy works best with integer column-spans.
+    For partial-columns, you may need to finesse the math by hand using functions directly.";
+  }
+  @return ($columns * $column-width) + (if($columns >= 1, ceil($columns - 1), 0) * $gutter-width);
 }
 
 // Return the full outer width of a Container element.
@@ -36,39 +40,51 @@ $browser-default-font-size-pt       : 12pt;
 @function column(
   $context : $total-columns
 ) {
-  @return percentage($column-width / columns-width($context));
+  @return relative-width($column-width, $context);
+
 }
 
 // Return the percentage width of multiple 'columns' in a given 'context'.
-// 
+//
 //  $columns  : The number of columns to get relative width for.
 //  $context  : The grid context in columns, if nested.
 @function columns(
   $columns,
   $context : $total-columns
 ) {
-  @return percentage(columns-width($columns) / columns-width($context));
+  @return relative-width(columns-width($columns), $context);
 }
 
 // Return the percentage width of a single gutter in a given 'context'.
-// 
+//
 //  $context  : The grid context in columns, if nested.
 @function gutter(
   $context : $total-columns
 ) {
-  @return percentage($gutter-width / columns-width($context));
+  @return relative-width($gutter-width, $context);
+}
+
+// Return the percentage width of a given value in a given 'context'.
+//
+//  $width    : Any given width value.
+//  $context  : The grid context in columns, if nested.
+@function relative-width(
+  $width,
+  $context : $total-columns
+) {
+  @return percentage($width / columns-width($context));
 }
 
 // Return the total space occupied by multiple columns and associated gutters.
 // Useful for adding padding or margins (preifx, suffix, push, pull, etc.)
-// 
+//
 //  $columns  : The number of columns to get relative space for.
 //  $context  : The grid context in columns, if nested.
 @function space(
   $columns,
   $context : $total-columns
 ) {
-  @return columns($columns, $context) + gutter($context);
+  @return columns($columns, $context) + if($columns >= 1, gutter($context), 0);
 }
 
 // Accept a list including column-count and (optional) position.
@@ -92,7 +108,7 @@ $browser-default-font-size-pt       : 12pt;
       } @else {
         @warn '"#{$var}" is not a valid part of "$columns: #{$columns}" in the columns() mixin.';
       }
-    } 
+    }
   }
 
   @if $request == 'columns' {
@@ -104,6 +120,22 @@ $browser-default-font-size-pt       : 12pt;
       @warn '"#{$request}"" is not a valid value for $request';
     }
   }
+}
+
+// Accept nth-selector variables, and format them as a valid CSS3 selector.
+//
+// $n         : [first | only | last | <equation>]
+// $selector  : [child | last-child | of-type | last-of-type ]
+@function format-nth(
+  $n        : last,
+  $selector : child
+) {
+  @if ($n == 'last') or ($n =='first') or ($n =='only') {
+    $selector: '#{$n}-#{$selector}';
+  } @else {
+    $selector: 'nth-#{$selector}(#{$n})';
+  }
+  @return $selector;
 }
 
 // ---------------------------------------------------------------------------
@@ -260,8 +292,8 @@ $browser-default-font-size-pt       : 12pt;
   $layout-cols  : nth($media-layout,2);
   $max          : nth($media-layout,3);
 
-  @if $min or $max { 
-    @return false; 
+  @if $min or $max {
+    @return false;
   } @else {
     @return if($layout-cols == $total-columns,true,false);
   }
