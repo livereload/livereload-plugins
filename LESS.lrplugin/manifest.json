@@ -19,7 +19,7 @@
         "((file)):((line))\\n[^\\n]*\\n\\s*\\^\\nError: ((message))\\n",
         "^Error: EBADF, ((message)) '((file))'",
         "<ESC>((message)) in ((file))",
-        "^TypeError: ((message-override:Internal LESS compiler error))",
+        { "pattern": "^TypeError: ", "message": "Internal LESS compiler error" },
         "^((message:file '.*?' wasn't found.))"
       ],
       "Extensions": [

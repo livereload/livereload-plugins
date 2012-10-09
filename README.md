@@ -165,8 +165,9 @@ You might also find it helpful to look at manifests of the existing plugins.
           // (3) ((message:S[\w]+ Error)) can be used to override the regexp LiveReload normally uses to
           //     match the given part, but still let LiveReload properly store the index of the capture group
           //
-          // (4) ((message-override:smt)) is removed from the regular expression prior to matching, and simply
-          //     instructs LiveReload to replace the message with the given string if the regexp has matched
+          // A message may also be an object. In that case, "pattern" key is the regular expression as described above,
+          // and an optional "message" key instructs LiveReload to replace the message with the given string
+          // if the regexp has matched.
           "Errors": [
             "<ESC>((message)) on line ((line))<ESC> in <ESC>((file))(?:<ESC>|\\n)",
             "(Missing ((message))$)",
@@ -177,7 +178,7 @@ You might also find it helpful to look at manifests of the existing plugins.
             "((file)):((line))\\n[^\\n]*\\n\\s*\\^\\nError: ((message))\\n",
             "^Error: EBADF, ((message)) '((file))'",
             "<ESC>((message)) in ((file))",
-            "^TypeError: ((message-override:Internal LESS compiler error))",
+            { "pattern": "^TypeError: ", "message": "Internal LESS compiler error" },
             "^((message:file '.*?' wasn't found.))"
           ],
 

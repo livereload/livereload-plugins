@@ -130,7 +130,7 @@
         "Errno::ENOENT: ((message)) - ((file))",
         "ZeroDivisionError: ((message))",
         "error<ESC>\\s*((file))\\s*\\(Line ((line)): ((message))\\)",
-        "Nothing to compile. If you're trying to start a new project, you have left off the directory argument.((message-override:Compass cannot find its config. Please make sure that the directory added to LiveReload is the root Compass folder.))"
+        { "pattern": "Nothing to compile. If you're trying to start a new project, you have left off the directory argument.", "message": "Compass cannot find its config. Please make sure that the directory added to LiveReload is the root Compass folder." }
       ],
       "Extensions": [
         "sass",
