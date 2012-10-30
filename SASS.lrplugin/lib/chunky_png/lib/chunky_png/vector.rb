@@ -40,7 +40,7 @@ module ChunkyPNG
     
     # Initializes a vector based on a list of Point instances.
     #
-    # You usually do not want to use this method directy, but call {ChunkyPNG.Vector} instead.
+    # You usually do not want to use this method directly, but call {ChunkyPNG.Vector} instead.
     #
     # @param [Array<ChunkyPNG::Point>] points
     # @see ChunkyPNG.Vector
@@ -62,6 +62,13 @@ module ChunkyPNG
       raise ChunkyPNG::ExpectationFailed, "Not enough points in this path to draw an edge!" if length < 2
       points.each_cons(2) { |a, b| yield(a, b) }
       yield(points.last, points.first) if close
+    end
+    
+    # Returns the point with the given indexof this vector.
+    # @param [Integer] index The 0-based index of the point in this vector.
+    # @param [ChunkyPNG::Point] The point instance.
+    def [](index)
+      points[index]
     end
     
     # Returns an enumerator that will iterate over all the edges in this vector.

@@ -457,23 +457,7 @@ class SpritesTest < Test::Unit::TestCase
       }
     CSS
   end
-
-  it "should import sprites with numeric filenames via #738" do
-    css = render <<-SCSS
-      @import "numeric/*.png";
-      @include all-numeric-sprites;
-    SCSS
-    assert_correct css, <<-CSS
-      .numeric-sprite, .numeric-200 {
-        background: url('/numeric-saa92d65a89.png') no-repeat;
-      }
-      
-      .numeric-200 {
-        background-position: 0 0;
-      }
-    CSS
-  end
- 
+  
   it "should calculate corret sprite demsions when givin spacing via issue#253" do
     css = render <<-SCSS
       $squares-spacing: 10px;
@@ -514,13 +498,13 @@ class SpritesTest < Test::Unit::TestCase
       .selectors-ten-by-ten {
         background-position: 0 0;
       }
-      .selectors-ten-by-ten:hover, .selectors-ten-by-ten.ten-by-ten-hover {
+      .selectors-ten-by-ten:hover, .selectors-ten-by-ten.ten-by-ten_hover, .selectors-ten-by-ten.ten-by-ten-hover {
         background-position: 0 -20px;
       }
-      .selectors-ten-by-ten:target, .selectors-ten-by-ten.ten-by-ten-target {
+      .selectors-ten-by-ten:target, .selectors-ten-by-ten.ten-by-ten_target, .selectors-ten-by-ten.ten-by-ten-target {
         background-position: 0 -30px;
       }
-      .selectors-ten-by-ten:active, .selectors-ten-by-ten.ten-by-ten-active {
+      .selectors-ten-by-ten:active, .selectors-ten-by-ten.ten-by-ten_active, .selectors-ten-by-ten.ten-by-ten-active {
         background-position: 0 -10px;
       }
     CSS
@@ -539,13 +523,13 @@ class SpritesTest < Test::Unit::TestCase
       .selectors-ten-by-ten {
         background-position: 20px 20px;
       }
-      .selectors-ten-by-ten:hover, .selectors-ten-by-ten.ten-by-ten-hover {
+      .selectors-ten-by-ten:hover, .selectors-ten-by-ten.ten-by-ten_hover, .selectors-ten-by-ten.ten-by-ten-hover {
         background-position: 20px 0;
       }
-      .selectors-ten-by-ten:target, .selectors-ten-by-ten.ten-by-ten-target {
+      .selectors-ten-by-ten:target, .selectors-ten-by-ten.ten-by-ten_target, .selectors-ten-by-ten.ten-by-ten-target {
         background-position: 20px -10px;
       }
-      .selectors-ten-by-ten:active, .selectors-ten-by-ten.ten-by-ten-active {
+      .selectors-ten-by-ten:active, .selectors-ten-by-ten.ten-by-ten_active, .selectors-ten-by-ten.ten-by-ten-active {
         background-position: 20px 10px;
       }
     CSS
@@ -566,13 +550,13 @@ class SpritesTest < Test::Unit::TestCase
       a {
         background-position: 0 0;
       }
-      a:hover, a.ten-by-ten-hover {
+      a:hover, a.ten-by-ten_hover, a.ten-by-ten-hover {
         background-position: 0 -20px;
       }
-      a:target, a.ten-by-ten-target {
+      a:target, a.ten-by-ten_target, a.ten-by-ten-target {
         background-position: 0 -30px;
       }
-      a:active, a.ten-by-ten-active {
+      a:active, a.ten-by-ten_active, a.ten-by-ten-active {
         background-position: 0 -10px;
       }
     CSS
@@ -613,34 +597,27 @@ class SpritesTest < Test::Unit::TestCase
       a {
         background-position: 5px -5px;
       }
-      a:hover, a.ten-by-ten-hover {
+      a:hover, a.ten-by-ten_hover, a.ten-by-ten-hover {
         background-position: 5px -25px;
       }
-      a:target, a.ten-by-ten-target {
+      a:target, a.ten-by-ten_target, a.ten-by-ten-target {
         background-position: 5px -35px;
       }
-      a:active, a.ten-by-ten-active {
+      a:active, a.ten-by-ten_active, a.ten-by-ten-active {
         background-position: 5px -15px;
       }
     CSS
   end
   
-  it "should not raise error on filenames that are invalid classnames if the selector generation is not used" do
-    css = render <<-SCSS
-      @import "prefix/*.png";
-      a {
-        @include prefix-sprite("20-by-20");
-      }
-    SCSS
-    assert_correct <<-CSS, css
-      .prefix-sprite, a {
-        background: url('/prefix-s949dea513d.png') no-repeat;
-      }
-      
-      a {
-        background-position: 0 -10px;
-      }
-    CSS
+  it "should raise error on filenames that are not valid sass syntax" do
+    assert_raise(Compass::Error) do
+      css = render <<-SCSS
+        @import "prefix/*.png";
+        a {
+          @include squares-sprite(20-by-20);
+        }
+      SCSS
+    end
   end
 
   it "should generate sprite with bad repeat-x dimensions" do
@@ -796,18 +773,18 @@ class SpritesTest < Test::Unit::TestCase
         background:url('/colors-s58671cb5bb.png') no-repeat;
       }
       .blue { 
-        text-indent:110%;
-        white-space:nowrap;
+        text-indent:-119988px;
         overflow:hidden;
+        text-align:left;
         background-position:0 0;
         background-image:url('/colors-s58671cb5bb.png');
         background-repeat:no-repeat;
       }
       
       .yellow { 
-        text-indent:110%;
-        white-space:nowrap;
+        text-indent:-119988px;
         overflow:hidden;
+        text-align:left;
         background-position:0 -10px;
         height:10px;
         width:10px;
@@ -861,26 +838,6 @@ class SpritesTest < Test::Unit::TestCase
     CSS
     assert_correct clean(css), clean(other_css)
 
-  end
-
-  it "should respect global spacing" do
-    css = render <<-SCSS
-      $colors-spacing:5px;
-      @import "colors/*.png";
-      @include all-colors-sprites;
-    SCSS
-    other_css = <<-CSS
-      .colors-sprite, .colors-blue, .colors-yellow {
-        background: url('/colors-s747dec274e.png') no-repeat;
-      }
-      .colors-blue { 
-        background-position:0 0;
-      }
-      .colors-yellow {
-        background-position:0 -15px;
-      }
-    CSS
-    assert_correct clean(css), clean(other_css)
   end
 
 end

@@ -44,6 +44,7 @@ module Compass
           @height = nil
           @engine = nil
           @evaluation_context = context
+          validate!
           compute_image_metadata!
         end
 

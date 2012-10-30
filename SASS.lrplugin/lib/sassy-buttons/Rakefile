@@ -1,0 +1,21 @@
+#!/usr/bin/env rake
+require "bundler/gem_tasks"
+
+require "sass"
+
+begin
+  require 'echoe'
+
+  Echoe.new('sassy-buttons', open('VERSION').read) do |p|
+    p.summary = "CSS only buttons extension for compass."
+    p.description = "Sassy CSS3 buttons using Compass./"
+    p.url = "http://jaredhardy.com/"
+    p.author = "Jared Hardy"
+    p.email = "jared@jaredhardy.com"
+    p.dependencies = ["compass >=0.12.2", "sass >=3.2.0"]
+  end
+
+rescue LoadError => error
+  puts "You are missing a dependency required for meta-operations on this gem."
+  puts "#{error.to_s.capitalize}."
+end

@@ -52,10 +52,13 @@ module Sass
   # `name`: `String`
   # : The name of the mixin/function.
   #
-  # `args`: `Array<(String, Script::Node)>`
+  # `args`: `Array<(Script::Node, Script::Node)>`
   # : The arguments for the mixin/function.
-  #   Each element is a tuple containing the name of the argument
+  #   Each element is a tuple containing the variable node of the argument
   #   and the parse tree for the default value of the argument.
+  #
+  # `splat`: `Script::Node?`
+  # : The variable node of the splat argument for this callable, or null.
   #
   # `environment`: {Sass::Environment}
   # : The environment in which the mixin/function was defined.
@@ -67,7 +70,10 @@ module Sass
   #
   # `has_content`: `Boolean`
   # : Whether the callable accepts a content block.
-  Callable = Struct.new(:name, :args, :environment, :tree, :has_content)
+  #
+  # `type`: `String`
+  # : The user-friendly name of the type of the callable.
+  Callable = Struct.new(:name, :args, :splat, :environment, :tree, :has_content, :type)
 
   # This class handles the parsing and compilation of the Sass template.
   # Example usage:
@@ -683,8 +689,9 @@ WARNING
         raise SyntaxError.new("Invalid extend directive '@extend': expected expression.") unless value
         raise SyntaxError.new("Illegal nesting: Nothing may be nested beneath extend directives.",
           :line => @line + 1) unless line.children.empty?
+        optional = !!value.gsub!(/\s+#{Sass::SCSS::RX::OPTIONAL}$/, '')
         offset = line.offset + line.text.index(value).to_i
-        Tree::ExtendNode.new(parse_interp(value, offset))
+        Tree::ExtendNode.new(parse_interp(value, offset), optional)
       when 'warn'
         raise SyntaxError.new("Invalid warn directive '@warn': expected expression.") unless value
         raise SyntaxError.new("Illegal nesting: Nothing may be nested beneath warn directives.",
@@ -826,9 +833,9 @@ WARNING
       raise SyntaxError.new("Invalid mixin \"#{line.text[1..-1]}\".") if name.nil?
 
       offset = line.offset + line.text.size - arg_string.size
-      args = Script::Parser.new(arg_string.strip, @line, offset, @options).
+      args, splat = Script::Parser.new(arg_string.strip, @line, offset, @options).
         parse_mixin_definition_arglist
-      Tree::MixinDefNode.new(name, args)
+      Tree::MixinDefNode.new(name, args, splat)
     end
 
     CONTENT_RE = /^@content\s*(.+)?$/
@@ -846,9 +853,9 @@ WARNING
       raise SyntaxError.new("Invalid mixin include \"#{line.text}\".") if name.nil?
 
       offset = line.offset + line.text.size - arg_string.size
-      args, keywords = Script::Parser.new(arg_string.strip, @line, offset, @options).
+      args, keywords, splat = Script::Parser.new(arg_string.strip, @line, offset, @options).
         parse_mixin_include_arglist
-      Tree::MixinNode.new(name, args, keywords)
+      Tree::MixinNode.new(name, args, keywords, splat)
     end
 
     FUNCTION_RE = /^@function\s*(#{Sass::SCSS::RX::IDENT})(.*)$/
@@ -857,9 +864,9 @@ WARNING
       raise SyntaxError.new("Invalid function definition \"#{line.text}\".") if name.nil?
 
       offset = line.offset + line.text.size - arg_string.size
-      args = Script::Parser.new(arg_string.strip, @line, offset, @options).
+      args, splat = Script::Parser.new(arg_string.strip, @line, offset, @options).
         parse_function_definition_arglist
-      Tree::FunctionNode.new(name, args)
+      Tree::FunctionNode.new(name, args, splat)
     end
 
     def parse_script(script, options = {})

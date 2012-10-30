@@ -1,5 +1,25 @@
 require 'spec_helper'
 
+describe 'ChunyPNG.Color' do
+  it "should interpret 4 arguments as RGBA values" do
+    ChunkyPNG::Color(1, 2, 3, 4).should == ChunkyPNG::Color.rgba(1, 2, 3, 4)
+  end
+  
+  it "should interpret 3 arguments as RGBA values" do
+    ChunkyPNG::Color(1, 2, 3).should == ChunkyPNG::Color.rgb(1, 2, 3)
+  end
+  
+  it "should interpret 2 arguments as a color to parse and an opacity value" do
+    ChunkyPNG::Color('0x0a649664', 0xaa).should == 0x0a6496aa
+    ChunkyPNG::Color('spring green @ 0.6666', 0xff).should == 0x00ff7fff
+  end
+  
+  it "should interpret 1 argument as a color to parse" do
+    ChunkyPNG::Color.should_receive(:parse).with('0x0a649664')
+    ChunkyPNG::Color('0x0a649664')
+  end
+end
+
 describe ChunkyPNG::Color do
   include ChunkyPNG::Color
 
@@ -11,25 +31,21 @@ describe ChunkyPNG::Color do
     @fully_transparent = 0x0a649600
   end
   
-  it "should interpret 4 arguments as RGBA values" do
-    ChunkyPNG::Color(1, 2, 3, 4).should == ChunkyPNG::Color.rgba(1, 2, 3, 4)
-  end
-  
-  it "should interpret 3 arguments as RGBA values" do
-    ChunkyPNG::Color(1, 2, 3).should == ChunkyPNG::Color.rgb(1, 2, 3)
-  end
-  
-  it "should interpret a hex string correctly" do
-    ChunkyPNG::Color('0x0a649664').should == ChunkyPNG::Color.from_hex('#0a649664')
-    ChunkyPNG::Color('0x0a649664', 0xff).should == ChunkyPNG::Color.from_hex('#0a6496', 0xff)
-  end
-  
-  it "should interpret a color name correctly" do
-    ChunkyPNG::Color(:spring_green).should == 0x00ff7fff
-    ChunkyPNG::Color('spring green').should == 0x00ff7fff
-    ChunkyPNG::Color('spring green @ 0.6666').should == 0x00ff7faa
-    ChunkyPNG::Color('spring green', 0xaa).should == 0x00ff7faa
-    ChunkyPNG::Color('spring green @ 0.6666', 0xff).should == 0x00ff7fff
+  describe '#parse' do
+    it "should interpret a hex string correctly" do
+      parse('0x0a649664').should == ChunkyPNG::Color.from_hex('#0a649664')
+    end
+
+    it "should interpret a color name correctly" do
+      parse(:spring_green).should == 0x00ff7fff
+      parse('spring green').should == 0x00ff7fff
+      parse('spring green @ 0.6666').should == 0x00ff7faa
+    end
+    
+    it "should return numbers as is" do
+      parse('12345').should == 12345
+      parse(12345).should == 12345
+    end
   end
 
   describe '#pixel_bytesize' do
@@ -110,7 +126,7 @@ describe ChunkyPNG::Color do
     end
     
     it "should raise for an unkown color name" do
-      lambda { html_color(:nonsense) }.should raise_error(ChunkyPNG::Exception)
+      lambda { html_color(:nonsense) }.should raise_error(ArgumentError)
     end
   end
   
@@ -130,6 +146,27 @@ describe ChunkyPNG::Color do
       g(@opaque).should == 100
       b(@opaque).should == 150
       a(@opaque).should == 255
+    end
+  end
+  
+  describe '#grayscale_teint' do
+    it "should calculate the correct grayscale teint" do
+      grayscale_teint(@opaque).should     == 79
+      grayscale_teint(@non_opaque).should == 79
+    end
+  end
+  
+  describe '#to_grayscale' do
+    it "should use the grayscale teint for r, g and b" do
+      gs = to_grayscale(@non_opaque)
+      r(gs).should == grayscale_teint(@non_opaque)
+      g(gs).should == grayscale_teint(@non_opaque)
+      b(gs).should == grayscale_teint(@non_opaque)
+    end
+    
+    it "should preserve the alpha channel" do
+      a(to_grayscale(@non_opaque)).should == a(@non_opaque)
+      a(to_grayscale(@opaque)).should == ChunkyPNG::Color::MAX
     end
   end
   
@@ -182,6 +219,18 @@ describe ChunkyPNG::Color do
     it "should decompose the alpha channel correctly" do
       decompose_alpha(0x9fc2d6ff, @opaque, @white).should == 0x00000064
     end
+    
+    it "should return fully transparent if the background channel matches the resulting color" do
+      decompose_alpha(0xabcdefff, 0xff000000, 0xabcdefff).should == 0x00
+    end
+    
+    it "should return fully opaque if the background channel matches the mask color" do
+      decompose_alpha(0xff000000, 0xabcdefff, 0xabcdefff).should == 0xff
+    end
+    
+    it "should return fully opaque if the resulting color matches the mask color" do
+      decompose_alpha(0xabcdefff, 0xabcdefff, 0xffffffff).should == 255
+    end    
   end
   
   describe '#blend' do

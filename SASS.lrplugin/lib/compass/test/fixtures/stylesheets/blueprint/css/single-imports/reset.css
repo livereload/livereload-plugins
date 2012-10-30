@@ -3,11 +3,13 @@ html {
   padding: 0;
   border: 0; }
 
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, blockquote, q, th, td, caption, table, body, div, span, object, iframe, p,
+.bp-reset-element, body, h1, h2, h3, h4, h5, h6, article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, blockquote, q, th, td, caption, table,
+div, span, object, iframe, p,
 pre, a, abbr, acronym, address,
 code, del, dfn, em, img,
 dl, dt, dd, ol, ul, li, fieldset,
-form, label, legend, tbody, tfoot, thead, tr, h1, h2, h3, h4, h5, h6 {
+form, label, legend,
+caption, tbody, tfoot, thead, tr {
   margin: 0;
   padding: 0;
   border: 0;
@@ -22,7 +24,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 blockquote, q {
   quotes: "" ""; }
-  blockquote:before, q:before, blockquote:after, q:after {
+  blockquote:before, blockquote:after, q:before, q:after {
     content: ""; }
 
 th, td, caption {

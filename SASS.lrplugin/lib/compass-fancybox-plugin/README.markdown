@@ -13,18 +13,18 @@ From the command line:
 
 Add the following to your compass configuration:
 
-    # require 'compass-fancybox-plugin'
+    require 'compass-fancybox-plugin'
 
-The run:
+The run from the command line:
 
     compass install fancybox
 
-If you want the debug files too:
-
-    compass install fancybox/debug
-
-Lastly add:
+To one of your sass stylesheets to import the fancybox styles add:
 
     @import 'fancybox'
 
-To one of your sass stylesheets to import the fancybox styles.
+
+If you want the debug files, you can install them with:
+
+    compass install fancybox/debug
+

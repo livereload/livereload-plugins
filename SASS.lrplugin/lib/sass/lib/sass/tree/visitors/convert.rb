@@ -109,7 +109,7 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
   end
 
   def visit_extend(node)
-    "#{tab_str}@extend #{selector_to_src(node.selector).lstrip}#{semi}\n"
+    "#{tab_str}@extend #{selector_to_src(node.selector).lstrip}#{semi}#{" !optional" if node.optional?}\n"
   end
 
   def visit_for(node)
@@ -121,6 +121,10 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
     args = node.args.map do |v, d|
       d ? "#{v.to_sass(@options)}: #{d.to_sass(@options)}" : v.to_sass(@options)
     end.join(", ")
+    if node.splat
+      args << ", " unless node.args.empty?
+      args << node.splat.to_sass(@options) << "..."
+    end
 
     "#{tab_str}@function #{dasherize(node.name)}(#{args})#{yield}"
   end
@@ -148,7 +152,7 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
   end
 
   def visit_media(node)
-    "#{tab_str}@media #{interp_to_src(node.query)}#{yield}"
+    "#{tab_str}@media #{media_interp_to_src(node.query)}#{yield}"
   end
 
   def visit_supports(node)
@@ -167,27 +171,39 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
 
   def visit_mixindef(node)
     args =
-      if node.args.empty?
+      if node.args.empty? && node.splat.nil?
         ""
       else
-        '(' + node.args.map do |v, d|
+        str = '('
+        str << node.args.map do |v, d|
           if d
             "#{v.to_sass(@options)}: #{d.to_sass(@options)}"
           else
             v.to_sass(@options)
           end
-        end.join(", ") + ')'
+        end.join(", ")
+
+        if node.splat
+          str << ", " unless node.args.empty?
+          str << node.splat.to_sass(@options) << '...'
+        end
+
+        str << ')'
       end
-          
+
     "#{tab_str}#{@format == :sass ? '=' : '@mixin '}#{dasherize(node.name)}#{args}#{yield}"
   end
 
   def visit_mixin(node)
-    unless node.args.empty? && node.keywords.empty?
+    unless node.args.empty? && node.keywords.empty? && node.splat.nil?
       args = node.args.map {|a| a.to_sass(@options)}.join(", ")
       keywords = Sass::Util.hash_to_a(node.keywords).
         map {|k, v| "$#{dasherize(k)}: #{v.to_sass(@options)}"}.join(', ')
-      arglist = "(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords})"
+      if node.splat
+        splat = (args.empty? && keywords.empty?) ? "" : ", "
+        splat = "#{splat}#{node.splat.to_sass(@options)}..."
+      end
+      arglist = "(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
     end
     "#{tab_str}#{@format == :sass ? '+' : '@include '}#{dasherize(node.name)}#{arglist}#{node.has_children ? yield : semi}\n"
   end
@@ -240,6 +256,22 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
     interp.map do |r|
       next r if r.is_a?(String)
       "\#{#{r.to_sass(@options)}}"
+    end.join
+  end
+
+  # Like interp_to_src, but removes the unnecessary `#{}` around the keys and
+  # values in media expressions.
+  def media_interp_to_src(interp)
+    Sass::Util.enum_with_index(interp).map do |r, i|
+      next r if r.is_a?(String)
+      before, after = interp[i-1], interp[i+1]
+      if before.is_a?(String) && after.is_a?(String) &&
+          ((before[-1] == ?( && after[0] == ?:) ||
+           (before =~ /:\s*/ && after[0] == ?)))
+        r.to_sass(@options)
+      else
+        "\#{#{r.to_sass(@options)}}"
+      end
     end.join
   end
 

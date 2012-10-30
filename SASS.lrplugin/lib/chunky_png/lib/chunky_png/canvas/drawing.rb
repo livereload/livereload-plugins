@@ -12,19 +12,73 @@ module ChunkyPNG
     module Drawing
       
       # Composes a pixel on the canvas by alpha blending a color with its background color.
-      # @overload compose_pixel(x, y, color)
-      #   @param [Integer] x The x-coordinate of the pixel to blend.
-      #   @param [Integer] y The y-coordinate of the pixel to blend.
-      #   @param [Integer] color The foreground color to blend with
-      # @overload compose_pixel(point, color)
-      #   @param [ChunkyPNG::Point, ...] point The point on the canvas to blend.
-      #   @param [Integer] color The foreground color to blend with
-      def compose_pixel(*args)
-        point = args.length == 2 ? ChunkyPNG::Point(args.first) : ChunkyPNG::Point(args[0], args[1])
-        return unless include?(point)
-        color = ChunkyPNG::Color(args.last)
-        set_pixel(point.x, point.y, ChunkyPNG::Color.compose(color, get_pixel(point.x, point.y)))
+      # @param [Integer] x The x-coordinate of the pixel to blend.
+      # @param [Integer] y The y-coordinate of the pixel to blend.
+      # @param [Integer] color The foreground color to blend with
+      # @return [Integer] The composed color.
+      def compose_pixel(x, y, color)
+        return unless include_xy?(x, y)
+        compose_pixel_unsafe(x, y, ChunkyPNG::Color.parse(color))
       end
+      
+      # Composes a pixel on the canvas by alpha blending a color with its background color,
+      # without bounds checking.
+      # @param (see #compose_pixel)
+      # @return [Integer] The composed color.
+      def compose_pixel_unsafe(x, y, color)
+        set_pixel(x, y, ChunkyPNG::Color.compose(color, get_pixel(x, y)))
+      end
+      
+      # Draws a Bezier curve
+      # @param [Array, Point] A collection of control points
+      # @return [Chunky:PNG::Canvas] Itself, with the curve drawn
+      def bezier_curve(points, stroke_color = ChunkyPNG::Color::BLACK)
+        
+        points = ChunkyPNG::Vector(*points)
+        case points.length
+          when 0, 1; return self
+          when 2; return line(points[0].x, points[0].y, points[1].x, points[1].y, stroke_color)
+        end
+        
+        curve_points = Array.new
+        
+        t = 0
+        n = points.length - 1
+        bicof = 0
+        
+        while t <= 100
+          cur_p = ChunkyPNG::Point.new(0,0)
+          
+          # Generate a float of t.
+          t_f = t / 100.00
+          
+          cur_p.x += ((1 - t_f) ** n) * points[0].x
+          cur_p.y += ((1 - t_f) ** n) * points[0].y
+          
+          for i in 1...points.length - 1
+            bicof = binomial_coefficient(n , i)
+            
+            cur_p.x += (bicof * (1 - t_f) ** (n - i)) *  (t_f ** i) * points[i].x 
+            cur_p.y += (bicof * (1 - t_f) ** (n - i)) *  (t_f ** i) * points[i].y 
+            i += 1
+          end
+          
+          cur_p.x += (t_f ** n) * points[n].x
+          cur_p.y += (t_f ** n) * points[n].y
+
+          curve_points << cur_p
+
+          bicof = 0
+          t += 1
+        end
+
+        curve_points.each_cons(2) do |p1, p2|
+          line_xiaolin_wu(p1.x.round, p1.y.round, p2.x.round, p2.y.round, stroke_color)
+        end
+
+        return self
+      end
+      
       
       # Draws an anti-aliased line using Xiaolin Wu's algorithm.
       #
@@ -34,11 +88,11 @@ module ChunkyPNG
       # @param [Integer] y1 The y-coordinate of the second control point.
       # @param [Integer] stroke_color The color to use for this line.
       # @param [true, false] inclusive Whether to draw the last pixel. 
-      #    Set to false when drawing multiplelines in a path.
+      #    Set to false when drawing multiple lines in a path.
       # @return [ChunkyPNG::Canvas] Itself, with the line drawn.
       def line_xiaolin_wu(x0, y0, x1, y1, stroke_color, inclusive = true)
         
-        stroke_color = ChunkyPNG::Color(stroke_color)
+        stroke_color = ChunkyPNG::Color.parse(stroke_color)
         
         dx = x1 - x0
         sx = dx < 0 ? -1 : 1
@@ -109,8 +163,8 @@ module ChunkyPNG
         vector = ChunkyPNG::Vector(*path)
         raise ArgumentError, "A polygon requires at least 3 points" if path.length < 3
 
-        stroke_color = ChunkyPNG::Color(stroke_color)
-        fill_color   = ChunkyPNG::Color(fill_color)
+        stroke_color = ChunkyPNG::Color.parse(stroke_color)
+        fill_color   = ChunkyPNG::Color.parse(fill_color)
 
         # Fill
         unless fill_color == ChunkyPNG::Color::TRANSPARENT
@@ -150,8 +204,8 @@ module ChunkyPNG
       # @return [ChunkyPNG::Canvas] Itself, with the rectangle drawn.
       def rect(x0, y0, x1, y1, stroke_color = ChunkyPNG::Color::BLACK, fill_color = ChunkyPNG::Color::TRANSPARENT)
       
-        stroke_color = ChunkyPNG::Color(stroke_color)
-        fill_color   = ChunkyPNG::Color(fill_color)
+        stroke_color = ChunkyPNG::Color.parse(stroke_color)
+        fill_color   = ChunkyPNG::Color.parse(fill_color)
       
         # Fill
         unless fill_color == ChunkyPNG::Color::TRANSPARENT
@@ -181,8 +235,8 @@ module ChunkyPNG
       # @return [ChunkyPNG::Canvas] Itself, with the circle drawn.
       def circle(x0, y0, radius, stroke_color = ChunkyPNG::Color::BLACK, fill_color = ChunkyPNG::Color::TRANSPARENT)
 
-        stroke_color = ChunkyPNG::Color(stroke_color)
-        fill_color   = ChunkyPNG::Color(fill_color)
+        stroke_color = ChunkyPNG::Color.parse(stroke_color)
+        fill_color   = ChunkyPNG::Color.parse(fill_color)
 
         f = 1 - radius
         ddF_x = 1
@@ -235,6 +289,26 @@ module ChunkyPNG
         end
 
         return self
+      end
+      
+      private
+      
+      # Calculates the binomial coefficient for n over k.
+      #
+      # @param [Integer] n first parameter in coeffient (the number on top when looking at the mathematic formula)
+      # @param [Integer] k k-element, second parameter in coeffient (the number on the bottom when looking at the mathematic formula)
+      # @return [Integer] The binomial coeffcient of (n,k)
+      def binomial_coefficient(n, k)
+        return  1 if n == k || k == 0
+        return  n if k == 1
+        return -1 if n < k
+
+        # calculate factorials
+        fact_n = (2..n).inject(1) { |carry, i| carry * i }
+        fact_k = (2..k).inject(1) { |carry, i| carry * i }
+        fact_n_sub_k = (2..(n - k)).inject(1) { |carry, i| carry * i }
+
+        fact_n / (fact_k * fact_n_sub_k)
       end
     end
   end

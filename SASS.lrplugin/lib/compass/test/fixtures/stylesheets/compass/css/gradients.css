@@ -7,7 +7,6 @@
   background: white -webkit-linear-gradient(top left, #dddddd, #aaaaaa);
   background: white -moz-linear-gradient(top left, #dddddd, #aaaaaa);
   background: white -o-linear-gradient(top left, #dddddd, #aaaaaa);
-  background: white -ms-linear-gradient(top left, #dddddd, #aaaaaa);
   background: white linear-gradient(top left, #dddddd, #aaaaaa); }
 
 .bg-shortcut-radial-gradient {
@@ -16,17 +15,12 @@
   background: white -webkit-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background: white -moz-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background: white -o-radial-gradient(center center, #dddddd, #aaaaaa 100px);
-  background: white -ms-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background: white radial-gradient(center center, #dddddd, #aaaaaa 100px); }
 
 .bg-linear-gradient-angle-svg {
-  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9Ii00NSIgeTE9IiIgeDI9Ii00NSIgeTI9IiIgZ3JhZGllbnRUcmFuc2Zvcm0gPSAicm90YXRlKC00NSkiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwMDAwZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMDAwMDAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPjwvc3ZnPiA=');
-  background-size: 100%;
-  background-image: -webkit-gradient(linear, -45deg, -45deg, color-stop(0%, #0000ff), color-stop(100%, #000000));
   background-image: -webkit-linear-gradient(-45deg, #0000ff, #000000);
   background-image: -moz-linear-gradient(-45deg, #0000ff, #000000);
   background-image: -o-linear-gradient(-45deg, #0000ff, #000000);
-  background-image: -ms-linear-gradient(-45deg, #0000ff, #000000);
   background-image: linear-gradient(-45deg, #0000ff, #000000); }
 
 .bg-linear-gradient-angle2-svg {
@@ -36,7 +30,6 @@
   background-image: -webkit-linear-gradient(top left, #0000ff, #000000);
   background-image: -moz-linear-gradient(top left, #0000ff, #000000);
   background-image: -o-linear-gradient(top left, #0000ff, #000000);
-  background-image: -ms-linear-gradient(top left, #0000ff, #000000);
   background-image: linear-gradient(top left, #0000ff, #000000); }
 
 .bg-all-gradient-types-with-simplification {
@@ -46,7 +39,6 @@
   background: url('/images/4x6.png?busted=true'), -webkit-linear-gradient(top left, #dddddd, #aaaaaa), -webkit-radial-gradient(center center, #dddddd, #aaaaaa 100px), #ffcc00;
   background: url('/images/4x6.png?busted=true'), -moz-linear-gradient(top left, #dddddd, #aaaaaa), -moz-radial-gradient(center center, #dddddd, #aaaaaa 100px), #ffcc00;
   background: url('/images/4x6.png?busted=true'), -o-linear-gradient(top left, #dddddd, #aaaaaa), -o-radial-gradient(center center, #dddddd, #aaaaaa 100px), #ffcc00;
-  background: url('/images/4x6.png?busted=true'), -ms-linear-gradient(top left, #dddddd, #aaaaaa), -ms-radial-gradient(center center, #dddddd, #aaaaaa 100px), #ffcc00;
   background: url('/images/4x6.png?busted=true'), linear-gradient(top left, #dddddd, #aaaaaa), radial-gradient(center center, #dddddd, #aaaaaa 100px), #ffcc00; }
 
 .bg-simple-image {
@@ -59,7 +51,6 @@
   background-image: -webkit-linear-gradient(top left, #dddddd, #aaaaaa);
   background-image: -moz-linear-gradient(top left, #dddddd, #aaaaaa);
   background-image: -o-linear-gradient(top left, #dddddd, #aaaaaa);
-  background-image: -ms-linear-gradient(top left, #dddddd, #aaaaaa);
   background-image: linear-gradient(top left, #dddddd, #aaaaaa); }
 
 .bg-linear-gradient-pixel-stop-from-top {
@@ -69,7 +60,6 @@
   background-image: -webkit-linear-gradient(top, #dddddd 10px, #aaaaaa 40px);
   background-image: -moz-linear-gradient(top, #dddddd 10px, #aaaaaa 40px);
   background-image: -o-linear-gradient(top, #dddddd 10px, #aaaaaa 40px);
-  background-image: -ms-linear-gradient(top, #dddddd 10px, #aaaaaa 40px);
   background-image: linear-gradient(top, #dddddd 10px, #aaaaaa 40px); }
 
 .bg-linear-gradient-pixel-stop-from-left {
@@ -79,7 +69,6 @@
   background-image: -webkit-linear-gradient(left, #dddddd 10px, #aaaaaa 40px);
   background-image: -moz-linear-gradient(left, #dddddd 10px, #aaaaaa 40px);
   background-image: -o-linear-gradient(left, #dddddd 10px, #aaaaaa 40px);
-  background-image: -ms-linear-gradient(left, #dddddd 10px, #aaaaaa 40px);
   background-image: linear-gradient(left, #dddddd 10px, #aaaaaa 40px); }
 
 .transparent-in-linear-gradient {
@@ -89,7 +78,6 @@
   background-image: white -webkit-linear-gradient(top left, transparent, #aaaaaa);
   background-image: white -moz-linear-gradient(top left, transparent, #aaaaaa);
   background-image: white -o-linear-gradient(top left, transparent, #aaaaaa);
-  background-image: white -ms-linear-gradient(top left, transparent, #aaaaaa);
   background-image: white linear-gradient(top left, transparent, #aaaaaa); }
 
 .transparent-in-linear-gradient {
@@ -99,17 +87,12 @@
   background-image: -webkit-radial-gradient(center center, #dddddd, transparent 100px);
   background-image: -moz-radial-gradient(center center, #dddddd, transparent 100px);
   background-image: -o-radial-gradient(center center, #dddddd, transparent 100px);
-  background-image: -ms-radial-gradient(center center, #dddddd, transparent 100px);
   background-image: radial-gradient(center center, #dddddd, transparent 100px); }
 
 .bg-linear-gradient-with-angle {
-  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9Ii00NSIgeTE9IiIgeDI9Ii00NSIgeTI9IiIgZ3JhZGllbnRUcmFuc2Zvcm0gPSAicm90YXRlKC00NSkiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNkZGRkZGQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNhYWFhYWEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPjwvc3ZnPiA=');
-  background-size: 100%;
-  background-image: -webkit-gradient(linear, -45deg, -45deg, color-stop(0%, #dddddd), color-stop(100%, #aaaaaa));
   background-image: -webkit-linear-gradient(-45deg, #dddddd, #aaaaaa);
   background-image: -moz-linear-gradient(-45deg, #dddddd, #aaaaaa);
   background-image: -o-linear-gradient(-45deg, #dddddd, #aaaaaa);
-  background-image: -ms-linear-gradient(-45deg, #dddddd, #aaaaaa);
   background-image: linear-gradient(-45deg, #dddddd, #aaaaaa); }
 
 .bg-radial-gradient-with-angle-and-shape {
@@ -119,7 +102,6 @@
   background-image: -webkit-radial-gradient(ellipse cover, #dddddd, #aaaaaa 100px);
   background-image: -moz-radial-gradient(ellipse cover, #dddddd, #aaaaaa 100px);
   background-image: -o-radial-gradient(ellipse cover, #dddddd, #aaaaaa 100px);
-  background-image: -ms-radial-gradient(ellipse cover, #dddddd, #aaaaaa 100px);
   background-image: radial-gradient(ellipse cover, #dddddd, #aaaaaa 100px); }
 
 .bg-all-gradient-types {
@@ -129,7 +111,6 @@
   background-image: url('/images/4x6.png?busted=true'), -webkit-linear-gradient(top left, #dddddd, #aaaaaa), -webkit-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background-image: url('/images/4x6.png?busted=true'), -moz-linear-gradient(top left, #dddddd, #aaaaaa), -moz-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background-image: url('/images/4x6.png?busted=true'), -o-linear-gradient(top left, #dddddd, #aaaaaa), -o-radial-gradient(center center, #dddddd, #aaaaaa 100px);
-  background-image: url('/images/4x6.png?busted=true'), -ms-linear-gradient(top left, #dddddd, #aaaaaa), -ms-radial-gradient(center center, #dddddd, #aaaaaa 100px);
   background-image: url('/images/4x6.png?busted=true'), linear-gradient(top left, #dddddd, #aaaaaa), radial-gradient(center center, #dddddd, #aaaaaa 100px); }
 
 .border-image-gradient {
@@ -178,7 +159,6 @@
   background-image: -webkit-linear-gradient(#dddddd, #aaaaaa);
   background-image: -moz-linear-gradient(#dddddd, #aaaaaa);
   background-image: -o-linear-gradient(#dddddd, #aaaaaa);
-  background-image: -ms-linear-gradient(#dddddd, #aaaaaa);
   background-image: linear-gradient(#dddddd, #aaaaaa); }
 
 .bg-radial-gradient-no-position {
@@ -186,7 +166,6 @@
   background-image: -webkit-radial-gradient(#dddddd, #aaaaaa 100px);
   background-image: -moz-radial-gradient(#dddddd, #aaaaaa 100px);
   background-image: -o-radial-gradient(#dddddd, #aaaaaa 100px);
-  background-image: -ms-radial-gradient(#dddddd, #aaaaaa 100px);
   background-image: radial-gradient(#dddddd, #aaaaaa 100px); }
 
 .image-fallback {
@@ -194,7 +173,6 @@
   background-image: image(-webkit-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'), #cc0000);
   background-image: image(-moz-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'), #cc0000);
   background-image: image(-o-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'), #cc0000);
-  background-image: image(-ms-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'), #cc0000);
   background-image: image(radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'), #cc0000); }
 
 .cross-fade {
@@ -202,7 +180,6 @@
   background-image: cross-fade(-webkit-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'));
   background-image: cross-fade(-moz-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'));
   background-image: cross-fade(-o-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'));
-  background-image: cross-fade(-ms-radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true'));
   background-image: cross-fade(radial-gradient(#dddddd, #aaaaaa 100px), url('/images/4x6.png?busted=true')); }
 
 .unknown-function-wrapper {
@@ -210,7 +187,6 @@
   background: foo(-webkit-radial-gradient(#dddddd, #aaaaaa 100px));
   background: foo(-moz-radial-gradient(#dddddd, #aaaaaa 100px));
   background: foo(-o-radial-gradient(#dddddd, #aaaaaa 100px));
-  background: foo(-ms-radial-gradient(#dddddd, #aaaaaa 100px));
   background: foo(radial-gradient(#dddddd, #aaaaaa 100px)); }
 
 .ie-horizontal-filter {

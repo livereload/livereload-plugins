@@ -73,7 +73,7 @@ MSG
     "=foo\n  :color red\n.bar\n  +bang" => "Undefined mixin 'bang'.",
     "=foo\n  :color red\n.bar\n  +bang_bop" => "Undefined mixin 'bang_bop'.",
     "=foo\n  :color red\n.bar\n  +bang-bop" => "Undefined mixin 'bang-bop'.",
-    ".bar\n  =foo\n    :color red\n" => ["Mixins may only be defined at the root of a document.", 2],
+    ".foo\n  =foo\n    :color red\n.bar\n  +foo" => "Undefined mixin 'foo'.",
     "    a\n  b: c" => ["Indenting at the beginning of the document is illegal.", 1],
     " \n   \n\t\n  a\n  b: c" => ["Indenting at the beginning of the document is illegal.", 4],
     "a\n  b: c\n b: c" => ["Inconsistent indentation: 1 space was used for indentation, but the rest of the document was indented using 2 spaces.", 3],
@@ -93,7 +93,7 @@ MSG
     "a-\#{$b\n  c: d" => ['Invalid CSS after "a-#{$b": expected "}", was ""', 1],
     "=a($b: 1, $c)" => "Required argument $c must come before any optional arguments.",
     "=a($b: 1)\n  a: $b\ndiv\n  +a(1,2)" => "Mixin a takes 1 argument but 2 were passed.",
-    "=a($b: 1)\n  a: $b\ndiv\n  +a(1,$c: 3)" => "Mixin a doesn't have an argument named $c",
+    "=a($b: 1)\n  a: $b\ndiv\n  +a(1,$c: 3)" => "Mixin a doesn't have an argument named $c.",
     "=a($b)\n  a: $b\ndiv\n  +a" => "Mixin a is missing argument $b.",
     "@function foo()\n  1 + 2" => "Functions can only contain variable declarations and control directives.",
     "@function foo()\n  foo: bar" => "Functions can only contain variable declarations and control directives.",
@@ -105,11 +105,10 @@ MSG
     "@function foo($)\n  @return 1" => ['Invalid CSS after "(": expected variable (e.g. $foo), was "$)"', 1],
     "@function foo()\n  @return" => 'Invalid @return: expected expression.',
     "@function foo()\n  @return 1\n    $var: val" => 'Illegal nesting: Nothing may be nested beneath return directives.',
-    "foo\n  @function bar()\n    @return 1" => ['Functions may only be defined at the root of a document.', 2],
-    "@function foo($a)\n  @return 1\na\n  b: foo()" => 'Function foo is missing argument $a',
-    "@function foo()\n  @return 1\na\n  b: foo(2)" => 'Wrong number of arguments (1 for 0) for `foo\'',
-    "@function foo()\n  @return 1\na\n  b: foo($a: 1)" => "Function foo doesn't have an argument named $a",
-    "@function foo()\n  @return 1\na\n  b: foo($a: 1, $b: 2)" => "Function foo doesn't have the following arguments: $a, $b",
+    "@function foo($a)\n  @return 1\na\n  b: foo()" => 'Function foo is missing argument $a.',
+    "@function foo()\n  @return 1\na\n  b: foo(2)" => 'Function foo takes 0 arguments but 1 was passed.',
+    "@function foo()\n  @return 1\na\n  b: foo($a: 1)" => "Function foo doesn't have an argument named $a.",
+    "@function foo()\n  @return 1\na\n  b: foo($a: 1, $b: 2)" => "Function foo doesn't have the following arguments: $a, $b.",
     "@return 1" => '@return may only be used within a function.',
     "@if true\n  @return 1" => '@return may only be used within a function.',
     "@mixin foo\n  @return 1\n@include foo" => ['@return may only be used within a function.', 2],
@@ -123,7 +122,7 @@ MSG
     '@for $a from "foo" to 1' => '"foo" is not an integer.',
     '@for $a from 1 to "2"' => '"2" is not an integer.',
     '@for $a from 1 to "foo"' => '"foo" is not an integer.',
-    '@for $a from 1 to 1.232323' => '1.232 is not an integer.',
+    '@for $a from 1 to 1.232323' => '1.23232 is not an integer.',
     '@for $a from 1px to 3em' => "Incompatible units: 'em' and 'px'.",
     '@if' => "Invalid if directive '@if': expected expression.",
     '@while' => "Invalid while directive '@while': expected expression.",
@@ -153,7 +152,6 @@ MSG
     "=foo\n  @content\n    b: c" => "Illegal nesting: Nothing may be nested beneath @content directives.",
     "@content" => '@content may only be used within a mixin.',
     "=simple\n  .simple\n    color: red\n+simple\n  color: blue" => ['Mixin "simple" does not accept a content block.', 4],
-    "=foo\n  @content\n+foo" => ["No @content passed.", 2],
     "@import \"foo\" // bar" => "Invalid CSS after \"\"foo\" \": expected media query list, was \"// bar\"",
 
     # Regression tests
@@ -274,7 +272,7 @@ SASS
   end
 
   def test_imported_exception
-    [1, 2, 3, 4, 5].each do |i|
+    [1, 2, 3, 4].each do |i|
       begin
         Sass::Engine.new("@import bork#{i}", :load_paths => [File.dirname(__FILE__) + '/templates/']).render
       rescue Sass::SyntaxError => err
@@ -296,7 +294,7 @@ SASS
   end
 
   def test_double_imported_exception
-    [1, 2, 3, 4, 5].each do |i|
+    [1, 2, 3, 4].each do |i|
       begin
         Sass::Engine.new("@import nested_bork#{i}", :load_paths => [File.dirname(__FILE__) + '/templates/']).render
       rescue Sass::SyntaxError => err
@@ -721,24 +719,6 @@ CSS
   a: b
   @import partial
 SASS
-  end
-
-  def test_nested_import_with_toplevel_constructs
-    Sass::Engine.new(".foo\n  @import importee", :load_paths => [File.dirname(__FILE__) + '/templates/']).render
-  rescue Sass::SyntaxError => err
-    assert_equal(3, err.sass_line)
-    assert_match(/(\/|^)importee\.sass$/, err.sass_filename)
-
-    assert_hash_has(err.sass_backtrace.first,
-      :filename => err.sass_filename, :line => err.sass_line)
-
-    assert_nil(err.sass_backtrace[1][:filename])
-    assert_equal(2, err.sass_backtrace[1][:line])
-
-    assert_match(/(\/|^)importee\.sass:3$/, err.backtrace.first)
-    assert_equal("(sass):2", err.backtrace[1])
-  else
-    assert(false, "Exception not raised for importing mixins nested")
   end
 
   def test_units
@@ -1313,7 +1293,7 @@ bar
 SASS
     flunk("Expected exception")
   rescue Sass::SyntaxError => e
-    assert_equal("Function plus is missing argument $var1", e.message)
+    assert_equal("Function plus is missing argument $var1.", e.message)
   end
 
   def test_function_with_extra_argument
@@ -1326,7 +1306,7 @@ bar
 SASS
     flunk("Expected exception")
   rescue Sass::SyntaxError => e
-    assert_equal("Function plus doesn't have an argument named $var3", e.message)
+    assert_equal("Function plus doesn't have an argument named $var3.", e.message)
   end
 
   def test_function_with_positional_and_keyword_argument
@@ -1339,7 +1319,7 @@ bar
 SASS
     flunk("Expected exception")
   rescue Sass::SyntaxError => e
-    assert_equal("Function plus was passed argument $var2 both by position and by name", e.message)
+    assert_equal("Function plus was passed argument $var2 both by position and by name.", e.message)
   end
 
   def test_function_with_keyword_before_positional_argument
@@ -1352,7 +1332,7 @@ bar
 SASS
     flunk("Expected exception")
   rescue Sass::SyntaxError => e
-    assert_equal("Positional arguments must come before keyword arguments", e.message)
+    assert_equal("Positional arguments must come before keyword arguments.", e.message)
   end
 
   def test_function_with_if
@@ -1778,7 +1758,7 @@ SASS
 
   def test_loud_comment_is_evaluated
     assert_equal <<CSS, render(<<SASS)
-/* Hue: 327.216deg */
+/* Hue: 327.21649deg */
 CSS
 /*!
   Hue: \#{hue(#f836a0)}
@@ -2891,11 +2871,13 @@ SCSS
   end
 
   def test_deprecated_PRECISION
-    assert_warning(<<END) {assert_equal 1000.0, Sass::Script::Number::PRECISION}
+    assert_warning(<<END) {assert_equal 100_000.0, Sass::Script::Number::PRECISION}
 Sass::Script::Number::PRECISION is deprecated and will be removed in a future release. Use Sass::Script::Number.precision_factor instead.
 END
   end
+
   def test_changing_precision
+    old_precision = Sass::Script::Number.precision
     begin
       Sass::Script::Number.precision = 8
       assert_equal <<CSS, render(<<SASS)
@@ -2908,7 +2890,7 @@ div
   too-much: 1.000000001
 SASS
     ensure
-      Sass::Script::Number.precision = 3
+      Sass::Script::Number.precision = old_precision
     end
   end
 
@@ -3044,22 +3026,26 @@ SASS
   end
 
   def test_content_not_seen_through_mixin
-    render(<<SASS)
+    assert_equal <<CSS, render(<<SASS)
+a foo {
+  mixin: foo;
+  a: b; }
+  a foo bar {
+    mixin: bar; }
+CSS
 =foo
   foo
+    mixin: foo
     @content
     +bar
 =bar
   bar
+    mixin: bar
     @content
 a
   +foo
     a: b
 SASS
-    assert(false, "Expected exception")
-  rescue Sass::SyntaxError => e
-    assert_equal("No @content passed.", e.message)
-    assert_equal(7, e.sass_line)
   end
 
   def test_content_backtrace_for_perform

@@ -33,6 +33,9 @@ module ChunkyPNG
       # tRNS chunk from the PNG stream. For RGB(A) images, no palette is required.
       # @return [ChunkyPNG::Palette]
       attr_accessor :decoding_palette
+      
+      # The color to be replaced with fully transparent pixels.
+      attr_accessor :transparent_color
 
       # Decodes a Canvas from a PNG encoded string.
       # @param [String] str The string to read from.
@@ -73,7 +76,15 @@ module ChunkyPNG
           raise ExpectationFailed, "Invalid image size, width: #{width}, height: #{height}"
         end
 
-        self.decoding_palette = ChunkyPNG::Palette.from_chunks(ds.palette_chunk, ds.transparency_chunk)
+        case color_mode
+          when ChunkyPNG::COLOR_INDEXED
+            self.decoding_palette = ChunkyPNG::Palette.from_chunks(ds.palette_chunk, ds.transparency_chunk)
+          when ChunkyPNG::COLOR_TRUECOLOR
+            self.transparent_color = ds.transparency_chunk.truecolor_entry(depth) if ds.transparency_chunk
+          when ChunkyPNG::COLOR_GRAYSCALE
+            self.transparent_color = ds.transparency_chunk.grayscale_entry(depth) if ds.transparency_chunk
+        end
+            
         decode_png_pixelstream(ds.imagedata, width, height, color_mode, depth, interlace)
       end
 
@@ -88,11 +99,15 @@ module ChunkyPNG
       # @return [ChunkyPNG::Canvas] The decoded Canvas instance.
       def decode_png_pixelstream(stream, width, height, color_mode, depth, interlace)
         raise ChunkyPNG::ExpectationFailed, "This palette is not suitable for decoding!" if decoding_palette && !decoding_palette.can_decode?
-        case interlace
+
+        image = case interlace
           when ChunkyPNG::INTERLACING_NONE;  decode_png_without_interlacing(stream, width, height, color_mode, depth)
           when ChunkyPNG::INTERLACING_ADAM7; decode_png_with_adam7_interlacing(stream, width, height, color_mode, depth)
           else raise ChunkyPNG::NotSupported, "Don't know how the handle interlacing method #{interlace}!"
         end
+        
+        image.pixels.map! { |c| c == transparent_color ? ChunkyPNG::Color::TRANSPARENT : c } if transparent_color
+        return image
       end
 
       protected
@@ -149,7 +164,7 @@ module ChunkyPNG
       end
 
       # Extract a bit from a byte on a given index.
-      # @param [Integer] byte The byte (0..255) value to extract a a bit from.
+      # @param [Integer] byte The byte (0..255) value to extract a bit from.
       # @param [Integer] index The index within the byte. This should be 0..7; 
       #        the value will be modded by 8 to enforce this.
       # @return [Integer] Either 1 or 0.
@@ -163,6 +178,13 @@ module ChunkyPNG
       # @return [Integer] The 8 bit resampled value
       def decode_png_resample_16bit_value(value)
         value >> 8
+      end
+      
+      # No-op - available for completeness sake only
+      # @param [Integer] value The 8 bit value to resample.
+      # @return [Integer] The 8 bit resampled value
+      def decode_png_resample_8bit_value(value)
+        value
       end
       
       # Resamples a 4 bit value to an 8 bit value.
@@ -200,10 +222,18 @@ module ChunkyPNG
         when 0x03; 0xff
         end
       end
+      
+      # Resamples a 1 bit value to an 8 bit value.
+      # @param [Integer] value The 1 bit value to resample.
+      # @return [Integer] The 8 bit resampled value
+      def decode_png_resample_1bit_value(value)
+        value == 0x01 ? 0xff : 0x00
+      end
+      
 
       # Decodes a scanline of a 1-bit, indexed image into a row of pixels.
       # @param [String] stream The stream to decode from.
-      # @param [Integer] pos The position in the stream on qhich the scanline starts (including the filter byte).
+      # @param [Integer] pos The position in the stream on which the scanline starts (including the filter byte).
       # @param [Integer] width The width in pixels of the scanline.
       # @return [Array<Integer>] An array of decoded pixels.
       def decode_png_pixels_from_scanline_indexed_1bit(stream, pos, width)
@@ -355,7 +385,7 @@ module ChunkyPNG
           else nil
         end
         
-        raise ChunkyPNG::NotSupported, "No decoder found for color mode #{color_mode} and #{depth}-bit depth!" unless respond_to?(decoder_method)
+        raise ChunkyPNG::NotSupported, "No decoder found for color mode #{color_mode} and #{depth}-bit depth!" unless respond_to?(decoder_method, true)
         decoder_method
       end
 
@@ -428,8 +458,8 @@ module ChunkyPNG
         # noop - this method shouldn't get called.
       end
 
-      # Decodes a scanline in a pxielstream that was encoded using SUB filtering.
-      # This will chnage the pixelstream to have unfiltered values.
+      # Decodes a scanline in a pixelstream that was encoded using SUB filtering.
+      # This will change the pixelstream to have unfiltered values.
       # @params (see #decode_png_str_scanline)
       # @return [void]
       def decode_png_str_scanline_sub(stream, pos, prev_pos, line_length, pixel_size)
@@ -438,8 +468,8 @@ module ChunkyPNG
         end
       end
 
-      # Decodes a scanline in a pxielstream that was encoded using UP filtering.
-      # This will chnage the pixelstream to have unfiltered values.
+      # Decodes a scanline in a pixelstream that was encoded using UP filtering.
+      # This will change the pixelstream to have unfiltered values.
       # @params (see #decode_png_str_scanline)
       # @return [void]
       def decode_png_str_scanline_up(stream, pos, prev_pos, line_length, pixel_size)
@@ -449,8 +479,8 @@ module ChunkyPNG
         end
       end
 
-      # Decodes a scanline in a pxielstream that was encoded using AVERAGE filtering.
-      # This will chnage the pixelstream to have unfiltered values.
+      # Decodes a scanline in a pixelstream that was encoded using AVERAGE filtering.
+      # This will change the pixelstream to have unfiltered values.
       # @params (see #decode_png_str_scanline)
       # @return [void]
       def decode_png_str_scanline_average(stream, pos, prev_pos, line_length, pixel_size)
@@ -461,8 +491,8 @@ module ChunkyPNG
         end
       end
 
-      # Decodes a scanline in a pxielstream that was encoded using PAETH filtering.
-      # This will chnage the pixelstream to have unfiltered values.
+      # Decodes a scanline in a pixelstream that was encoded using PAETH filtering.
+      # This will change the pixelstream to have unfiltered values.
       # @params (see #decode_png_str_scanline)
       # @return [void]
       def decode_png_str_scanline_paeth(stream, pos, prev_pos, line_length, pixel_size)

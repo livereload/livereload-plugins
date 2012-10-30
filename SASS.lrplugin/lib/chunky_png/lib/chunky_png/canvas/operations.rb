@@ -11,6 +11,31 @@ module ChunkyPNG
     # @see ChunkyPNG::Canvas
     module Operations
       
+      # Converts the canvas to grascale.
+      #
+      # This method will modify the canvas. The obtain a new canvas and leave the 
+      # current instance intact, use {#grayscale} instead.
+      #
+      # @return [ChunkyPNG::Canvas] Returns itself, converted to grayscale.
+      # @see {#grayscale}
+      # @see {ChunkyPNG::Color#to_grayscale}
+      def grayscale!
+        pixels.map! { |pixel| ChunkyPNG::Color.to_grayscale(pixel) }
+        return self
+      end
+
+      # Converts the canvas to grascale, returning a new canvas.
+      #
+      # This method will not modify the canvas. To modift the current canvas,
+      # use {#grayscale!} instead.
+      #
+      # @return [ChunkyPNG::Canvas] A copy of the canvas, converted to grasycale.
+      # @see {#grayscale!}
+      # @see {ChunkyPNG::Color#to_grayscale}
+      def grayscale
+        dup.grayscale!
+      end
+      
       # Composes another image onto this image using alpha blending. This will modify
       # the current canvas.
       #
@@ -19,8 +44,8 @@ module ChunkyPNG
       #
       # @param [ChunkyPNG::Canvas] other The foreground canvas to compose on the
       #     current canvas, using alpha compositing.
-      # @param [Integer] offset_x The x-offset to apply the new forgeround on.
-      # @param [Integer] offset_y The y-offset to apply the new forgeround on.
+      # @param [Integer] offset_x The x-offset to apply the new foreground on.
+      # @param [Integer] offset_y The y-offset to apply the new foreground on.
       # @return [ChunkyPNG::Canvas] Returns itself, but with the other canvas composed onto it.
       # @raise [ChunkyPNG::OutOfBounds] when the other canvas doesn't fit on this one,
       #     given the offset and size of the other canvas.
@@ -63,8 +88,8 @@ module ChunkyPNG
       # them with semi-transparent pixels from the foreground image, see {#compose!}.
       #
       # @param [ChunkyPNG::Canvas] other The foreground canvas to get the pixels from.
-      # @param [Integer] offset_x The x-offset to apply the new forgeround on.
-      # @param [Integer] offset_y The y-offset to apply the new forgeround on.
+      # @param [Integer] offset_x The x-offset to apply the new foreground on.
+      # @param [Integer] offset_y The y-offset to apply the new foreground on.
       # @return [ChunkyPNG::Canvas] Returns itself, but with the other canvas placed onto it.
       # @raise [ChunkyPNG::OutOfBounds] when the other canvas doesn't fit on this one,
       #     given the offset and size of the other canvas.
@@ -74,7 +99,9 @@ module ChunkyPNG
         check_size_constraints!(other, offset_x, offset_y)
 
         for y in 0...other.height do
-          pixels[(y + offset_y) * width + offset_x, other.width] = other.pixels[y * other.width, other.width]
+          for d in 0...other.width
+            pixels[(y + offset_y) * width + offset_x + d] = other.pixels[y * other.width + d]
+          end
         end
         self
       end
@@ -170,7 +197,7 @@ module ChunkyPNG
       alias_method :flip!, :flip_horizontally!
       alias_method :flip,  :flip_horizontally
       
-      # Flips the image vertically, leaving the orginial intact.
+      # Flips the image vertically, leaving the original intact.
       #
       # This will flip the image on its vertical axis, e.g. pixels on the left will now
       # be pixels on the right. Chaining this method twice will return the original canvas.
@@ -239,7 +266,7 @@ module ChunkyPNG
       # Rotates the image 90 degrees counter-clockwise in place.
       #
       # This method will change the original canvas. See {#rotate_left} for a
-      # version that leaves the canvas intact and returns a new rototed canvas
+      # version that leaves the canvas intact and returns a new rotated canvas
       # instead.
       #
       # @return [ChunkyPNG::Canvas] Itself, but rotated.

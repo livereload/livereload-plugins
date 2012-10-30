@@ -3,6 +3,8 @@ require 'chunky_png/canvas/png_decoding'
 require 'chunky_png/canvas/adam7_interlacing'
 require 'chunky_png/canvas/stream_exporting'
 require 'chunky_png/canvas/stream_importing'
+require 'chunky_png/canvas/data_url_exporting'
+require 'chunky_png/canvas/data_url_importing'
 require 'chunky_png/canvas/operations'
 require 'chunky_png/canvas/drawing'
 require 'chunky_png/canvas/resampling'
@@ -10,7 +12,7 @@ require 'chunky_png/canvas/masking'
 
 module ChunkyPNG
 
-  # The ChunkPNG::Canvas class represents a raster image as a matrix of
+  # The ChunkyPNG::Canvas class represents a raster image as a matrix of
   # pixels.
   #
   # This class supports loading a Canvas from a PNG datastream, and creating a
@@ -38,6 +40,9 @@ module ChunkyPNG
     include StreamExporting
     extend  StreamImporting
 
+    include DataUrlExporting
+    extend  DataUrlImporting
+
     include Operations
     include Drawing
     include Resampling
@@ -58,23 +63,28 @@ module ChunkyPNG
     # CONSTRUCTORS
     #################################################################
 
-    # Initializes a new Canvas instance
-    # @param [Integer] width The width in pixels of this canvas
-    # @param [Integer] width The height in pixels of this canvas
-    # @param [ChunkyPNG::Pixel, Array<ChunkyPNG::Color>] initial The initial value of te pixels:
+    # Initializes a new Canvas instance.
     #
-    #    * If a color is passed to this parameter, this color will be used as background color.
+    # @overload initialize(width, height, background_color)
+    #   @param [Integer] width The width in pixels of this canvas
+    #   @param [Integer] height The height in pixels of this canvas
+    #   @param [Integer, ...] background_color The initial background color of this canvas.
+    #      This can be a color value or any value that {ChunkyPNG::Color.parse} can handle.
     #
-    #    * If an array of pixels is provided, these pixels will be used as initial value. Note
-    #      that the amount of pixels in this array should equal +width * height+.
+    # @overload initialize(width, height, initial)
+    #   @param [Integer] width The width in pixels of this canvas
+    #   @param [Integer] height The height in pixels of this canvas
+    #   @param [Array<Integer>] initial The initial pizel values. Must be an array with 
+    #     <tt>width * height</tt> elements.
     def initialize(width, height, initial = ChunkyPNG::Color::TRANSPARENT)
 
       @width, @height = width, height
 
-      if initial.kind_of?(Array) && initial.length == width * height
+      if initial.kind_of?(Array)
+        raise ArgumentError, "The initial array should have #{width}x#{height} = #{width*height} elements!" unless initial.length == width * height
         @pixels = initial
       else
-        @pixels = Array.new(width * height, ChunkyPNG::Color(initial))
+        @pixels = Array.new(width * height, ChunkyPNG::Color.parse(initial))
       end
     end
     
@@ -100,7 +110,7 @@ module ChunkyPNG
     #################################################################
 
     # Returns the dimension (width x height) for this canvas.
-    # @return [ChunkyPNG::Dimension] A dimension instante with the width and height set for this canvas.
+    # @return [ChunkyPNG::Dimension] A dimension instance with the width and height set for this canvas.
     def dimension
       ChunkyPNG::Dimension.new(width, height)
     end
@@ -112,26 +122,15 @@ module ChunkyPNG
     end
 
     # Replaces a single pixel in this canvas.
-    #
-    # @overload []=(x, y, color)
-    #   Sets the color value of a pixel given a x- and y-coordinate
-    #   @param [Integer] x The x-coordinate of the pixel (column)
-    #   @param [Integer] y The y-coordinate of the pixel (row)
-    #   @param [Integer] color The new color for the provided coordinates.
-    #   @return [Integer] The new color value for this pixel, i.e. <tt>color</tt>. 
-    #
-    # @overload []=(point, color)
-    #   Sets the color value of a pixel given point-like value.
-    #   @param [ChunkyPNG::Point, ...] point The point on the canvas to replace.
-    #   @param [Integer] color The new color for the provided coordinates.
-    #   @return [Integer] The new color value for this pixel, i.e. <tt>color</tt>. 
-    #
+    # @param [Integer] x The x-coordinate of the pixel (column)
+    # @param [Integer] y The y-coordinate of the pixel (row)
+    # @param [Integer] color The new color for the provided coordinates.
+    # @return [Integer] The new color value for this pixel, i.e. <tt>color</tt>. 
     # @raise [ChunkyPNG::OutOfBounds] when the coordinates are outside of the image's dimensions.
     # @see #set_pixel
-    def []=(*args)
-      point = args.length == 2 ? ChunkyPNG::Point(args.first) : ChunkyPNG::Point(args[0], args[1])
-      assert_xy!(point.x, point.y)
-      @pixels[point.y * width + point.x] = args.last
+    def []=(x, y, color)
+      assert_xy!(x, y)
+      @pixels[y * width + x] = ChunkyPNG::Color.parse(color)
     end
 
     # Replaces a single pixel in this canvas, without bounds checking.
@@ -141,7 +140,7 @@ module ChunkyPNG
     #
     # @param [Integer] x The x-coordinate of the pixel (column)
     # @param [Integer] y The y-coordinate of the pixel (row)
-    # @param [Inteer] pixel The new color for the provided coordinates.
+    # @param [Integer] pixel The new color for the provided coordinates.
     # @return [Integer] The new color value for this pixel, i.e. <tt>color</tt>. 
     def set_pixel(x, y, color)
       @pixels[y * width + x] = color
@@ -152,7 +151,7 @@ module ChunkyPNG
     #
     # @param [Integer] x The x-coordinate of the pixel (column)
     # @param [Integer] y The y-coordinate of the pixel (row)
-    # @param [CInteger] pixel The new color value for the provided coordinates.
+    # @param [Integer] pixel The new color value for the provided coordinates.
     # @return [Integer] The new color value for this pixel, i.e. <tt>color</tt>, or 
     #    <tt>nil</tt> if the coordinates are out of bounds.
     def set_pixel_if_within_bounds(x, y, color)
@@ -161,24 +160,14 @@ module ChunkyPNG
     end
 
     # Returns a single pixel's color value from this canvas.
-    #
-    # @overload [](point)
-    #   Returns the color value given a point-like value.
-    #   @param [ChunkyPNG::Point, ...] point The coordinates of the pixel as point.
-    #   @return [Integer] The current color value at the provided coordinates.
-    #
-    # @overload [](x, y)
-    #   Returns the color value given a x- and y-coordinate.
-    #   @param [Integer] x The x-coordinate of the pixel (column)
-    #   @param [Integer] y The y-coordinate of the pixel (row)
-    #   @return [Integer] The current color value at the provided coordinates.
-    #
+    # @param [Integer] x The x-coordinate of the pixel (column)
+    # @param [Integer] y The y-coordinate of the pixel (row)
+    # @return [Integer] The current color value at the provided coordinates.
     # @raise [ChunkyPNG::OutOfBounds] when the coordinates are outside of the image's dimensions.
     # @see #get_pixel
-    def [](*args)
-      point = ChunkyPNG::Point(*args)
-      assert_xy!(point.x, point.y)
-      @pixels[point.y * width + point.x]
+    def [](x, y)
+      assert_xy!(x, y)
+      @pixels[y * width + x]
     end
 
     # Returns a single pixel from this canvas, without checking bounds. The return value for
@@ -235,7 +224,14 @@ module ChunkyPNG
     end
     
     alias_method :include?,    :include_point?
-    alias_method :include_xy?, :include_point?
+    
+    # Checks whether the given x- and y-coordinate are in the range of the canvas
+    # @param [Integer] x The x-coordinate of the pixel (column)
+    # @param [Integer] y The y-coordinate of the pixel (row)
+    # @return [true, false] True if the x- and y-coordinate is in the range of this canvas.
+    def include_xy?(x, y)
+      y >= 0 && y < height && x >= 0 && x < width
+    end
     
     # Checks whether the given y-coordinate is in the range of the canvas
     # @param [Integer] y The y-coordinate of the pixel (row)
@@ -252,7 +248,7 @@ module ChunkyPNG
     end
 
     # Returns the palette used for this canvas.
-    # @return [ChunkyPNG::Palette] A pallete which contains all the colors that are
+    # @return [ChunkyPNG::Palette] A palette which contains all the colors that are
     #    being used for this image.
     def palette
       ChunkyPNG::Palette.from_canvas(self)

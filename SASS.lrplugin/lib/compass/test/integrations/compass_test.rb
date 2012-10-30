@@ -138,9 +138,8 @@ private
   def assert_renders_correctly(*arguments)
     options = arguments.last.is_a?(Hash) ? arguments.pop : {}
     for name in arguments
-      @output_file = actual_result_file = "#{tempfile_path(@current_project)}/#{name}.css"
+      actual_result_file = "#{tempfile_path(@current_project)}/#{name}.css"
       expected_result_file = "#{result_path(@current_project)}/#{name}.css"
-      @filename = expected_result_file.gsub('css', 'scss')
       actual_lines = File.read(actual_result_file)
       actual_lines.gsub!(/^@charset[^;]+;/,'') if options[:ignore_charset]
       actual_lines = actual_lines.split("\n").reject{|l| l=~/\A\Z/}
@@ -220,14 +219,6 @@ private
 
   def save_path(project_name)
     File.join(project_path(project_name), "saved")
-  end
-
-  def filename
-    @filename
-  end
-
-  def output_file
-    @output_file
   end
 
 end

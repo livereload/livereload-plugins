@@ -32,12 +32,12 @@ Feel free to give your feeback via [Listen issues](https://github.com/guard/list
 
 ``` ruby
 # Listen to a single directory.
-Listen.to('dir/path/to/listen', filter: /\.rb$/, ignore: %r{ignored/path/}) do |modified, added, removed|
+Listen.to('dir/path/to/listen', :filter => /\.rb$/, :ignore => %r{ignored/path/}) do |modified, added, removed|
   # ...
 end
 
 # Listen to multiple directories.
-Listen.to('dir/to/awesome_app', 'dir/to/other_app', filter: /\.rb$/, latency: 0.1) do |modified, added, removed|
+Listen.to('dir/to/awesome_app', 'dir/to/other_app', :filter => /\.rb$/, :latency => 0.1) do |modified, added, removed|
   # ...
 end
 ```
@@ -191,7 +191,7 @@ These options can be set through `Listen.to` params or via methods (see the "Obj
                                                # default: See DEFAULT_IGNORED_DIRECTORIES and DEFAULT_IGNORED_EXTENSIONS in Listen::DirectoryRecord
 
 :latency => 0.5                                # Set the delay (**in seconds**) between checking for changes
-                                               # default: 0.1 sec (1.0 sec for polling)
+                                               # default: 0.25 sec (1.0 sec for polling)
 
 :relative_paths => true                        # Enable the use of relative paths in the callback.
                                                # default: false

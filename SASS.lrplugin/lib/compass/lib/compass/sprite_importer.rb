@@ -2,13 +2,13 @@ require 'erb'
 require 'compass/sprite_importer/binding'
 module Compass
   class SpriteImporter < Sass::Importers::Base
-    VAILD_FILE_NAME       = /\A#{Sass::SCSS::RX::IDENT}\Z/
+    VAILD_FILE_NAME = /\A#{Sass::SCSS::RX::IDENT}\Z/
     SPRITE_IMPORTER_REGEX = %r{((.+/)?([^\*.]+))/(.+?)\.png}
-    VALID_EXTENSIONS      = ['.png']
+    VALID_EXTENSIONS = ['.png']
     
-    TEMPLATE_FOLDER       = File.join(File.expand_path('../', __FILE__), 'sprite_importer')
+    TEMPLATE_FOLDER = File.join(File.expand_path('../', __FILE__), 'sprite_importer')
     CONTENT_TEMPLATE_FILE = File.join(TEMPLATE_FOLDER, 'content.erb')
-    CONTENT_TEMPLATE      = ERB.new(File.read(CONTENT_TEMPLATE_FILE))
+    CONTENT_TEMPLATE = ERB.new(File.read(CONTENT_TEMPLATE_FILE))
 
 
 
@@ -87,13 +87,17 @@ module Compass
     # Returns an Array of image names without the file extension
     def self.sprite_names(uri)
       files(uri).collect do |file|
-        File.basename(file, '.png')
+        filename = File.basename(file, '.png')
+        unless VAILD_FILE_NAME =~ filename
+          raise Compass::Error, "Sprite file names must be legal css identifiers. Please rename #{File.basename(file)}"
+        end
+        filename
       end
     end
     
     # Returns the sass_options for this sprite
     def self.sass_options(uri, importer, options)
-      options.merge!(:filename => uri, :syntax => :scss, :importer => importer)
+      options.merge!(:filename => uri.gsub(%r{\*/},"*\\/"), :syntax => :scss, :importer => importer)
     end
     
     # Returns a Sass::Engine for this sprite object

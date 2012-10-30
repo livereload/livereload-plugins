@@ -2,13 +2,28 @@
 // Imports
 
 @import "compass/utilities/general/clearfix";
+@import "compass/css3/box-sizing";
+
+// ---------------------------------------------------------------------------
+// Border-Box Sizing
+
+// Apply the border-box sizing model to all elements
+// and adjust the grid math appropriately.
+@mixin border-box-sizing {
+  $border-box-sizing: true;
+  * { @include box-sizing(border-box); }
+}
 
 // ---------------------------------------------------------------------------
 // Container
 
 // Set the width of a container
-@mixin set-container-width(){
-  $width: if($container-width, $container-width, columns-width());
+//
+//  $columns  : The number of columns in the Grid Layout.
+@mixin set-container-width(
+  $columns  : $total-columns
+){
+  $width: container-outer-width($columns);
 
   @if $container-style == 'static' {
     width: $width;
@@ -17,17 +32,19 @@
       width: if(unit($width) == '%', $width, auto);
     } @else {
       max-width: $width;
-      @if $legacy-support-for-ie6 {
-        _width: $width;
-      }
+      @if $legacy-support-for-ie6 { _width: $width; }
     }
   }
 }
 
 // Set the outer grid-containing element(s).
-@mixin apply-container(){
+//
+//  $columns  : The number of columns in the container.
+@mixin apply-container(
+  $columns  : $total-columns
+){
   @include pie-clearfix;
-  @include set-container-width;
+  @include set-container-width($columns);
   margin: { left: auto; right: auto; }
   padding: { left: $grid-padding; right: $grid-padding; }
 }
@@ -77,23 +94,46 @@
 // $context : [optional] The context (columns spanned by parent).
 //          : Context is required on any nested elements.
 //          : Context MUST NOT be declared on a root element.
+// $padding : [optional] Padding applied to the inside of individual grid columns.
+//          : Padding is only output if one or two values are specified (e.g. 1em or 10px 20px)
+//          : Padding values are applied only on the horizontal axis in from-to order
 // $from    : The start direction of your layout (e.g. 'left' for ltr languages)
+
 @mixin span-columns(
   $columns,
-  $context  : $total-columns,
-  $from     : $from-direction
+  $context       : $total-columns,
+  $padding       : false,
+  $from          : $from-direction
 ) {
   $to       : opposite-position($from);
   $pos      : split-columns-value($columns,position);
   $cols     : split-columns-value($columns,columns);
-  
-  width: columns($cols, $context);
+  $pad-from : relative-width(0 * $gutter-width, $context);
+  $pad-to   : relative-width(0 * $gutter-width, $context);
+
+  @if $padding != false {
+    $pad-from : nth($padding, 1);
+
+    @if length($padding) > 1 {
+      $pad-to: nth($padding, 2);
+    } @else {
+      $pad-to: $pad-from;
+    }
+
+    $pad-from : relative-width($pad-from, $context);
+    $pad-to   : relative-width($pad-to, $context);
+
+    padding-#{$from}: $pad-from;
+    padding-#{$to}: $pad-to;
+  }
+
+  width: columns($cols, $context) - if($border-box-sizing, 0, $pad-to + $pad-from);
 
   @if ($pos == 'omega') {
     @include omega($from);
-  } @else {  
+  } @else {
     float: $from;
-    margin-#{$to}: gutter($context);      
+    margin-#{$to}: gutter($context);
     @if $legacy-support-for-ie6 {
       display: inline;
     }
@@ -109,7 +149,7 @@
 ) {
   $to     : opposite-position($from);
   $hack   : opposite-position($omega-float);
-  
+
   float: $omega-float;
   margin-#{$to}: 0;
 
@@ -119,8 +159,24 @@
   }
 }
 
+// Shortcut to apply omega to a specific subset of elements.
+//
+// $n         : [first | only | last | <equation>]
+// $selector  : [child | last-child | of-type | last-of-type ]
+// $from      : The start-direction for your document.
+@mixin nth-omega(
+  $n        : last,
+  $selector : child,
+  $from     : $from-direction
+) {
+  $ie: if($n == "first", true, false);
+  @include adjust-support-for($legacy-ie: $ie) {
+    &:#{format-nth($n,$selector)} { @include omega($from); }
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Reset Columns
+// Resets
 
 // Reset a '+columns' grid element to default block behavior
 //
@@ -134,9 +190,78 @@
   float: none;
   width: auto;
   margin-#{$to}: auto;
-  
+
   @if $legacy-support-for-ie6 or $legacy-support-for-ie7 {
     #margin-#{$hack}: auto;
     @if $legacy-support-for-ie6 { display: block; }
   }
+}
+
+// Apply to elements previously set as omega.
+// This will return floats and margins back to non-omega settigns.
+//
+// $context : [optional] The context (columns spanned by parent).
+// $from    : The start-direction for your document.
+@mixin remove-omega(
+  $context  : $total-columns,
+  $from     : $from-direction
+) {
+  $to     : opposite-position($from);
+  $hack   : opposite-position($omega-float);
+
+  float: $from;
+  margin-#{$to}: gutter($context);
+
+  @if $legacy-support-for-ie6 or $legacy-support-for-ie7 {
+    #margin-#{$hack}: auto;
+  }
+}
+
+// Shortcut to apply remove-omega to a specific subset of elements.
+//
+// $n         : [first | only | last | <equation>]
+// $selector  : [child | last-child | of-type | last-of-type ]
+// $context   : [optional] The context (columns spanned by parent).
+// $from      : The start-direction for your document.
+@mixin remove-nth-omega(
+  $n        : last,
+  $selector : child,
+  $context  : $total-columns,
+  $from     : $from-direction
+) {
+  $ie: if($n == "first", true, false);
+  @include adjust-support-for($legacy-ie: $ie) {
+    &:#{format-nth($n,$selector)} { @include remove-omega($context,$from); }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Change Settings
+
+@mixin with-grid-settings(
+  $columns: $total-columns,
+  $width: $column-width,
+  $gutter: $gutter-width,
+  $padding: $grid-padding
+) {
+  // keep the defaults around
+  $default-columns: $total-columns;
+  $default-width: $column-width;
+  $default-gutter: $gutter-width;
+  $default-padding: $grid-padding;
+
+  // use the new settings
+  $total-columns: $columns;
+  $column-width: $width;
+  $gutter-width: $gutter;
+  $grid-padding: $padding;
+
+  // apply to contents
+  @content;
+
+  // re-instate the defaults
+  $total-columns: $default-columns;
+  $column-width: $default-width;
+  $gutter-width: $default-gutter;
+  $grid-padding: $default-padding;
 }

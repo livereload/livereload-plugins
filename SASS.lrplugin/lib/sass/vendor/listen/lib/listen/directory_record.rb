@@ -163,7 +163,7 @@ module Listen
     #
     def relative_to_base(path)
       return nil unless path[@directory]
-      path.sub(%r{^#{@directory}#{File::SEPARATOR}?}, '')
+      path.sub(%r{^#{Regexp.quote(@directory)}#{File::SEPARATOR}?}, '')
     end
 
     private
@@ -239,8 +239,8 @@ module Listen
         elsif !ignored?(path) && filtered?(path) && !existing_path?(path)
           if File.file?(path)
             @changes[:added] << (options[:relative_paths] ? relative_to_base(path) : path)
+            insert_path(path)
           end
-          insert_path(path)
         end
       end
     end
@@ -253,11 +253,11 @@ module Listen
     def content_modified?(path)
       sha1_checksum = Digest::SHA1.file(path).to_s
       return false if @sha1_checksums[path] == sha1_checksum
-
-      had_no_checksum = @sha1_checksums[path].nil?
-      @sha1_checksums[path] = sha1_checksum
-
-      had_no_checksum ? false : true
+      @sha1_checksums.key?(path)
+    rescue Errno::EACCES, Errno::ENOENT
+      false
+    ensure
+      @sha1_checksums[path] = sha1_checksum if sha1_checksum
     end
 
     # Traverses the base directory looking for paths that should
@@ -292,6 +292,7 @@ module Listen
       meta_data.type = File.directory?(path) ? 'Dir' : 'File'
       meta_data.mtime = mtime_of(path) unless meta_data.type == 'Dir' # mtimes of dirs are not used yet
       @paths[File.dirname(path)][File.basename(path)] = meta_data
+    rescue Errno::ENOENT
     end
 
     # Returns whether or not a path exists in the paths hash.
@@ -311,7 +312,7 @@ module Listen
     # @return [Fixnum, Float] the mtime of the file
     #
     def mtime_of(file)
-      File.mtime(file).send(HIGH_PRECISION_SUPPORTED ? :to_f : :to_i)
+      File.lstat(file).mtime.send(HIGH_PRECISION_SUPPORTED ? :to_f : :to_i)
     end
   end
 end

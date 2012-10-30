@@ -3,10 +3,3 @@
 .user-select {
   @include user-select(none);
 }
-
-.input-placeholder {
-	@include input-placeholder {
-		color: #bfbfbf;
-		font-style: italic;
-	}
-}

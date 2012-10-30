@@ -14,20 +14,6 @@ describe 'PNG testuite' do
     end
   end
   
-  context 'Decoding unsupported images' do
-
-    # TODO: we eventually want to support these!
-    
-    png_suite_files(:basic_not_supported).each do |file|
-      color_mode = file.match(/[in](\d)[apgc](\d\d)\.png$/)[1].to_i
-      bit_depth  = file.match(/[in](\d)[apgc](\d\d)\.png$/)[2].to_i
-      
-      it "should report #{File.basename(file)} (color mode: #{color_mode}, bit depth: #{bit_depth}) as unsupported" do
-        lambda { ChunkyPNG::Image.from_file(file) }.should raise_error(ChunkyPNG::NotSupported)
-      end
-    end
-  end
-  
   context 'Decoding supported images' do
     png_suite_files(:basic, '*.png').each do |file|
 
@@ -96,6 +82,26 @@ describe 'PNG testuite' do
       ChunkyPNG::Datastream.from_file(png_suite_file(:compression_levels, 'z03n2c08.png')).imagedata.should == reference
       ChunkyPNG::Datastream.from_file(png_suite_file(:compression_levels, 'z06n2c08.png')).imagedata.should == reference
       ChunkyPNG::Datastream.from_file(png_suite_file(:compression_levels, 'z09n2c08.png')).imagedata.should == reference
+    end
+  end
+  
+  context 'Decoding transparency' do
+    png_suite_files(:transparency, 'tp0*.png').each do |file|
+      it "should not have transparency in #{File.basename(file)}" do
+        ChunkyPNG::Color.a(ChunkyPNG::Image.from_file(file)[0,0]).should == 255
+      end
+    end
+    
+    png_suite_files(:transparency, 'tp1*.png').each do |file|
+      it "should have transparency in #{File.basename(file)}" do
+        ChunkyPNG::Color.a(ChunkyPNG::Image.from_file(file)[0,0]).should == 0
+      end
+    end
+    
+    png_suite_files(:transparency, 'tb*.png').each do |file|
+      it "should have transparency in #{File.basename(file)}" do
+        ChunkyPNG::Color.a(ChunkyPNG::Image.from_file(file)[0,0]).should == 0
+      end
     end
   end
   

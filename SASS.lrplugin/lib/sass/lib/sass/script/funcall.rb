@@ -23,13 +23,20 @@ module Sass
       # @return [{String => Script::Node}]
       attr_reader :keywords
 
+      # The splat argument for this function, if one exists.
+      #
+      # @return [Script::Node?]
+      attr_accessor :splat
+
       # @param name [String] See \{#name}
       # @param args [Array<Script::Node>] See \{#args}
+      # @param splat [Script::Node] See \{#splat}
       # @param keywords [{String => Script::Node}] See \{#keywords}
-      def initialize(name, args, keywords)
+      def initialize(name, args, keywords, splat)
         @name = name
         @args = args
         @keywords = keywords
+        @splat = splat
         super()
       end
 
@@ -38,7 +45,11 @@ module Sass
         args = @args.map {|a| a.inspect}.join(', ')
         keywords = Sass::Util.hash_to_a(@keywords).
             map {|k, v| "$#{k}: #{v.inspect}"}.join(', ')
-        "#{name}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords})"
+        if self.splat
+          splat = (args.empty? && keywords.empty?) ? "" : ", "
+          splat = "#{splat}#{self.splat.inspect}..."
+        end
+        "#{name}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
       end
 
       # @see Node#to_sass
@@ -46,7 +57,11 @@ module Sass
         args = @args.map {|a| a.to_sass(opts)}.join(', ')
         keywords = Sass::Util.hash_to_a(@keywords).
           map {|k, v| "$#{dasherize(k, opts)}: #{v.to_sass(opts)}"}.join(', ')
-        "#{dasherize(name, opts)}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords})"
+        if self.splat
+          splat = (args.empty? && keywords.empty?) ? "" : ", "
+          splat = "#{splat}#{self.splat.inspect}..."
+        end
+        "#{dasherize(name, opts)}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
       end
 
       # Returns the arguments to the function.
@@ -54,7 +69,9 @@ module Sass
       # @return [Array<Node>]
       # @see Node#children
       def children
-        @args + @keywords.values
+        res = @args + @keywords.values
+        res << @splat if @splat
+        res
       end
 
       # @see Node#deep_copy
@@ -74,13 +91,14 @@ module Sass
       # @raise [Sass::SyntaxError] if the function call raises an ArgumentError
       def _perform(environment)
         args = @args.map {|a| a.perform(environment)}
+        splat = @splat.perform(environment) if @splat
         if fn = environment.function(@name)
           keywords = Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
-          return perform_sass_fn(fn, args, keywords)
+          return perform_sass_fn(fn, args, keywords, splat)
         end
 
         ruby_name = @name.tr('-', '_')
-        args = construct_ruby_args(ruby_name, args, environment)
+        args = construct_ruby_args(ruby_name, args, splat, environment)
 
         unless Functions.callable?(ruby_name)
           opts(to_literal(args))
@@ -106,12 +124,23 @@ module Sass
 
       private
 
-      def construct_ruby_args(name, args, environment)
-        unless signature = Functions.signature(name.to_sym, args.size, @keywords.size)
-          return args if keywords.empty?
+      def construct_ruby_args(name, args, splat, environment)
+        args += splat.to_a if splat
+
+        # If variable arguments were passed, there won't be any explicit keywords.
+        if splat.is_a?(Sass::Script::ArgList)
+          kwargs_size = splat.keywords.size
+          splat.keywords_accessed = false
+        else
+          kwargs_size = @keywords.size
+        end
+
+        unless signature = Functions.signature(name.to_sym, args.size, kwargs_size)
+          return args if @keywords.empty?
           raise Sass::SyntaxError.new("Function #{name} doesn't support keyword arguments")
         end
-        keywords = Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
+        keywords = splat.is_a?(Sass::Script::ArgList) ? splat.keywords :
+          Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
 
         # If the user passes more non-keyword args than the function expects,
         # but it does expect keyword args, Ruby's arg handling won't raise an error.
@@ -148,36 +177,14 @@ module Sass
         args
       end
 
-      def perform_sass_fn(function, args, keywords)
-        # TODO: merge with mixin arg evaluation?
-        if keywords.any?
-          unknown_args = keywords.keys - function.args.map {|var| var.first.underscored_name }
-          if unknown_args.any?
-            raise Sass::SyntaxError.new("Function #{@name} doesn't have #{unknown_args.length > 1 ? 'the following arguments:' : 'an argument named'} #{unknown_args.map{|name| "$#{name}"}.join ', '}")
+      def perform_sass_fn(function, args, keywords, splat)
+        Sass::Tree::Visitors::Perform.perform_arguments(function, args, keywords, splat) do |env|
+          val = catch :_sass_return do
+            function.tree.each {|c| Sass::Tree::Visitors::Perform.visit(c, env)}
+            raise Sass::SyntaxError.new("Function #{@name} finished without @return")
           end
+          val
         end
-
-        if args.size > function.args.size
-          raise ArgumentError.new("Wrong number of arguments (#{args.size} for #{function.args.size})")
-        end
-
-        environment = function.args.zip(args).
-          inject(Sass::Environment.new(function.environment)) do |env, ((var, default), value)|
-          if value && keywords.include?(var.underscored_name)
-            raise Sass::SyntaxError.new("Function #{@name} was passed argument $#{var.name} both by position and by name")
-          end
-
-          env.set_local_var(var.name,
-            value || keywords[var.underscored_name] || (default && default.perform(env)))
-          raise Sass::SyntaxError.new("Function #{@name} is missing argument #{var.inspect}") unless env.var(var.name)
-          env
-        end
-
-        val = catch :_sass_return do
-          function.tree.each {|c| Sass::Tree::Visitors::Perform.visit(c, environment)}
-          raise Sass::SyntaxError.new("Function #{@name} finished without @return")
-        end
-        val
       end
     end
   end

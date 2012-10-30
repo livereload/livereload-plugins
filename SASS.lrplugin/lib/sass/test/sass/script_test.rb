@@ -82,7 +82,7 @@ class SassScriptTest < Test::Unit::TestCase
   end
 
   def test_rgba_rounding
-    assert_equal "rgba(10, 1, 0, 0.123)", resolve("rgba(10.0, 1.23456789, 0.0, 0.1234567)")
+    assert_equal "rgba(10, 1, 0, 0.12346)", resolve("rgba(10.0, 1.23456789, 0.0, 0.1234567)")
   end
 
   def test_compressed_colors
@@ -413,6 +413,7 @@ SASS
 
   def test_operator_unit_conversion
     assert_equal "1.1cm", resolve("1cm + 1mm")
+    assert_equal "2in", resolve("1in + 96px")
     assert_equal "true", resolve("2mm < 1cm")
     assert_equal "true", resolve("10mm == 1cm")
     assert_equal "true", resolve("1 == 1cm")
@@ -554,9 +555,9 @@ SASS
 
   def eval(str, opts = {}, environment = env)
     munge_filename opts
-    environment.options = opts
     Sass::Script.parse(str, opts.delete(:line) || 1,
-      opts.delete(:offset) || 0, opts).perform(environment)
+      opts.delete(:offset) || 0, opts).
+      perform(Sass::Environment.new(environment, opts))
   end
 
   def render(sass, options = {})

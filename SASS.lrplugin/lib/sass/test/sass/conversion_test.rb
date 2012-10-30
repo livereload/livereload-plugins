@@ -1160,14 +1160,13 @@ SCSS
   end
 
   def test_media_with_expressions
-    # TODO: get rid of the #{} in the expression output
     assert_sass_to_scss <<SCSS, <<SASS
 $media1: screen;
 $media2: print;
 $var: -webkit-min-device-pixel-ratio;
 $val: 20;
 
-@media \#{$media1} and (\#{$var + "-foo"}: \#{$val + 5}), only \#{$media2} {
+@media \#{$media1} and ($var + "-foo": $val + 5), only \#{$media2} {
   a: b;
 }
 SCSS
@@ -1186,7 +1185,7 @@ $media2: print
 $var: -webkit-min-device-pixel-ratio
 $val: 20
 
-@media \#{$media1} and (\#{$var + "-foo"}: \#{$val + 5}), only \#{$media2}
+@media \#{$media1} and ($var + "-foo": $val + 5), only \#{$media2}
   a: b
 SASS
 $media1: screen;
@@ -1552,7 +1551,82 @@ foo bar {
 SCSS
   end
 
+  def test_extend_with_optional
+    assert_scss_to_sass <<SASS, <<SCSS
+foo
+  @extend .bar !optional
+SASS
+foo {
+  @extend .bar !optional;
+}
+SCSS
+  end
+
+  def test_mixin_var_args
+    assert_scss_to_sass <<SASS, <<SCSS
+=foo($args...)
+  a: b
+
+=bar($a, $args...)
+  a: b
+
+.foo
+  +foo($list...)
+  +bar(1, $list...)
+SASS
+@mixin foo($args...) {
+  a: b;
+}
+
+@mixin bar($a, $args...) {
+  a: b;
+}
+
+.foo {
+  @include foo($list...);
+  @include bar(1, $list...);
+}
+SCSS
+  end
+
+  def test_function_var_args
+    assert_scss_to_sass <<SASS, <<SCSS
+@function foo($args...)
+  @return foo
+
+@function bar($a, $args...)
+  @return bar
+
+.foo
+  a: foo($list...)
+  b: bar(1, $list...)
+SASS
+@function foo($args...) {
+  @return foo;
+}
+
+@function bar($a, $args...) {
+  @return bar;
+}
+
+.foo {
+  a: foo($list...);
+  b: bar(1, $list...);
+}
+SCSS
+  end
+
   ## Regression Tests
+
+  def test_media_query_with_expr
+    assert_scss_to_sass <<SASS, <<SCSS
+@media foo and (bar: baz)
+  a: b
+SASS
+@media foo and (bar: baz) {
+  a: b; }
+SCSS
+  end
 
   def test_empty_lists
     assert_renders(<<SASS, <<SCSS)

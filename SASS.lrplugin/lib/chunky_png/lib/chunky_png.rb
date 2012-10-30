@@ -25,7 +25,7 @@ module ChunkyPNG
 
   # The current version of ChunkyPNG. This value will be updated 
   # automatically by them <tt>gem:release</tt> rake task.
-  VERSION = "1.0.0.rc2"
+  VERSION = "1.2.6"
 
   ###################################################
   # PNG international standard defined constants
@@ -104,7 +104,7 @@ module ChunkyPNG
   class Exception < ::StandardError
   end
 
-  # Exception that is raised for an unsopported PNG image.
+  # Exception that is raised for an unsupported PNG image.
   class NotSupported < ChunkyPNG::Exception
   end
 
@@ -113,7 +113,7 @@ module ChunkyPNG
   class SignatureMismatch < ChunkyPNG::Exception
   end
 
-  # Exception that is raised if the CRC check for a block failes
+  # Exception that is raised if the CRC check for a block fails
   class CRCMismatch < ChunkyPNG::Exception
   end
 

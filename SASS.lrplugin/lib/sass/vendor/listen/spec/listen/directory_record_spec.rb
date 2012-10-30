@@ -193,6 +193,25 @@ describe Listen::DirectoryRecord do
     it 'returns nil when the passed path is not inside the base-directory' do
       subject.relative_to_base('/tmp/some_random_path').should be_nil
     end
+    
+    context 'when containing regexp characters in the base directory' do
+      before do
+        fixtures do |path|
+          mkdir 'a_directory$'
+          @dir = described_class.new(path + '/a_directory$')
+          @dir.build
+        end
+      end
+
+      it 'removes the path of the base-directory from the passed path' do
+        path = 'dir/to/app/file.rb'
+        @dir.relative_to_base(File.join(@dir.directory, path)).should eq path
+      end
+
+      it 'returns nil when the passed path is not inside the base-directory' do
+        @dir.relative_to_base('/tmp/some_random_path').should be_nil
+      end
+    end
   end
 
   describe '#fetch_changes' do
@@ -385,7 +404,7 @@ describe Listen::DirectoryRecord do
             end
           end
 
-          context '#27 - when a file is created and then checked for modifications at the same second' do
+          context 'when a file is created and then checked for modifications at the same second - #27' do
             # This issue was the result of checking a file for content changes when
             # the mtime and the checking time are the same. In this case there
             # is no checksum saved, so the file was reported as being changed.
@@ -1027,6 +1046,91 @@ describe Listen::DirectoryRecord do
           added.should =~ ["#{path}/c_file.rb", "#{path}/a_directory/a_file.rb"]
           modified.should =~ ["#{path}/b_file.rb"]
           removed.should =~ ["#{path}/a_file.rb"]
+        end
+      end
+    end
+
+    context 'within a directory containing unreadble paths - #32' do
+      it 'detects changes more than a second apart' do
+        fixtures do |path|
+          touch 'unreadable_file.txt'
+          chmod 000, 'unreadable_file.txt'
+
+          modified, added, removed = changes(path) do
+            sleep 1.1
+            touch 'unreadable_file.txt'
+          end
+
+          added.should be_empty
+          modified.should =~ %w(unreadable_file.txt)
+          removed.should be_empty
+        end
+      end
+
+      context 'with multiple changes within the same second' do
+        before { ensure_same_second }
+
+        it 'does not detect changes even if content changes', :unless => described_class::HIGH_PRECISION_SUPPORTED do
+          fixtures do |path|
+            touch 'unreadable_file.txt'
+
+            modified, added, removed = changes(path) do
+              open('unreadable_file.txt', 'w') { |f| f.write('foo') }
+              chmod 000, 'unreadable_file.txt'
+            end
+
+            added.should be_empty
+            modified.should be_empty
+            removed.should be_empty
+          end
+        end
+      end
+    end
+
+    context 'within a directory containing a removed file - #39' do
+      it 'does not raise an exception when hashing a removed file' do
+
+        # simulate a race condition where the file is removed after the
+        # change event is tracked, but before the hash is calculated
+        Digest::SHA1.should_receive(:file).and_raise(Errno::ENOENT)
+
+        lambda {
+          fixtures do |path|
+            file = 'removed_file.txt'
+            touch file
+            changes(path) { touch file }
+          end
+        }.should_not raise_error(Errno::ENOENT)
+      end
+    end
+
+    context 'with symlinks' do
+      it 'looks at symlinks not their targets' do
+        fixtures do |path|
+          touch 'target'
+          symlink 'target', 'symlink'
+
+          record = described_class.new(path)
+          record.build
+
+          sleep 1
+          touch 'target'
+
+          record.fetch_changes([path], :relative_paths => true)[:modified].should == ['target']
+        end
+      end
+
+      it 'handles broken symlinks' do
+        fixtures do |path|
+          symlink 'target', 'symlink'
+
+          record = described_class.new(path)
+          record.build
+
+          sleep 1
+          rm 'symlink'
+          symlink 'new-target', 'symlink'
+          record.fetch_changes([path], :relative_paths => true)
         end
       end
     end
