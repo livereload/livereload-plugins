@@ -8,6 +8,7 @@ module Haml
     # It's used to raise an error when the return value of a helper is used
     # when it shouldn't be.
     class ErrorReturn
+      # @param message [String] The error message to raise when \{#to\_s} is called
       def initialize(method)
         @message = <<MESSAGE
 #{method} outputs directly to the Haml template.
@@ -70,7 +71,7 @@ MESSAGE
     #     context.haml_tag :p, "Stuff"
     #
     def init_haml_helpers
-      @haml_buffer = Haml::Buffer.new(haml_buffer, Options.new.for_buffer)
+      @haml_buffer = Haml::Buffer.new(@haml_buffer, Haml::Engine.new('').send(:options_for_buffer))
       nil
     end
 
@@ -146,7 +147,7 @@ MESSAGE
     #     <li>hello</li>
     #     <li>yall</li>
     #
-    # And:
+    # And
     #
     #     = list_of({:title => 'All the stuff', :description => 'A book about all the stuff.'}) do |key, val|
     #       %h3= key.humanize
@@ -163,34 +164,10 @@ MESSAGE
     #       <p>A book about all the stuff.</p>
     #     </li>
     #
-    # While:
-    #
-    #     = list_of(["Home", "About", "Contact", "FAQ"], {class: "nav", role: "nav"}) do |item|
-    #       %a{ href="#" }= item
-    #
-    # Produces:
-    #
-    #     <li class='nav' role='nav'>
-    #       <a href='#'>Home</a>
-    #     </li>
-    #     <li class='nav' role='nav'>
-    #       <a href='#'>About</a>
-    #     </li>
-    #     <li class='nav' role='nav'>
-    #       <a href='#'>Contact</a>
-    #     </li>
-    #     <li class='nav' role='nav'>
-    #       <a href='#'>FAQ</a>
-    #     </li>
-    #
-    #  `[[class", "nav"], [role", "nav"]]` could have been used instead of `{class: "nav", role: "nav"}` (or any enumerable collection where each pair of items responds to #to_s)
-    #
     # @param enum [Enumerable] The list of objects to iterate over
-    # @param [Enumerable<#to_s,#to_s>] opts Each key/value pair will become an attribute pair for each list item element.
     # @yield [item] A block which contains Haml code that goes within list items
     # @yieldparam item An element of `enum`
-    def list_of(enum, opts={}, &block)
-      opts_attributes = opts.empty? ? "" : " ".<<(opts.map{|k,v| "#{k}='#{v}'" }.join(" "))
+    def list_of(enum, &block)
       to_return = enum.collect do |i|
         result = capture_haml(i, &block)
 
@@ -201,7 +178,7 @@ MESSAGE
           result = result.strip
         end
 
-        %Q!<li#{opts_attributes}>#{result}</li>!
+        "<li>#{result}</li>"
       end
       to_return.join("\n")
     end
@@ -360,7 +337,7 @@ MESSAGE
     # @yield [args] A block of Haml code that will be converted to a string
     # @yieldparam args [Array] `args`
     def capture_haml(*args, &block)
-      buffer = eval('if defined? _hamlout then _hamlout else nil end', block.binding) || haml_buffer
+      buffer = eval('_hamlout', block.binding) rescue haml_buffer
       with_haml_buffer(buffer) do
         position = haml_buffer.buffer.length
 
@@ -369,9 +346,7 @@ MESSAGE
 
         captured = haml_buffer.buffer.slice!(position..-1)
         return captured if haml_buffer.options[:ugly]
-        # Note that the "reject" is needed for rbx 1.2.4, which includes empty
-        # strings in the returned array when splitting by /^/.
-        captured = captured.split(/^/).reject {|x| x == ""}
+        captured = captured.split(/^/)
 
         min_tabs = nil
         captured.each do |line|
@@ -457,26 +432,24 @@ MESSAGE
     #     </table>
     #
     # @param name [#to_s] The name of the tag
+    # @param flags [Array<Symbol>] Haml end-of-tag flags
     #
-    # @overload haml_tag(name, *rest, attributes = {})
+    # @overload haml_tag(name, *flags, attributes = {})
     #   @yield The block of Haml code within the tag
     # @overload haml_tag(name, text, *flags, attributes = {})
     #   @param text [#to_s] The text within the tag
-    #   @param flags [Array<Symbol>] Haml end-of-tag flags
     def haml_tag(name, *rest, &block)
       ret = ErrorReturn.new("haml_tag")
 
       text = rest.shift.to_s unless [Symbol, Hash, NilClass].any? {|t| rest.first.is_a? t}
       flags = []
       flags << rest.shift while rest.first.is_a? Symbol
-      attrs = (rest.shift || {})
-      attrs.keys.each {|key| attrs[key.to_s] = attrs.delete(key)} unless attrs.empty?
+      attrs = Haml::Util.map_keys(rest.shift || {}) {|key| key.to_s}
       name, attrs = merge_name_and_attributes(name.to_s, attrs)
 
       attributes = Haml::Compiler.build_attributes(haml_buffer.html?,
         haml_buffer.options[:attr_wrapper],
         haml_buffer.options[:escape_attrs],
-        haml_buffer.options[:hyphenate_data_attrs],
         attrs)
 
       if text.nil? && block.nil? && (haml_buffer.options[:autoclose].include?(name) || flags.include?(:/))
@@ -485,8 +458,8 @@ MESSAGE
       end
 
       if flags.include?(:/)
-        raise Error.new(Error.message(:self_closing_content)) if text
-        raise Error.new(Error.message(:illegal_nesting_self_closing)) if block
+        raise Error.new("Self-closing tags can't have content.") if text
+        raise Error.new("Illegal nesting: nesting within a self-closing tag is illegal.") if block
       end
 
       tag = "<#{name}#{attributes}>"
@@ -506,7 +479,7 @@ MESSAGE
       end
 
       if text
-        raise Error.new(Error.message(:illegal_nesting_line, name))
+        raise Error.new("Illegal nesting: content can't be both given to haml_tag :#{name} and nested within it.")
       end
 
       if flags.include?(:<)
@@ -567,7 +540,10 @@ MESSAGE
     # @param block [Proc] A Ruby block
     # @return [Boolean] Whether or not `block` is defined directly in a Haml template
     def block_is_haml?(block)
-      eval('!!defined?(_hamlout)', block.binding)
+      eval('_hamlout', block.binding)
+      true
+    rescue
+      false
     end
 
     private
@@ -601,7 +577,7 @@ MESSAGE
     #
     # @return [Haml::Buffer]
     def haml_buffer
-      @haml_buffer if defined? @haml_buffer
+      @haml_buffer
     end
 
     # Gives a proc the same local `_hamlout` and `_erbout` variables
@@ -612,7 +588,6 @@ MESSAGE
     def haml_bind_proc(&proc)
       _hamlout = haml_buffer
       _erbout = _hamlout.buffer
-      _erbout.to_s #"use" the variable to silence warnings
       proc { |*args| proc.call(*args) }
     end
   end
