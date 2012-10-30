@@ -14,7 +14,8 @@ module Temple
     include Mixins::CompiledDispatcher
     include Mixins::Options
 
-    default_options[:buffer] = '_buf'
+    define_options :capture_generator,
+                   :buffer => '_buf'
 
     def call(exp)
       [preamble, compile(exp), postamble].join('; ')
@@ -65,7 +66,7 @@ module Temple
     #   _buf = []
     #   _buf << "static"
     #   _buf << dynamic
-    #   _buf.join
+    #   _buf
     #
     # @api public
     class Array < Generator
@@ -79,8 +80,25 @@ module Temple
     end
 
     # Just like Array, but calls #join on the array.
+    #
+    #   _buf = []
+    #   _buf << "static"
+    #   _buf << dynamic
+    #   _buf.join
+    #
     # @api public
     class ArrayBuffer < Array
+      def call(exp)
+        case exp.first
+        when :static
+          "#{buffer} = #{exp.last.inspect}"
+        when :dynamic
+          "#{buffer} = (#{exp.last}).to_s"
+        else
+          super
+        end
+      end
+
       def postamble
         "#{buffer} = #{buffer}.join"
       end
@@ -94,9 +112,13 @@ module Temple
     #   _buf
     #
     # @api public
-    class StringBuffer < Array
+    class StringBuffer < ArrayBuffer
       def preamble
         "#{buffer} = ''"
+      end
+
+      def postamble
+        buffer
       end
 
       def on_dynamic(code)
@@ -106,17 +128,22 @@ module Temple
 
     # Implements a rails output buffer.
     #
-    #   @output_buffer = ActionView::OutputBuffer
+    #   @output_buffer = ActionView::SafeBuffer
     #   @output_buffer.safe_concat "static"
     #   @output_buffer.safe_concat dynamic.to_s
     #   @output_buffer
     #
     # @api public
     class RailsOutputBuffer < StringBuffer
-      set_default_options :buffer_class => 'ActiveSupport::SafeBuffer',
-                          :buffer => '@output_buffer',
-                           # output_buffer is needed for Rails 3.1 Streaming support
-                          :capture_generator => RailsOutputBuffer
+      define_options :streaming,
+                     :buffer_class => 'ActiveSupport::SafeBuffer',
+                     :buffer => '@output_buffer',
+                     # output_buffer is needed for Rails 3.1 Streaming support
+                     :capture_generator => RailsOutputBuffer
+
+      def call(exp)
+        [preamble, compile(exp), postamble].join('; ')
+      end
 
       def preamble
         if options[:streaming] && options[:buffer] == '@output_buffer'
@@ -132,5 +159,5 @@ module Temple
     end
   end
 
-  Generator.default_options[:capture_generator] = Temple::Generators::StringBuffer
+  Generator.default_options[:capture_generator] = Generators::StringBuffer
 end

@@ -14,12 +14,15 @@ module Temple
         extend Mixins::Template
 
         def compile(template)
-          self.class.build_engine(:streaming => false, # Overwrite option: No streaming support in Rails < 3.1
-                                  :file => template.identifier).call(template.source)
+          # Overwrite option: No streaming support in Rails < 3.1
+          opts = {}.update(self.class.default_options).update(:file => template.identifier, :streaming => false)
+          self.class.compile(template.source, opts)
         end
 
-        def self.register_as(name)
-          ActionView::Template.register_template_handler name.to_sym, self
+        def self.register_as(*names)
+          names.each do |name|
+            ActionView::Template.register_template_handler name.to_sym, self
+          end
         end
       end
     else
@@ -27,15 +30,18 @@ module Temple
         extend Mixins::Template
 
         def call(template)
-          self.class.build_engine(:file => template.identifier).call(template.source)
+          opts = {}.update(self.class.default_options).update(:file => template.identifier)
+          self.class.compile(template.source, opts)
         end
 
         def supports_streaming?
           self.class.default_options[:streaming]
         end
 
-        def self.register_as(name)
-          ActionView::Template.register_template_handler name.to_sym, new
+        def self.register_as(*names)
+          names.each do |name|
+            ActionView::Template.register_template_handler name.to_sym, new
+          end
         end
       end
     end

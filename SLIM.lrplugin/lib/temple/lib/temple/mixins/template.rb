@@ -4,21 +4,24 @@ module Temple
     module Template
       include DefaultOptions
 
-      def engine(engine = nil)
-        default_options[:engine] = engine if engine
-        default_options[:engine]
-      end
-
-      def build_engine(*options)
+      def compile(code, options)
+        engine = options.delete(:engine)
         raise 'No engine configured' unless engine
-        options << default_options
-        engine.new(ImmutableHash.new(*options))
+        engine.new(options).call(code)
       end
 
-      def chain(&block)
-        chain = (default_options[:chain] ||= [])
-        chain << block if block
-        chain
+      def register_as(*names)
+        raise NotImplementedError
+      end
+
+      def create(engine, options)
+        register_as = options.delete(:register_as)
+        template = Class.new(self)
+        template.disable_option_validator!
+        template.default_options[:engine] = engine
+        template.default_options.update(options)
+        template.register_as(*register_as) if register_as
+        template
       end
     end
   end

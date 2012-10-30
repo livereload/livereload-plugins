@@ -1,0 +1,830 @@
+# Slim test suite
+
+You can run this testsuite with `rake test:literate`.
+
+We use pretty mode in the test suite to make the output more readable. Pretty mode
+is enabled by setting the option
+
+~~~ options
+:pretty => true
+~~~
+
+## Line indicators
+
+In this section we test all line indicators.
+
+### Text `|`
+
+A text blocks starts with the `|` as line indicator.
+
+~~~ slim
+| Text block
+~~~
+
+renders as
+
+~~~ html
+Text block
+~~~
+
+Multiple lines can be indented beneath the first text line.
+
+~~~ slim
+|  Text
+    block
+
+     with
+
+    multiple
+   lines
+~~~
+
+renders as
+
+~~~ html
+ Text
+  block
+
+   with
+
+  multiple
+ lines
+~~~
+
+The first line of a text block determines the indentation.
+
+~~~ slim
+|
+
+   Text
+    block
+
+     with
+
+    multiple
+   lines
+~~~
+
+renders as
+
+~~~ html
+Text
+ block
+
+  with
+
+ multiple
+lines
+~~~
+
+You can nest text blocks beneath tags.
+
+~~~ slim
+body
+  | Text
+~~~
+
+renders as
+
+~~~ html
+<body>Text</body>
+~~~
+
+You can embed html code in the text which is not escaped.
+
+~~~ slim
+| <a href="http://slim-lang.com">slim-lang.com</a>
+~~~
+
+renders as
+
+~~~ html
+<a href="http://slim-lang.com">slim-lang.com</a>
+~~~
+
+### Text with trailing white space `'`
+
+A text blocks with trailing white space starts with the `'` as line indicator.
+
+~~~ slim
+' Text block
+~~~
+
+renders as
+
+~~~ html
+Text block 
+~~~
+
+This is especially useful if you use tags behind a text block.
+
+~~~ slim
+' Link to
+a href="http://slim-lang.com" slim-lang.com
+~~~
+
+renders as
+
+~~~ html
+Link to <a href="http://slim-lang.com">slim-lang.com</a>
+~~~
+
+Multiple lines can be indented beneath the first text line.
+
+~~~ slim
+'  Text
+    block
+
+     with
+
+    multiple
+   lines
+~~~
+
+renders as
+
+~~~ html
+ Text
+  block
+
+   with
+
+  multiple
+ lines 
+~~~
+
+The first line of a text block determines the indentation.
+
+~~~ slim
+'
+
+   Text
+    block
+
+     with
+
+    multiple
+   lines
+~~~
+
+renders as
+
+~~~ html
+Text
+ block
+
+  with
+
+ multiple
+lines 
+~~~
+
+### Inline HTML `<`
+
+HTML can be written directly.
+
+~~~ slim
+<a href="http://slim-lang.com">slim-lang.com</a>
+~~~
+
+renders as
+
+~~~ html
+<a href="http://slim-lang.com">slim-lang.com</a>
+~~~
+
+HTML tags allow nested blocks inside.
+
+~~~ slim
+<html>
+  <head>
+    title Example
+  </head>
+  body
+    - if true
+      | yes
+    - else
+      | no
+</html>
+~~~
+
+renders as
+
+~~~ html
+<html><head><title>Example</title></head><body>yes</body></html>
+~~~
+
+### Control code `-`
+
+The dash `-` denotes arbitrary control code.
+
+~~~ slim
+- greeting = 'Hello, World!'
+- if false
+  | Not true
+- else
+  = greeting
+~~~
+
+renders as
+
+~~~ html
+Hello, World!
+~~~
+
+Complex code can be broken with backslash `\`.
+
+~~~ slim
+- greeting = 'Hello, '+\
+     \
+    'World!'
+- if false
+  | Not true
+- else
+  = greeting
+~~~
+
+renders as
+
+~~~ html
+Hello, World!
+~~~
+
+### Output `=`
+
+The equal sign `=` produces dynamic output.
+
+~~~ slim
+= 7*7
+~~~
+
+renders as
+
+~~~ html
+49
+~~~
+
+Dynamic output is escaped by default.
+
+~~~ slim
+= '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+&lt;script&gt;evil();&lt;/script&gt;
+~~~
+
+Long code lines can be broken with `\`.
+
+~~~ slim
+= (0..10).map do |i|\
+  2**i \
+end.join(', ')
+~~~
+
+renders as
+
+~~~ html
+1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+~~~
+
+You can also disable HTML escaping globally by setting the option
+
+~~~ options
+:disable_escape => true
+~~~
+
+~~~ slim
+= '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+<script>evil();</script>
+~~~
+
+### Output with trailing white space `='`
+
+The equal sign with apostrophe `='` produces dynamic output with a trailing white space.
+
+~~~ slim
+=' 7*7
+~~~
+
+renders as
+
+~~~ html
+49 
+~~~
+
+### Output without HTML escaping `==`
+
+The double equal sign `==` produces dynamic output without HTML escaping.
+
+~~~ slim
+== '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+<script>evil();</script>
+~~~
+
+The option option
+
+~~~ options
+:disable_escape => true
+~~~
+
+doesn't affect the output of `==`.
+
+~~~ slim
+== '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+<script>evil();</script>
+~~~
+
+### Output without HTML escaping and trailing ws `=='`
+
+
+The double equal sign with apostrophe `=='` produces dynamic output without HTML escaping and trailing white space.
+
+~~~ slim
+==' '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+<script>evil();</script> 
+~~~
+
+The option option
+
+~~~ options
+:disable_escape => true
+~~~
+
+doesn't affect the output of `==`.
+
+~~~ slim
+==' '<script>evil();</script>'
+~~~
+
+renders as
+
+~~~ html
+<script>evil();</script> 
+~~~
+
+### Code comment `/`
+
+Code comments begin with `/` and produce no output.
+
+~~~ slim
+/ Comment
+body
+  / Another comment
+    with
+
+    multiple lines
+  p Hello!
+~~~
+
+renders as
+
+~~~ html
+<body>
+  <p>Hello!</p>
+</body>
+~~~
+
+### HTML comment `/!`
+
+Code comments begin with `/!`.
+
+~~~ slim
+/! Comment
+body
+  /! Another comment
+     with multiple lines
+  p Hello!
+  /!
+      First line determines indentation
+
+      of the comment
+~~~
+
+renders as
+
+~~~ html
+<!--Comment-->
+<body>
+  <!--Another comment
+  with multiple lines-->
+  <p>Hello!</p>
+  <!--First line determines indentation
+  
+  of the comment-->
+</body>
+~~~
+
+### IE conditional comment `/[...]`
+
+~~~ slim
+/[if IE]
+    p Get a better browser.
+~~~
+
+renders as
+
+~~~ html
+<!--[if IE]><p>Get a better browser.</p><![endif]-->
+~~~
+
+## HTML tags
+
+### Doctype tags
+
+The doctype tag is a special tag which can be used to generate the complex doctypes in a very simple way.
+
+You can output the XML version using the doctype tag.
+
+~~~ slim
+doctype xml
+doctype xml ISO-8859-1
+~~~
+
+renders as
+
+~~~ html
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="iso-8859-1" ?>
+~~~
+
+In XHTML mode the following doctypes are supported:
+
+~~~ slim
+doctype html
+doctype 5
+doctype 1.1
+doctype strict
+doctype frameset
+doctype mobile
+doctype basic
+doctype transitional
+~~~
+
+renders as
+
+~~~ html
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+~~~
+
+If we activate HTML mode with the option
+
+~~~ options
+:format => :html
+~~~
+
+the following doctypes are supported:
+
+~~~ slim
+doctype html
+doctype 5
+doctype strict
+doctype frameset
+doctype transitional
+~~~
+
+renders as
+
+~~~ html
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+~~~
+
+### Closed tags
+
+You can close tags explicitly by appending a trailing `/`.
+
+~~~ slim
+div id="not-closed"
+.closed/
+#closed/
+div id="closed"/
+~~~
+
+renders as
+
+~~~ html
+<div id="not-closed"></div>
+<div class="closed" />
+<div id="closed" />
+<div id="closed" />
+~~~
+
+Note, that this is usually not necessary since the standard html tags (img, br, ...) are closed automatically.
+
+~~~ slim
+img src="image.png"
+~~~
+
+renders as
+
+~~~ html
+<img src="image.png" />
+~~~
+
+### Inline tags
+
+Sometimes you may want to be a little more compact and inline the tags.
+
+~~~ slim
+ul
+  li.first: a href="/first" First
+  li: a href="/second" Second
+~~~
+
+renders as
+
+~~~ html
+<ul>
+  <li class="first">
+    <a href="/first">First</a>
+  </li>
+  <li>
+    <a href="/second">Second</a>
+  </li>
+</ul>
+~~~
+
+For readability, don't forget you can wrap the attributes.
+
+~~~ slim
+ul
+  li.first: a(href="/first") First
+  li: a(href="/second") Second
+~~~
+
+renders as
+
+~~~ html
+<ul>
+  <li class="first">
+    <a href="/first">First</a>
+  </li>
+  <li>
+    <a href="/second">Second</a>
+  </li>
+</ul>
+~~~
+
+### Text content
+
+### Dynamic content `=`
+
+### Attributes
+
+#### Attribute wrapper
+
+If a delimiter makes the syntax more readable for you, you can use the characters `{...}`, `(...)`, `[...]` to wrap the attributes.
+
+~~~ slim
+li
+  a(href="http://slim-lang.com" class="important") Link
+li
+  a[href="http://slim-lang.com" class="important"] Link
+li
+  a{href="http://slim-lang.com" class="important"} Link
+~~~
+
+renders as
+
+~~~ html
+<li>
+  <a class="important" href="http://slim-lang.com">Link</a>
+</li>
+<li>
+  <a class="important" href="http://slim-lang.com">Link</a>
+</li>
+<li>
+  <a class="important" href="http://slim-lang.com">Link</a>
+</li>
+~~~
+
+If you wrap the attributes, you can spread them across multiple lines:
+
+~~~ slim
+a(href="http://slim-lang.com"
+
+     class="important") Link
+~~~
+
+renders as
+
+~~~ html
+<a class="important" href="http://slim-lang.com">Link</a>
+~~~
+
+~~~ slim
+dl(
+  itemprop='address'
+  itemscope
+  itemtype='http://schema.org/PostalAddress'
+)
+~~~
+
+renders as
+
+~~~ html
+<dl itemprop="address" itemscope="itemscope" itemtype="http://schema.org/PostalAddress"></dl>
+~~~
+
+#### Quoted attributes
+
+You can use single or double quotes for simple text attributes.
+
+~~~ slim
+a href="http://slim-lang.com" title='Slim Homepage' Goto the Slim homepage
+~~~
+
+renders as
+
+~~~ html
+<a href="http://slim-lang.com" title="Slim Homepage">Goto the Slim homepage</a>
+~~~
+
+You can use text interpolation in the quoted attributes:
+
+~~~ slim
+- url='slim-lang.com'
+a href="http://#{url}" Goto the #{url}
+~~~
+
+renders as
+
+~~~ html
+<a href="http://slim-lang.com">Goto the slim-lang.com</a>
+~~~
+
+The attribute value will be escaped if the option
+
+~~~ options
+:escape_quoted_attrs => true
+~~~
+
+is set. Use == if you want to disable escaping in the attribute.
+
+~~~ slim
+li
+  a href='&' Link
+li
+  a href=="&amp;" Link
+~~~
+
+renders as
+
+~~~ html
+<li>
+  <a href="&amp;">Link</a>
+</li>
+<li>
+  <a href="&amp;">Link</a>
+</li>
+~~~
+
+#### Ruby attributes
+
+#### Boolean attributes
+
+The attribute values `true`, `false` and `nil` are interpreted as booleans.
+If you use the attribut wrapper you can omit the attribute assigment.
+
+~~~ slim
+- true_value1 = ""
+- true_value2 = true
+input type="text" disabled=true_value1
+input type="text" disabled=true_value2
+input type="text" disabled="disabled"
+input type="text" disabled=true
+input(type="text" disabled)
+~~~
+
+renders as
+
+~~~ html
+<input disabled="" type="text" /><input disabled="disabled" type="text" /><input disabled="disabled" type="text" /><input disabled="disabled" type="text" /><input disabled="disabled" type="text" />
+~~~
+
+~~~ slim
+- false_value1 = false
+- false_value2 = nil
+input type="text" disabled=false_value1
+input type="text" disabled=false_value2
+input type="text"
+input type="text" disabled=false
+input type="text" disabled=nil
+~~~
+
+renders as
+
+~~~ html
+<input type="text" /><input type="text" /><input type="text" /><input type="text" /><input type="text" />
+~~~
+
+#### Attribute merging
+
+You can configure attributes to be merged if multiple are given (See option `:attr_delimiter`). In the default configuration
+this is done for class attributes with the white space as delimiter.
+
+~~~ slim
+a.menu class="highlight" href="http://slim-lang.com/" Slim-lang.com
+~~~
+
+renders as
+
+~~~ html
+<a class="menu highlight" href="http://slim-lang.com/">Slim-lang.com</a>
+~~~
+
+You can also use an `Array` as attribute value and the array elements will be merged using the delimiter.
+
+~~~ slim
+- classes = [:alpha, :beta]
+span class=["first","highlight"] class=classes First
+span class=:second,:highlight class=classes Second
+~~~
+
+renders as
+
+~~~ html
+<span class="first highlight alpha beta">First</span><span class="second highlight alpha beta">Second</span>
+~~~
+
+#### Splat attributes `*`
+
+#### ID shortcut and class shortcut `.`
+
+#### Attribute shortcuts
+
+We add `&` to create a shortcut for the input elements with type attribute by setting the option `:shortcut`.
+
+~~~ options
+:shortcut => {'&' => 'input type', '#' => 'id', '.' => 'class' }
+~~~
+
+~~~ slim
+&text name="user"
+&password name="pw"
+&submit
+~~~
+
+renders to
+
+~~~ html
+<input name="user" type="text" /><input name="pw" type="password" /><input type="submit" />
+~~~
+
+## Text interpolation
+
+Use standard Ruby interpolation. The text will be html escaped by default.
+
+~~~ slim
+- user="John Doe <john@doe.net>"
+h1 Welcome #{user}!
+~~~
+
+renders as
+
+~~~ html
+<h1>Welcome John Doe &lt;john@doe.net&gt;!</h1>
+~~~
+
+## Embedded engines
+
+## Configuring Slim
+
+## Plugins
+
+### Logic less mode
+
+### Translator

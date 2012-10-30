@@ -33,7 +33,7 @@ module Temple
 
         def match(exp, unmatched)
           tmp = []
-          @children.any? {|rule| rule.match(exp, tmp) } || (unmatched.push(*tmp) && false)
+          @children.any? {|rule| rule.match(exp, tmp) } || (unmatched.concat(tmp) && false)
         end
 
         def after_copy(source)
@@ -157,7 +157,7 @@ module Temple
           curr.each {|c| c << elem }
           start
         else
-          raise "Invalid grammar rule '#{rule.inspect}'"
+          raise ArgumentError, "Invalid grammar rule '#{rule.inspect}'"
         end
       end
 

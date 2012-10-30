@@ -33,16 +33,17 @@ module Temple
     include Mixins::EngineDSL
     extend  Mixins::EngineDSL
 
+    define_options :file, :streaming, :buffer
+
     attr_reader :chain
 
     def self.chain
       @chain ||= superclass.respond_to?(:chain) ? superclass.chain.dup : []
     end
 
-    def initialize(o = {})
+    def initialize(opts = {})
       super
       @chain = self.class.chain.dup
-      [*options[:chain]].compact.each {|block| block.call(self) }
     end
 
     def call(input)
@@ -56,19 +57,7 @@ module Temple
     end
 
     def call_chain
-      @call_chain ||= @chain.map do |e|
-        name, filter, option_filter, local_options = e
-        case filter
-        when Class
-          filtered_options = Hash[*option_filter.select {|k| options.include?(k) }.map {|k| [k, options[k]] }.flatten]
-          filter.new(ImmutableHash.new(local_options, filtered_options))
-        when UnboundMethod
-          filter = filter.bind(self)
-          filter.arity == 1 ? filter : filter.call
-        else
-          filter
-        end
-      end.compact
+      @call_chain ||= @chain.map {|name, constructor| constructor.call(self) }.compact
     end
   end
 end

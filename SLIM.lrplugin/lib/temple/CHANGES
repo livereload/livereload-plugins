@@ -1,3 +1,48 @@
+0.5.5
+
+  * HTML pretty: Do not remove empty lines, add newline after doctype
+
+0.5.4
+
+  * HTML::AttributeMerger fixed, it didn't remove first empty attribute values
+  * Add HTML::AttributeRemover back, :remove_empty_attrs must be an Array of Strings now
+    of the attributes to be removed if empty
+  * Simplify [:case] expression grammar
+  * Ignore parameter :outvar by sinatra since sinatra assumes also that the buffer is a String,
+    they should set :buffer and :generator explicitly if they need the access
+
+0.5.3
+
+  * Only print an message if invalid options are passed to Temple filters or engines
+    since many libraries seem to use Slim and Temple in an incorrect way
+
+0.5.2
+
+  * Fix the :outvar problem really
+
+0.5.1
+
+  * Support Sinatra :outvar option in Tilt template
+
+0.5.0
+
+  * Added exception Temple::FilterError which should be thrown by filters
+  * Added Temple::Parser as default base class for parsers
+  * escape_html doesn't escape / anymore
+  * HTML::AttributeSorter uses stable sorting now
+  * HTML::AttributeRemover removed (Was too Slim specific)
+  * Engine option :chain removed
+  * Option validation implemented (Use define_options in your filters)
+  * Deprecated options implemented (Use deprecated_options in your filters)
+  * ThreadOptions added, Method #with_options
+
+0.4.1
+
+  * Generators: produce optimized code
+  * remove deprecated method EngineDSL#wildcard
+  * Set tilt template default_mime_type to text/html
+  * HTML: Support conditional comments [:html, :condcomment, ...]
+
 0.4.0
 
   * Split Temple::HTML::AttributeMerger in AttributeSorter,

@@ -21,16 +21,16 @@ module Temple
         'transitional' => '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">',
       }.freeze
 
-      set_default_options :format => :xhtml,
-                          :attr_wrapper => "'",
-                          :autoclose => %w[meta img link br hr input area param col base]
+      define_options :format => :xhtml,
+                     :attr_wrapper => "'",
+                     :autoclose => %w[meta img link br hr input area param col base]
 
       HTML = [:html, :html4, :html5]
 
       def initialize(opts = {})
         super
         unless [:xhtml, *HTML].include?(options[:format])
-          raise "Invalid format #{options[:format].inspect}"
+          raise ArgumentError, "Invalid format #{options[:format].inspect}"
         end
       end
 
@@ -46,13 +46,13 @@ module Temple
         type = type.to_s.downcase
 
         if type =~ /^xml(\s+(.+))?$/
-          raise 'Invalid xml directive in html mode' if html?
+          raise(FilterError, 'Invalid xml directive in html mode') if html?
           w = options[:attr_wrapper]
           str = "<?xml version=#{w}1.0#{w} encoding=#{w}#{$2 || 'utf-8'}#{w} ?>"
         elsif html?
-          str = HTML_DOCTYPES[type] || raise("Invalid html doctype #{type}")
+          str = HTML_DOCTYPES[type] || raise(FilterError, "Invalid html doctype #{type}")
         else
-          str = XHTML_DOCTYPES[type] || raise("Invalid xhtml doctype #{type}")
+          str = XHTML_DOCTYPES[type] || raise(FilterError, "Invalid xhtml doctype #{type}")
         end
 
         [:static, str]
@@ -63,6 +63,13 @@ module Temple
           [:static, '<!--'],
           compile(content),
           [:static, '-->']]
+      end
+
+      def on_html_condcomment(condition, content)
+        on_html_comment [:multi,
+                         [:static, "[#{condition}]>"],
+                         content,
+                         [:static, '<![endif]']]
       end
 
       def on_html_tag(name, attrs, content = nil)

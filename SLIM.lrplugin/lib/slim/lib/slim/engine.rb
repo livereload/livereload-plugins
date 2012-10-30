@@ -2,51 +2,38 @@ module Slim
   # Slim engine which transforms slim code to executable ruby code
   # @api public
   class Engine < Temple::Engine
-    # Allow users to set default options, particularly useful in Rails' environment files.
-    # For instance, in config/environments/development.rb you probably want:
-    #     # Indent html for pretty debugging
-    #     Slim::Engine.set_default_options :pretty => true
-    #
-    # This overwrites some temple default options.
-    set_default_options :pretty => false,
-                        :attr_wrapper => '"',
-                        :format => :html5,
-                        :id_delimiter => nil,
-                        :generator => Temple::Generators::ArrayBuffer
+    # This overwrites some Temple default options or sets default options for Slim specific filters.
+    # It is recommended to set the default settings only once in the code and avoid duplication. Only use
+    # `define_options` when you have to override some default settings.
+    define_options :pretty => false,
+                   :sort_attrs => true,
+                   :attr_wrapper => '"',
+                   :attr_delimiter => {'class' => ' '},
+                   :generator => Temple::Generators::ArrayBuffer,
+                   :default_tag => 'div'
 
-    # Document all supported options with purpose, type etc.
-    #
-    # Type        | Name               | Default value                 | Purpose
-    # --------------------------------------------------------------------------------------------------------------------------------------------
-    # String      | :file              | nil                           | Name of parsed file, set automatically by Slim::Template
-    # Integer     | :tabsize           | 4                             | Number of whitespaces per tab (used by the parser)
-    # String list | :enable_engines    | All enabled                   | List of enabled embedded engines (whitelist)
-    # String list | :disable_engines   | None disabled                 | List of disabled embedded engines (blacklist)
-    # Boolean     | :sections          | false                         | Enable sections mode (logic-less)
-    # String      | :dictionary        | "self"                        | Name of dictionary variable in sections mode
-    # Symbol      | :dictionary_access | :wrapped                      | Access mode of dictionary variable (:wrapped, :symbol, :string)
-    # Boolean     | :disable_capture   | false (true in Rails)         | Disable capturing in blocks (blocks write to the default buffer then)
-    # Boolean     | :auto_escape       | true                          | Enable automatic escaping of strings
-    # Boolean     | :use_html_safe     | false (true in Rails)         | Use String#html_safe? from ActiveSupport (Works together with :auto_escape)
-    # Boolean     | :debug             | false                         | Enable debug outputs (Temple internals)
-    # Symbol      | :format            | :html5                        | HTML output format
-    # String      | :attr_wrapper      | '"'                           | Character to wrap attributes in html (can be ' or ")
-    # String      | :id_delimiter      | '_'                           | Joining character used if multiple html ids are supplied (e.g. #id1#id2)
-    # Boolean     | :pretty            | false                         | Pretty html indenting (This is slower!)
-    # Class       | :generator         | ArrayBuffer/RailsOutputBuffer | Temple code generator (defaults generates array buffer)
-    use Slim::Parser, :file, :tabsize
-    use Slim::EmbeddedEngine, :enable_engines, :disable_engines
+    # TODO: Remove these options in 1.4.0
+    define_deprecated_options :remove_empty_attrs, :chain
+
+    use Slim::Parser, :file, :tabsize, :encoding, :shortcut, :default_tag, :escape_quoted_attrs
+    use Slim::EmbeddedEngine, :enable_engines, :disable_engines, :pretty
     use Slim::Interpolation
-    use Slim::Sections, :sections, :dictionary, :dictionary_access
     use Slim::EndInserter
-    use Slim::Compiler, :disable_capture, :auto_escape
-    filter :EscapeHTML, :use_html_safe
-    filter :Debugger, :debug, :debug_prefix => 'After Slim'
-    use Temple::HTML::Pretty, :format, :attr_wrapper, :id_delimiter, :pretty
+    use Slim::ControlStructures, :disable_capture
+    use Slim::SplatAttributes, :attr_delimiter, :attr_wrapper, :sort_attrs, :default_tag
+    html :AttributeSorter, :sort_attrs
+    html :AttributeMerger, :attr_delimiter
+    use Slim::CodeAttributes, :attr_delimiter
+    use(:AttributeRemover) { Temple::HTML::AttributeRemover.new(:remove_empty_attrs => options[:attr_delimiter].keys) }
+    html :Pretty, :format, :attr_wrapper, :pretty, :indent
+    filter :Escapable, :use_html_safe, :disable_escape
+    filter :ControlFlow
     filter :MultiFlattener
-    filter :StaticMerger
-    filter :DynamicInliner
-    filter :Debugger, :debug, :debug_prefix => 'Optimized code'
-    chain << proc {|options| options[:generator].new }
+    use :Optimizer do
+      (options[:streaming] ? Temple::Filters::StaticMerger : Temple::Filters::DynamicInliner).new
+    end
+    use :Generator do
+      options[:generator].new(options.to_hash.reject {|k,v| !options[:generator].default_options.valid_keys.include?(k) })
+    end
   end
 end

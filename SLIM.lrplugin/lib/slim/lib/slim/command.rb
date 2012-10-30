@@ -1,7 +1,12 @@
-require 'slim'
+require 'slim/logic_less'
+require 'slim/translator'
 require 'optparse'
 
 module Slim
+  Engine.set_default_options :logic_less => false,
+                             :pretty => false,
+                             :tr => false
+
   # Slim commandline interface
   # @api private
   class Command
@@ -28,24 +33,38 @@ module Slim
 
     # Configure OptionParser
     def set_opts(opts)
-      opts.on('-s', '--stdin', :NONE, 'Read input from standard input instead of an input file') do
+      opts.on('-s', '--stdin', 'Read input from standard input instead of an input file') do
         @options[:input] = $stdin
       end
 
-      opts.on('--trace', :NONE, 'Show a full traceback on error') do
+      opts.on('--trace', 'Show a full traceback on error') do
         @options[:trace] = true
       end
 
-      opts.on('-c', '--compile', :NONE, 'Compile only but do not run') do
+      opts.on('-c', '--compile', 'Compile only but do not run') do
         @options[:compile] = true
       end
 
-      opts.on('-S', '--sections', :NONE, 'Logic-less sections mode') do
-        @options[:sections] = true
+      opts.on('-r', '--rails', 'Generate rails compatible code (Implies --compile)') do
+        Engine.set_default_options :disable_capture => true, :generator => Temple::Generators::RailsOutputBuffer
+        @options[:compile] = true
       end
 
-      opts.on('-p', '--pretty', :NONE, 'Produce pretty html') do
-        @options[:pretty] = true
+      opts.on('-t', '--translator', 'Enable translator plugin') do
+        Engine.set_default_options :tr => true
+      end
+
+      opts.on('-l', '--logic-less', 'Enable logic less plugin') do
+        Engine.set_default_options :logic_less => true
+      end
+
+      opts.on('-p', '--pretty', 'Produce pretty html') do
+        Engine.set_default_options :pretty => true
+      end
+
+      opts.on('-o', '--option [NAME=CODE]', String, 'Set slim option') do |str|
+        parts = str.split('=', 2)
+        Engine.default_options[parts.first.to_sym] = eval(parts.last)
       end
 
       opts.on_tail('-h', '--help', 'Show this message') do
@@ -79,13 +98,9 @@ module Slim
       end
 
       if @options[:compile]
-        @options[:output].puts(Slim::Engine.new(:file => @options[:file],
-                                                :pretty => @options[:pretty],
-                                                :sections => @options[:sections]).compile(@options[:input].read))
+        @options[:output].puts(Slim::Engine.new(:file => @options[:file]).call(@options[:input].read))
       else
-        @options[:output].puts(Slim::Template.new(@options[:file],
-                                                  :pretty => @options[:pretty],
-                                                  :sections => @options[:sections]) { @options[:input].read }.render)
+        @options[:output].puts(Slim::Template.new(@options[:file]) { @options[:input].read }.render)
       end
     end
   end

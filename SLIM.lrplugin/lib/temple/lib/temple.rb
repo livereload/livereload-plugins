@@ -1,9 +1,11 @@
 require 'temple/version'
 
 module Temple
-  autoload :InvalidExpression,    'temple/generators'
+  autoload :InvalidExpression,    'temple/exceptions'
+  autoload :FilterError,          'temple/exceptions'
   autoload :Generator,            'temple/generators'
   autoload :Generators,           'temple/generators'
+  autoload :Parser,               'temple/parser'
   autoload :Engine,               'temple/engine'
   autoload :Utils,                'temple/utils'
   autoload :Filter,               'temple/filter'
@@ -11,6 +13,7 @@ module Temple
   autoload :Grammar,              'temple/grammar'
   autoload :ImmutableHash,        'temple/hash'
   autoload :MutableHash,          'temple/hash'
+  autoload :OptionHash,           'temple/hash'
 
   module Mixins
     autoload :Dispatcher,         'temple/mixins/dispatcher'
@@ -45,7 +48,7 @@ module Temple
     autoload :Fast,               'temple/html/fast'
     autoload :Pretty,             'temple/html/pretty'
     autoload :AttributeMerger,    'temple/html/attribute_merger'
-    autoload :AttributeSorter,    'temple/html/attribute_sorter'
     autoload :AttributeRemover,   'temple/html/attribute_remover'
+    autoload :AttributeSorter,    'temple/html/attribute_sorter'
   end
 end

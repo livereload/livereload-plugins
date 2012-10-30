@@ -29,6 +29,7 @@ module Temple
       # HTML abstraction
       [:html, :doctype, String]                |
       [:html, :comment, Expression]            |
+      [:html, :condcomment, String, Expression]|
       [:html, :tag, HTMLIdentifier, Expression, 'Expression?'] |
       [:html, :attrs, 'HTMLAttr*']             |
       HTMLAttr
@@ -43,7 +44,7 @@ module Temple
       Symbol | String
 
     Case <<
-      [Condition, 'Expression*']
+      [Condition, Expression]
 
     Condition <<
       String | :else

@@ -1,15 +1,12 @@
-# encoding: utf-8
-
 require 'temple'
 require 'slim/parser'
 require 'slim/filter'
 require 'slim/end_inserter'
 require 'slim/embedded_engine'
 require 'slim/interpolation'
-require 'slim/sections'
-require 'slim/compiler'
+require 'slim/control_structures'
+require 'slim/splat_attributes'
+require 'slim/code_attributes'
 require 'slim/engine'
 require 'slim/template'
 require 'slim/version'
-require 'slim/wrapper'
-require 'slim/validator'

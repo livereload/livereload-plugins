@@ -18,7 +18,7 @@ module Temple
       # @param html [String] The string to escape
       # @return [String] The escaped string
       def escape_html(html)
-        EscapeUtils.escape_html(html.to_s)
+        EscapeUtils.escape_html(html.to_s, false)
       end
     elsif RUBY_VERSION > '1.9'
       # Used by escape_html
@@ -28,7 +28,6 @@ module Temple
         '"' => '&quot;',
         '<' => '&lt;',
         '>' => '&gt;',
-        '/' => '&#47;',
       }.freeze
 
       # Returns an escaped copy of `html`.
@@ -36,7 +35,7 @@ module Temple
       # @param html [String] The string to escape
       # @return [String] The escaped string
       def escape_html(html)
-        html.to_s.gsub(/[&\"<>\/]/, ESCAPE_HTML)
+        html.to_s.gsub(/[&\"<>]/, ESCAPE_HTML)
       end
     else
       # Returns an escaped copy of `html`.
@@ -44,7 +43,7 @@ module Temple
       # @param html [String] The string to escape
       # @return [String] The escaped string
       def escape_html(html)
-        html.to_s.gsub(/&/n, '&amp;').gsub(/\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;').gsub(/\//, '&#47;')
+        html.to_s.gsub(/&/n, '&amp;').gsub(/\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;')
       end
     end
 
@@ -56,19 +55,6 @@ module Temple
       @unique_name ||= 0
       prefix ||= (@unique_prefix ||= self.class.name.gsub('::', '_').downcase)
       "_#{prefix}#{@unique_name += 1}"
-    end
-
-    def contains_static?(exp)
-      case exp[0]
-      when :multi
-        exp[1..-1].any? {|e| contains_static?(e) }
-      when :escape
-        contains_static?(exp[2])
-      when :static
-        true
-      else
-        false
-      end
     end
 
     # Check if expression is empty

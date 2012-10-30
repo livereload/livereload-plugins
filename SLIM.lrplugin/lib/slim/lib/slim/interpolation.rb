@@ -1,60 +1,53 @@
 module Slim
-  # Perform interpolation of #{var_name}
+  # Perform interpolation of #{var_name} in the
+  # expressions `[:slim, :interpolate, string]`.
+  #
   # @api private
   class Interpolation < Filter
-    # Handle text expression `[:slim, :text, string]`
+    # Handle interpolate expression `[:slim, :interpolate, string]`
     #
-    # @param [String] string Static text
+    # @param [String] string Static interpolate
     # @return [Array] Compiled temple expression
-    def on_slim_text(string)
+    def on_slim_interpolate(string)
       # Interpolate variables in text (#{variable}).
       # Split the text into multiple dynamic and static parts.
       block = [:multi]
-      until string.empty?
+      begin
         case string
-        when /^\\#\{/
+        when /\A\\#\{/
           # Escaped interpolation
           block << [:static, '#{']
           string = $'
-        when /^#\{/
+        when /\A#\{/
           # Interpolation
           string, code = parse_expression($')
-          escape = code !~ Parser::DELIMITER_REGEX || Parser::DELIMITERS[$&] != code[-1, 1]
+          escape = code !~ /\A\{.*\}\Z/
           block << [:slim, :output, escape, escape ? code : code[1..-2], [:multi]]
-        when /^([^#]+|#)/
+        when /\A([#\\]|[^#\\]*)/
           # Static text
           block << [:static, $&]
           string = $'
         end
-      end
+      end until string.empty?
       block
     end
 
-    def parse_expression(string)
-      stack, code = [], ''
+    protected
 
-      until string.empty?
-        if stack.empty? && string =~ /^\}/
-          # Stack is empty, this means we are finished
-          # if the next character is a closing bracket
-          string.slice!(0)
-          break
-        elsif string =~ Parser::DELIMITER_REGEX
-          # Delimiter found, push it on the stack
-          stack << Parser::DELIMITERS[$&]
-          code << string.slice!(0)
-        elsif string =~ Parser::CLOSE_DELIMITER_REGEX
-          # Closing delimiter found, pop it from the stack if everything is ok
-          raise "Text interpolation: Unexpected closing #{$&}" if stack.empty?
-          raise "Text interpolation: Expected closing #{stack.last}" if stack.last != $&
-          code << string.slice!(0)
-          stack.pop
-        else
-          code << string.slice!(0)
+    def parse_expression(string)
+      count, i = 1, 0
+      while i < string.size && count != 0
+        if string[i] == ?{
+          count += 1
+        elsif string[i] == ?}
+          count -= 1
         end
+        i += 1
       end
 
-      return string, code
+      raise(Temple::FilterError, "Text interpolation: Expected closing }") if count != 0
+
+      return string[i..-1], string[0, i-1]
     end
   end
 end

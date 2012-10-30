@@ -3,7 +3,6 @@ require 'helper'
 describe Temple::HTML::AttributeRemover do
   before do
     @remover = Temple::HTML::AttributeRemover.new
-    @disabled_remover = Temple::HTML::AttributeRemover.new :remove_empty_attrs => false
   end
 
   it 'should pass static attributes through' do
@@ -17,7 +16,7 @@ describe Temple::HTML::AttributeRemover do
                      [:content]]
   end
 
-  it 'should check for empty dynamic attribute if :remove_empty_attrs is true' do
+  it 'should check for empty dynamic attribute if it is included in :remove_empty_attrs' do
     @remover.call([:html, :tag,
       'div',
       [:html, :attrs, [:html, :attr, 'class', [:dynamic, 'b']]],
@@ -31,14 +30,14 @@ describe Temple::HTML::AttributeRemover do
                      [:content]]
   end
 
-  it 'should not check for empty dynamic attribute if :remove_empty_attrs is false' do
-    @disabled_remover.call([:html, :tag,
+  it 'should not check for empty dynamic attribute if it is not included in :remove_empty_attrs' do
+    @remover.call([:html, :tag,
       'div',
-      [:html, :attrs, [:html, :attr, 'class', [:dynamic, 'b']]],
+      [:html, :attrs, [:html, :attr, 'name', [:dynamic, 'b']]],
       [:content]
     ]).should.equal [:html, :tag, "div",
                      [:multi,
-                      [:html, :attr, "class", [:dynamic, "b"]]],
+                      [:html, :attr, "name", [:dynamic, "b"]]],
                      [:content]]
   end
 end
