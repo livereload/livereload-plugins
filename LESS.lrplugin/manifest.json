@@ -26,6 +26,28 @@
         "less"
       ],
       "Name": "LESS",
+      "Options": [
+       {
+         "Id" :  "less-compress-mode",
+         "Type": "select",
+         "Items": [
+           {
+             "Id": "compress-none",
+             "Title": "No Compress"
+           },
+           {
+             "Id": "compress-tiny",
+             "Title": "LESS Style",
+             "Argument": "-x"
+           },
+           {
+             "Id": "compress-yui",
+             "Title": "YUI Style",
+             "Argument": "--yui-compress"
+           }
+         ]
+       }
+      ],
       "ExpectedOutputDirectories": [
         "css",
         "styles",
