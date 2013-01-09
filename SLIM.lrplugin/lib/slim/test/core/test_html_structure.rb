@@ -77,7 +77,7 @@ h1#title This is my title
  }
 
     assert_html '<section class="hello world" id="notice">Hello World from @env</section>', source, :default_tag => 'section'
-   end
+  end
 
   def test_render_with_custom_shortcut
     source = %q{
@@ -87,7 +87,7 @@ h1#title This is my title
   = hello_world
 }
 
-    assert_html '<div class="hello world" id="notice" role="test">Hello World from @env</div><section role="abc">Hello World from @env</section>', source, :shortcut => {'#' => 'id', '.' => 'class', '@' => 'section role'}
+    assert_html '<div class="hello world" id="notice" role="test">Hello World from @env</div><section role="abc">Hello World from @env</section>', source, :shortcut => {'#' => {:attr => 'id'}, '.' => {:attr => 'class'}, '@' => {:tag => 'section', :attr => 'role'}}
   end
 
   def test_render_with_text_block
@@ -225,7 +225,7 @@ p class='underscored_class_name' = output_number
 }
 
     assert_html '<p class="underscored_class_name">1337</p>', source
- end
+  end
 
   def test_nonstandard_attributes
     source = %q{

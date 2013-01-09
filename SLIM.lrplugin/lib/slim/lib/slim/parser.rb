@@ -8,8 +8,8 @@ module Slim
                    :tabsize => 4,
                    :encoding => 'utf-8',
                    :shortcut => {
-                     '#' => 'id',
-                     '.' => 'class'
+                     '#' => { :attr => 'id' },
+                     '.' => { :attr => 'class' }
                    }
 
     class SyntaxError < StandardError
@@ -37,17 +37,18 @@ module Slim
     def initialize(opts = {})
       super
       @tab = ' ' * options[:tabsize]
-      @shortcut = {}
+      @tag_shortcut, @attr_shortcut = {}, {}
       options[:shortcut].each do |k,v|
-        @shortcut[k] = if v =~ /\A([^\s]+)\s+([^\s]+)\Z/
-                         [$1, $2]
-                       else
-                         [options[:default_tag], v]
-                       end
+        v = deprecated_shortcut(v) if String === v
+        raise ArgumentError, 'Shortcut requires :tag and/or :attr' unless (v[:attr] || v[:tag]) && (v.keys - [:attr, :tag]).empty?
+        @tag_shortcut[k] = v[:tag] || options[:default_tag]
+        if v.include?(:attr)
+          @attr_shortcut[k] = v[:attr]
+          raise ArgumentError, 'You can only use special characters for attribute shortcuts' if k =~ /[\w-]/
+        end
       end
-      shortcut = "[#{Regexp.escape @shortcut.keys.join}]"
-      @shortcut_regex = /\A(#{shortcut})(\w[\w-]*\w|\w+)/
-      @tag_regex = /\A(?:#{shortcut}|\*(?=[^\s]+)|(\w[\w:-]*\w|\w+))/
+      @attr_shortcut_regex = /\A(#{shortcut_regex @attr_shortcut})(\w[\w-]*\w|\w+)/
+      @tag_regex = /\A(?:#{shortcut_regex @tag_shortcut}|\*(?=[^\s]+)|(\w[\w:-]*\w|\w+))/
     end
 
     # Compile string to Temple expression
@@ -78,6 +79,21 @@ module Slim
     ATTR_NAME = '\A\s*(\w[:\w-]*)'
     QUOTED_ATTR_REGEX = /#{ATTR_NAME}=(=?)("|')/
     CODE_ATTR_REGEX = /#{ATTR_NAME}=(=?)/
+
+    # Convert deprecated string shortcut to hash
+    def deprecated_shortcut(v)
+      warn "Slim :shortcut string values are deprecated, use hash like { '#' => { :tag => 'div', :attr => 'id' } }"
+      if v =~ /\A([^\s]+)\s+([^\s]+)\Z/
+        { :tag => $1, :attr => $2 }
+      else
+        { :attr => v }
+      end
+    end
+
+    # Compile shortcut regular expression
+    def shortcut_regex(shortcut)
+      shortcut.map { |k,v| Regexp.escape(k) }.join('|')
+    end
 
     # Set string encoding if option is set
     def set_encoding(s)
@@ -304,14 +320,19 @@ module Slim
     def parse_broken_line
       broken_line = @line.strip
       while broken_line =~ /[,\\]\Z/
-        next_line || syntax_error!('Unexpected end of file')
-        broken_line << "\n" << @line.strip
+        expect_next_line
+        broken_line << "\n" << @line
       end
       broken_line
     end
 
     def parse_tag(tag)
-      tag = [:html, :tag, @shortcut[tag] ? @shortcut[tag][0] : tag, parse_attributes]
+      if @tag_shortcut[tag]
+        @line.slice!(0, tag.size) unless @attr_shortcut[tag]
+        tag = @tag_shortcut[tag]
+      end
+
+      tag = [:html, :tag, tag, parse_attributes]
       @stacks.last << tag
 
       case @line
@@ -350,10 +371,10 @@ module Slim
       attributes = [:html, :attrs]
 
       # Find any shortcut attributes
-      while @line =~ @shortcut_regex
+      while @line =~ @attr_shortcut_regex
         # The class/id attribute is :static instead of :slim :interpolate,
         # because we don't want text interpolation in .class or #id shortcut
-        attributes << [:html, :attr, @shortcut[$1][1], [:static, $2]]
+        attributes << [:html, :attr, @attr_shortcut[$1], [:static, $2]]
         @line = $'
       end
 
@@ -428,17 +449,22 @@ module Slim
       end_regex = /\A[\s#{Regexp.escape outer_delimiter.to_s}]/
 
       until @line.empty? || (count == 0 && @line =~ end_regex)
-        if count > 0
-          if @line[0] == delimiter[0]
-            count += 1
-          elsif @line[0] == close_delimiter[0]
-            count -= 1
+        if @line =~ /\A[,\\]\Z/
+          code << @line << "\n"
+          expect_next_line
+        else
+          if count > 0
+            if @line[0] == delimiter[0]
+              count += 1
+            elsif @line[0] == close_delimiter[0]
+              count -= 1
+            end
+          elsif @line =~ DELIMITER_REGEX
+            count = 1
+            delimiter, close_delimiter = $&, DELIMITERS[$&]
           end
-        elsif @line =~ DELIMITER_REGEX
-          count = 1
-          delimiter, close_delimiter = $&, DELIMITERS[$&]
+          code << @line.slice!(0)
         end
-        code << @line.slice!(0)
       end
       syntax_error!("Expected closing delimiter #{close_delimiter}") if count != 0
       code
@@ -448,17 +474,22 @@ module Slim
       value, count = '', 0
 
       until @line.empty? || (count == 0 && @line[0] == quote[0])
-        if count > 0
-          if @line[0] == ?{
-            count += 1
-          elsif @line[0] == ?}
-            count -= 1
+        if @line =~ /\A\\\Z/
+          value << ' '
+          expect_next_line
+        else
+          if count > 0
+            if @line[0] == ?{
+              count += 1
+            elsif @line[0] == ?}
+              count -= 1
+            end
+          elsif @line =~ /\A#\{/
+            value << @line.slice!(0)
+            count = 1
           end
-        elsif @line =~ /\A#\{/
           value << @line.slice!(0)
-          count = 1
         end
-        value << @line.slice!(0)
       end
 
       syntax_error!("Expected closing brace }") if count != 0
@@ -472,6 +503,11 @@ module Slim
     def syntax_error!(message)
       raise SyntaxError.new(message, options[:file], @orig_line, @lineno,
                             @orig_line && @line ? @orig_line.size - @line.size : 0)
+    end
+
+    def expect_next_line
+      next_line || syntax_error!('Unexpected end of file')
+      @line.strip!
     end
   end
 end

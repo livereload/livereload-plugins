@@ -3,24 +3,34 @@ module Slim
   # This filter can be activated with the option "logic_less"
   # @api private
   class LogicLess < Filter
+    # Default dictionary access order, change it with the option :dictionary_access
+    DEFAULT_ACCESS_ORDER = [:symbol, :string, :method, :instance_variable].freeze
+
     define_options :logic_less => true,
                    :dictionary => 'self',
-                   :dictionary_access => :wrapped # :symbol, :string, :wrapped
+                   :dictionary_access => DEFAULT_ACCESS_ORDER
 
     def initialize(opts = {})
       super
-      unless [:string, :symbol, :wrapped].include?(options[:dictionary_access])
-        raise ArgumentError, "Invalid dictionary access #{options[:dictionary_access].inspect}"
+      access = options[:dictionary_access]
+      if access == :wrapped
+        warn 'Slim::LogicLess - Wrapped dictionary access is deprecated'
+        access = DEFAULT_ACCESS_ORDER
+      else
+        access = [access].flatten.compact
+        access.each do |type|
+          raise ArgumentError, "Invalid dictionary access #{type.inspect}" unless DEFAULT_ACCESS_ORDER.include?(type)
+        end
+        raise ArgumentError, 'Option dictionary access is missing' if access.empty?
       end
+      @access = access.inspect
     end
 
     def call(exp)
       if options[:logic_less]
-        @dict = unique_name
-        dictionary = options[:dictionary]
-        dictionary = "::Slim::LogicLess::Wrapper.new(#{dictionary})" if options[:dictionary_access] == :wrapped
+        @context = unique_name
         [:multi,
-         [:code, "#{@dict} = #{dictionary}"],
+         [:code, "#{@context} = ::Slim::LogicLess::Context.new(#{options[:dictionary]}, #{@access})"],
          super]
       else
         exp
@@ -29,20 +39,23 @@ module Slim
 
     # Interpret control blocks as sections or inverted sections
     def on_slim_control(name, content)
-      if name =~ /\A!\s*(.*)/
-        on_slim_inverted_section($1, content)
-      else
-        on_slim_section(name, content)
-      end
+      method =
+        if name =~ /\A!\s*(.*)/
+          name = $1
+          'inverted_section'
+        else
+          'section'
+        end
+      [:block, "#{@context}.#{method}(#{name.to_sym.inspect}) do", compile(content)]
     end
 
     def on_slim_output(escape, name, content)
-      raise(Temple::FilterError, 'Output statements with content are forbidden in logic less mode') if !empty_exp?(content)
-      [:slim, :output, escape, access(name), content]
+      [:slim, :output, escape, empty_exp?(content) ? access(name) :
+       "#{@context}.lambda(#{name.to_sym.inspect}) do", compile(content)]
     end
 
-    def on_slim_attr(name, escape, value)
-      [:slim, :attr, name, escape, access(value)]
+    def on_slim_attrvalue(escape, value)
+      [:slim, :attrvalue, escape, access(value)]
     end
 
     def on_slim_splat(code)
@@ -57,41 +70,10 @@ module Slim
       raise Temple::FilterError, 'Embedded code is forbidden in logic less mode'
     end
 
-    protected
-
-    def on_slim_inverted_section(name, content)
-      tmp = unique_name
-      [:multi,
-       [:code, "#{tmp} = #{access name}"],
-       [:if, "!#{tmp} || #{tmp}.respond_to?(:empty) && #{tmp}.empty?",
-        compile(content)]]
-    end
-
-    def on_slim_section(name, content)
-      content = compile(content)
-      tmp1, tmp2 = unique_name, unique_name
-
-      [:if, "#{tmp1} = #{access name}",
-       [:if, "#{tmp1} == true",
-        content,
-        [:multi,
-         # Wrap map in array because maps implement each
-         [:code, "#{tmp1} = [#{tmp1}] if #{tmp1}.respond_to?(:has_key?) || !#{tmp1}.respond_to?(:map)"],
-         [:code, "#{tmp2} = #{@dict}"],
-         [:block, "#{tmp1}.each do |#{@dict}|", content],
-         [:code, "#{@dict} = #{tmp2}"]]]]
-    end
-
     private
 
     def access(name)
-      return name if name == 'yield'
-      case options[:dictionary_access]
-      when :string
-        "#{@dict}[#{name.to_s.inspect}]"
-      else
-        "#{@dict}[#{name.to_sym.inspect}]"
-      end
+      name == 'yield' ? name : "#{@context}[#{name.to_sym.inspect}]"
     end
   end
 end

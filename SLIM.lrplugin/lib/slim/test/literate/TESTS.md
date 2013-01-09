@@ -290,6 +290,24 @@ renders as
 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
 ~~~
 
+You don't need the explicit `\` if the line ends with a comma `,`.
+
+~~~ slim
+ruby:
+  def test(*args)
+    args.join('-')
+  end
+= test('arg1',
+'arg2',
+'arg3')
+~~~
+
+renders as
+
+~~~ html
+arg1-arg2-arg3
+~~~
+
 You can also disable HTML escaping globally by setting the option
 
 ~~~ options
@@ -712,7 +730,51 @@ renders as
 </li>
 ~~~
 
+You can break quoted attributes with backslash `\`
+
+~~~ slim
+a data-title="help" data-content="extremely long help text that goes on\
+  and one and one and then starts over...." Link
+~~~
+
+renders as
+
+~~~ html
+<a data-content="extremely long help text that goes on and one and one and then starts over...." data-title="help">Link</a>
+~~~
+
 #### Ruby attributes
+
+Long ruby attributes can be broken with backslash `\`
+
+~~~ slim
+a href=1+\
+   1 Link
+~~~
+
+renders as
+
+~~~ html
+<a href="2">Link</a>
+~~~
+
+You don't need the explicit `\` if the line ends with a comma `,`.
+
+~~~ slim
+ruby:
+  def test(*args)
+    args.join('-')
+  end
+a href=test('arg1',
+'arg2',
+'arg3') Link
+~~~
+
+renders as
+
+~~~ html
+<a href="arg1-arg2-arg3">Link</a>
+~~~
 
 #### Boolean attributes
 
@@ -782,11 +844,90 @@ renders as
 
 #### Splat attributes `*`
 
-#### ID shortcut and class shortcut `.`
+
+#### Dynamic tags `*`
+
+You can create completely dynamic tags using the splat attributes. Just create a method which returns a hash
+with the :tag key.
+
+~~~ slim
+ruby:
+  def a_unless_current
+    @page_current ? {:tag => 'span'} : {:tag => 'a', :href => 'http://slim-lang.com/'}
+  end
+- @page_current = true
+*a_unless_current Link
+- @page_current = false
+*a_unless_current Link
+~~~
+
+renders as
+
+~~~ html
+<span>Link</span><a href="http://slim-lang.com/">Link</a>
+~~~
+
+### Shortcuts
+
+#### Tag shortcuts
+
+We add tag shortcuts by setting the option `:shortcut`.
+
+~~~ options
+:shortcut => {'c' => {:tag => 'container'}, 'sec' => {:tag =>'section'}, '#' => {:attr => 'id'}, '.' => {:attr => 'class'} }
+~~~
+
+~~~ slim
+sec: c.content Text
+~~~
+
+renders to
+
+~~~ html
+<section>
+  <container class="content">Text</container>
+</section>
+~~~
 
 #### Attribute shortcuts
 
 We add `&` to create a shortcut for the input elements with type attribute by setting the option `:shortcut`.
+
+~~~ options
+:shortcut => {'&' => {:tag => 'input', :attr => 'type'}, '#' => {:attr => 'id'}, '.' => {:attr => 'class'} }
+~~~
+
+~~~ slim
+&text name="user"
+&password name="pw"
+&submit.CLASS#ID
+~~~
+
+renders to
+
+~~~ html
+<input name="user" type="text" /><input name="pw" type="password" /><input class="CLASS" id="ID" type="submit" />
+~~~
+
+This is stupid, but you can also use multiple character shortcuts.
+
+~~~ options
+:shortcut => {'&' => {:tag => 'input', :attr => 'type'}, '#<' => {:attr => 'id'}, '#>' => {:attr => 'class'} }
+~~~
+
+~~~ slim
+&text name="user"
+&password name="pw"
+&submit#>CLASS#<ID
+~~~
+
+renders to
+
+~~~ html
+<input name="user" type="text" /><input name="pw" type="password" /><input class="CLASS" id="ID" type="submit" />
+~~~
+
+Test deprecated shortcuts:
 
 ~~~ options
 :shortcut => {'&' => 'input type', '#' => 'id', '.' => 'class' }
@@ -795,14 +936,16 @@ We add `&` to create a shortcut for the input elements with type attribute by se
 ~~~ slim
 &text name="user"
 &password name="pw"
-&submit
+&submit.CLASS#ID
 ~~~
 
 renders to
 
 ~~~ html
-<input name="user" type="text" /><input name="pw" type="password" /><input type="submit" />
+<input name="user" type="text" /><input name="pw" type="password" /><input class="CLASS" id="ID" type="submit" />
 ~~~
+
+#### ID shortcut and class shortcut `.`
 
 ## Text interpolation
 
