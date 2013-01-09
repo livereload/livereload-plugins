@@ -290,6 +290,11 @@ SCSS
       render("@import \"http://fonts.googleapis.com/css?family=Droid+Sans\";"))
   end
 
+  def test_protocol_relative_import
+    assert_equal("@import \"//fonts.googleapis.com/css?family=Droid+Sans\";\n",
+      render("@import \"//fonts.googleapis.com/css?family=Droid+Sans\";"))
+  end
+
   def test_import_with_interpolation
     assert_equal <<CSS, render(<<SCSS)
 @import url("http://fonts.googleapis.com/css?family=Droid+Sans");
@@ -1664,7 +1669,7 @@ SCSS
     assert_raise_message(Sass::SyntaxError, <<MESSAGE.rstrip) {render <<SCSS}
 Invalid CSS after "  .foo": expected "{", was "&.bar {a: b}"
 
-"&.bar" may only be used at the beginning of a selector.
+"&.bar" may only be used at the beginning of a compound selector.
 MESSAGE
 flim {
   .foo&.bar {a: b}
@@ -1676,7 +1681,7 @@ SCSS
     assert_raise_message(Sass::SyntaxError, <<MESSAGE.rstrip) {render <<SCSS}
 Invalid CSS after "  .foo.bar": expected "{", was "& {a: b}"
 
-"&" may only be used at the beginning of a selector.
+"&" may only be used at the beginning of a compound selector.
 MESSAGE
 flim {
   .foo.bar& {a: b}
@@ -1688,7 +1693,7 @@ SCSS
     assert_raise_message(Sass::SyntaxError, <<MESSAGE.rstrip) {render <<SCSS}
 Invalid CSS after "  &": expected "{", was "& {a: b}"
 
-"&" may only be used at the beginning of a selector.
+"&" may only be used at the beginning of a compound selector.
 MESSAGE
 flim {
   && {a: b}
@@ -1705,6 +1710,41 @@ SCSS
   end
 
   # Regression
+
+  def test_parsing_decimals_followed_by_comments_doesnt_take_forever
+    assert_equal(<<CSS, render(<<SCSS))
+.foo {
+  padding: 4.21053% 4.21053% 5.63158%; }
+CSS
+.foo {
+  padding: 4.21052631578947% 4.21052631578947% 5.631578947368421% /**/
+}
+SCSS
+  end
+
+  def test_parsing_many_numbers_doesnt_take_forever
+    values = ["80% 90%"] * 1000
+    assert_equal(<<CSS, render(<<SCSS))
+.foo {
+  padding: #{values.join(', ')}; }
+CSS
+.foo {
+  padding: #{values.join(', ')};
+}
+SCSS
+  end
+
+  def test_import_comments_in_imports
+    assert_equal(<<CSS, render(<<SCSS))
+@import url(foo.css);
+@import url(bar.css);
+@import url(baz.css);
+CSS
+@import "foo.css", // this is a comment
+        "bar.css", /* this is another comment */
+        "baz.css"; // this is a third comment
+SCSS
+  end
 
   def test_reference_combinator_with_parent_ref
     assert_equal <<CSS, render(<<SCSS)
@@ -1971,5 +2011,25 @@ SCSS
 }
 SCSS
     Sass::SCSS::Parser.new(template, "test.scss").parse
+  end
+
+  def test_extend_in_media_in_rule
+    assert_equal(<<CSS, render(<<SCSS))
+@media screen {
+  .foo {
+    a: b; } }
+CSS
+.foo {
+  @media screen {
+    @extend %bar;
+  }
+}
+
+@media screen {
+  %bar {
+    a: b;
+  }
+}
+SCSS
   end
 end

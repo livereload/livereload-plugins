@@ -4,3 +4,4 @@ Gemfile.lock
 pkg/*
 .rvmrc
 test/project/css/*.css
+vendor/bundle

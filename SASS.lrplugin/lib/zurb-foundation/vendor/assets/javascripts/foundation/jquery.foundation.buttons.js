@@ -4,16 +4,18 @@
   $.fn.foundationButtons = function (options) {
     var $doc = $(document),
       config = $.extend({
-        dropdownAsToggle:true,
+        dropdownAsToggle:false,
         activeClass:'active'
       }, options),
 
     // close all dropdowns except for the dropdown passed
       closeDropdowns = function (dropdown) {
+        // alert(dropdown.html());
         $('.button.dropdown').find('ul').not(dropdown).removeClass('show-dropdown');
       },
     // reset all toggle states except for the button passed
       resetToggles = function (button) {
+        // alert(button.html());
         var buttons = $('.button.dropdown').not(button);
         buttons.add($('> span.' + config.activeClass, buttons)).removeClass(config.activeClass);
       };
@@ -30,20 +32,27 @@
       var $el = $(this),
         button = $el.closest('.button.dropdown'),
         dropdown = $('> ul', button);
-      e.preventDefault();
+
+        // If the click is registered on an actual link then do not preventDefault which stops the browser from following the link
+        if (e.target.nodeName !== "A"){
+          e.preventDefault();
+        }
 
       // close other dropdowns
-      closeDropdowns(config.dropdownAsToggle ? dropdown : '');
-      dropdown.toggleClass('show-dropdown');
+      setTimeout(function () {
+        closeDropdowns(config.dropdownAsToggle ? dropdown : '');
+        dropdown.toggleClass('show-dropdown');
 
-      if (config.dropdownAsToggle) {
-        resetToggles(button);
-        $el.toggleClass(config.activeClass);
-      }
+        if (config.dropdownAsToggle) {
+          resetToggles(button);
+          $el.toggleClass(config.activeClass);
+        }
+      }, 0);
     });
 
     // close all dropdowns and deactivate all buttons
     $doc.on('click.fndtn', 'body, html', function (e) {
+      if (undefined == e.originalEvent) { return; }
       // check original target instead of stopping event propagation to play nice with other events
       if (!$(e.originalEvent.target).is('.button.dropdown:not(.split), .button.dropdown.split span')) {
         closeDropdowns();
@@ -54,10 +63,10 @@
     });
 
     // Positioning the Flyout List
-    var normalButtonHeight  = $('.button.dropdown:not(.large):not(.small):not(.tiny)', this).outerHeight() - 1,
-        largeButtonHeight   = $('.button.large.dropdown', this).outerHeight() - 1,
-        smallButtonHeight   = $('.button.small.dropdown', this).outerHeight() - 1,
-        tinyButtonHeight    = $('.button.tiny.dropdown', this).outerHeight() - 1;
+    var normalButtonHeight  = $('.button.dropdown:not(.large):not(.small):not(.tiny):visible', this).outerHeight() - 1,
+        largeButtonHeight   = $('.button.large.dropdown:visible', this).outerHeight() - 1,
+        smallButtonHeight   = $('.button.small.dropdown:visible', this).outerHeight() - 1,
+        tinyButtonHeight    = $('.button.tiny.dropdown:visible', this).outerHeight() - 1;
 
     $('.button.dropdown:not(.large):not(.small):not(.tiny) > ul', this).css('top', normalButtonHeight);
     $('.button.dropdown.large > ul', this).css('top', largeButtonHeight);
