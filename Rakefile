@@ -227,3 +227,8 @@ task :default do
     puts ENV['INSTALL']
     puts find_gem('compass', :prerelease => true )
 end
+
+desc "Print a summary of the bundled compiler versions"
+task :summary do
+    sh 'coffee', 'summary.coffee'
+end
