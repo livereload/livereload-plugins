@@ -11,6 +11,7 @@
       "DestinationExtension": "css",
       "Errors": [
         "<ESC>((message)) on line ((line))<ESC> in <ESC>((file))(?:<ESC>|\\n)",
+        "<ESC>((message))<ESC> in <ESC>((file))<ESC>:((line))",
         "(Missing ((message))$)",
         "((message:Syntax Error)) on line ((line))",
         "((message:color functions take numbers as parameters))",
