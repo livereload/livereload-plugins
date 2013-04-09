@@ -1,5 +1,5 @@
 module Tilt
-  VERSION = '1.3.3'
+  VERSION = '1.3.6'
 
   @preferred_mappings = Hash.new
   @template_mappings = Hash.new { |h, k| h[k] = [] }
@@ -142,6 +142,9 @@ module Tilt
   register ERBTemplate,    'erb', 'rhtml'
   register ErubisTemplate, 'erb', 'rhtml', 'erubis'
 
+  require 'tilt/etanni'
+  register EtanniTemplate, 'etn', 'etanni'
+
   require 'tilt/haml'
   register HamlTemplate,   'haml'
 
@@ -149,6 +152,9 @@ module Tilt
   register SassTemplate, 'sass'
   register ScssTemplate, 'scss'
   register LessTemplate, 'less'
+
+  require 'tilt/csv'
+  register CSVTemplate, 'rcsv'
 
   require 'tilt/coffee'
   register CoffeeScriptTemplate, 'coffee'
@@ -173,6 +179,8 @@ module Tilt
   register KramdownTemplate,  'markdown', 'mkd', 'md'
   register BlueClothTemplate, 'markdown', 'mkd', 'md'
   register RDiscountTemplate, 'markdown', 'mkd', 'md'
+  register RedcarpetTemplate::Redcarpet1, 'markdown', 'mkd', 'md'
+  register RedcarpetTemplate::Redcarpet2, 'markdown', 'mkd', 'md'
   register RedcarpetTemplate, 'markdown', 'mkd', 'md'
 
   require 'tilt/textile'
@@ -187,4 +195,10 @@ module Tilt
 
   require 'tilt/yajl'
   register YajlTemplate, 'yajl'
+
+  require 'tilt/asciidoc'
+  register AsciidoctorTemplate, 'ad', 'adoc', 'asciidoc'
+
+  require 'tilt/plain'
+  register PlainTemplate, 'html'
 end

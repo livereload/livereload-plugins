@@ -11,12 +11,20 @@ begin
 
     test "compiles and evaluates the template on #render" do
       template = Tilt::YajlTemplate.new { "json = { :integer => 3, :string => 'hello' }" }
-      assert_equal '{"integer":3,"string":"hello"}', template.render
+      output = template.render
+      result = Yajl::Parser.parse(output)
+      expect = {"integer" => 3,"string" => "hello"}
+      assert_equal expect, result
     end
 
     test "can be rendered more than once" do
       template = Tilt::YajlTemplate.new { "json = { :integer => 3, :string => 'hello' }" }
-      3.times { assert_equal '{"integer":3,"string":"hello"}', template.render }
+      expect = {"integer" => 3,"string" => "hello"}
+      3.times do
+        output = template.render
+        result = Yajl::Parser.parse(output)
+        assert_equal expect, result
+      end
     end
 
     test "evaluating ruby code" do
@@ -65,7 +73,8 @@ begin
         json[:integer] = four
         nil
       } }
-      assert_equal '{"string":"hello","integer":4}', template.render
+      result = template.render
+      assert( (result == '{"string":"hello","integer":4}') || (result == '{"integer":4,"string":"hello"}') )
     end
 
     test "option callback" do
@@ -88,5 +97,5 @@ begin
 
   end
 rescue LoadError
-  warn "Tilt::YajlTemplateTest (disabled)\n"
+  warn "Tilt::YajlTemplateTest (disabled)"
 end

@@ -1,5 +1,6 @@
 require 'contest'
 require 'tilt'
+require 'tempfile'
 
 class TiltTemplateTest < Test::Unit::TestCase
 
@@ -21,6 +22,23 @@ class TiltTemplateTest < Test::Unit::TestCase
     inst = MockTemplate.new('foo.erb', 55) {}
     assert_equal 'foo.erb', inst.file
     assert_equal 55, inst.line
+  end
+
+  test "initializing with a tempfile" do
+    tempfile = Tempfile.new('tilt_template_test')
+    inst = MockTemplate.new(tempfile)
+    assert_equal File.basename(tempfile.path), inst.basename
+  end
+
+  class SillyHash < Hash
+    def path(arg)
+    end
+  end
+
+  test "initialize with hash that implements #path" do
+    options = SillyHash[:key => :value]
+    inst = MockTemplate.new(options) {}
+    assert_equal :value, inst.options[:key]
   end
 
   test "uses correct eval_file" do
@@ -125,6 +143,13 @@ class TiltTemplateTest < Test::Unit::TestCase
     inst = SourceGeneratingMockTemplate.new { |t| 'Hey #{name}!' }
     assert_equal "Hey Joe!", inst.render(Object.new, 'name' => 'Joe')
     assert inst.prepared?
+  end
+
+  test "template_source with locals having non-variable keys raises error" do
+    inst = SourceGeneratingMockTemplate.new { |t| '1 + 2 = #{_answer}' }
+    err = assert_raise(RuntimeError) { inst.render(Object.new, 'ANSWER' => 3) }
+    assert_equal "invalid locals key: \"ANSWER\" (keys must be variable names)", err.message
+    assert_equal "1 + 2 = 3", inst.render(Object.new, '_answer' => 3)
   end
 
   class Person

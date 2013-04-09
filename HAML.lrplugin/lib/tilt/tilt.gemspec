@@ -3,33 +3,40 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
 
   s.name = 'tilt'
-  s.version = '1.3.3'
-  s.date = '2011-08-25'
+  s.version = '1.3.6'
+  s.date = '2013-03-17'
 
   s.description = "Generic interface to multiple Ruby template engines"
   s.summary     = s.description
+  s.license     = "MIT"
 
   s.authors = ["Ryan Tomayko"]
   s.email = "r@tomayko.com"
 
   # = MANIFEST =
   s.files = %w[
+    CHANGELOG.md
     COPYING
     Gemfile
+    HACKING
     README.md
     Rakefile
     TEMPLATES.md
     bin/tilt
     lib/tilt.rb
+    lib/tilt/asciidoc.rb
     lib/tilt/builder.rb
     lib/tilt/coffee.rb
     lib/tilt/css.rb
+    lib/tilt/csv.rb
     lib/tilt/erb.rb
+    lib/tilt/etanni.rb
     lib/tilt/haml.rb
     lib/tilt/liquid.rb
     lib/tilt/markaby.rb
     lib/tilt/markdown.rb
     lib/tilt/nokogiri.rb
+    lib/tilt/plain.rb
     lib/tilt/radius.rb
     lib/tilt/rdoc.rb
     lib/tilt/string.rb
@@ -44,17 +51,21 @@ Gem::Specification.new do |s|
     test/markaby/render_twice.mab
     test/markaby/scope.mab
     test/markaby/yielding.mab
+    test/tilt_asciidoctor_test.rb
     test/tilt_blueclothtemplate_test.rb
     test/tilt_buildertemplate_test.rb
     test/tilt_cache_test.rb
     test/tilt_coffeescripttemplate_test.rb
     test/tilt_compilesite_test.rb
     test/tilt_creoletemplate_test.rb
+    test/tilt_csv_test.rb
     test/tilt_erbtemplate_test.rb
     test/tilt_erubistemplate_test.rb
+    test/tilt_etannitemplate_test.rb
     test/tilt_fallback_test.rb
     test/tilt_hamltemplate_test.rb
     test/tilt_kramdown_test.rb
+    test/tilt_lesstemplate_test.less
     test/tilt_lesstemplate_test.rb
     test/tilt_liquidtemplate_test.rb
     test/tilt_markaby_test.rb
@@ -78,29 +89,29 @@ Gem::Specification.new do |s|
 
   s.executables = ['tilt']
   s.test_files = s.files.select {|path| path =~ /^test\/.*_test.rb/}
-  s.add_development_dependency 'contest'
+  s.add_development_dependency 'asciidoctor', '>= 0.1.0'
+  s.add_development_dependency 'RedCloth'
+  s.add_development_dependency 'bluecloth'
   s.add_development_dependency 'builder'
+  s.add_development_dependency 'coffee-script'
+  s.add_development_dependency 'contest'
+  s.add_development_dependency 'creole'
   s.add_development_dependency 'erubis'
   s.add_development_dependency 'haml', '>= 2.2.11'
-  s.add_development_dependency 'sass'
-  s.add_development_dependency 'rdiscount'
-  s.add_development_dependency 'liquid'
+  s.add_development_dependency 'kramdown'
   s.add_development_dependency 'less'
-  s.add_development_dependency 'radius'
-  s.add_development_dependency 'nokogiri'
+  s.add_development_dependency 'liquid'
   s.add_development_dependency 'markaby'
-  s.add_development_dependency 'coffee-script'
-  s.add_development_dependency 'bluecloth'
-  s.add_development_dependency 'RedCloth'
   s.add_development_dependency 'maruku'
-  s.add_development_dependency 'creole'
-  s.add_development_dependency 'kramdown'
+  s.add_development_dependency 'nokogiri'
+  s.add_development_dependency 'radius'
+  s.add_development_dependency 'rdiscount'
+  s.add_development_dependency 'rdoc'
   s.add_development_dependency 'redcarpet'
-  s.add_development_dependency 'creole'
-  s.add_development_dependency 'yajl-ruby'
+  s.add_development_dependency 'sass'
   s.add_development_dependency 'wikicloth'
-  s.add_development_dependency 'redcarpet'
-  s.add_development_dependency 'kramdown'
+  s.add_development_dependency 'yajl-ruby'
+  s.add_development_dependency 'rdoc'
 
   s.homepage = "http://github.com/rtomayko/tilt/"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Tilt", "--main", "Tilt"]

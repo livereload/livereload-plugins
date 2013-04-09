@@ -43,6 +43,7 @@ module Tilt
         when arg.respond_to?(:to_str)  ; @file = arg.to_str
         when arg.respond_to?(:to_int)  ; @line = arg.to_int
         when arg.respond_to?(:to_hash) ; @options = arg.to_hash.dup
+        when arg.respond_to?(:path)    ; @file = arg.path
         else raise TypeError
         end
       end
@@ -91,6 +92,15 @@ module Tilt
       file || '(__TEMPLATE__)'
     end
 
+    # Whether or not this template engine allows executing Ruby script
+    # within the template. If this is false, +scope+ and +locals+ will
+    # generally not be used, nor will the provided block be avaiable 
+    # via +yield+.
+    # This should be overridden by template subclasses.
+    def allows_script?
+      true
+    end
+
   protected
     # Called once and only once for each template subclass the first time
     # the template class is initialized. This should be used to require the
@@ -98,7 +108,7 @@ module Tilt
     def initialize_engine
     end
 
-    # Like Kernel::require but issues a warning urging a manual require when
+    # Like Kernel#require but issues a warning urging a manual require when
     # running under a threaded environment.
     def require_template_library(name)
       if Thread.list.size > 1
@@ -123,25 +133,15 @@ module Tilt
       end
     end
 
+    # Execute the compiled template and return the result string. Template
+    # evaluation is guaranteed to be performed in the scope object with the
+    # locals specified and with support for yielding to the block.
+    #
+    # This method is only used by source generating templates. Subclasses that
+    # override render() may not support all features.
     def evaluate(scope, locals, &block)
-      cached_evaluate(scope, locals, &block)
-    end
-
-    # Process the template and return the result. The first time this
-    # method is called, the template source is evaluated with instance_eval.
-    # On the sequential method calls it will compile the template to an
-    # unbound method which will lead to better performance. In any case,
-    # template executation is guaranteed to be performed in the scope object
-    # with the locals specified and with support for yielding to the block.
-    def cached_evaluate(scope, locals, &block)
-      # Redefine itself to use method compilation the next time:
-      def self.cached_evaluate(scope, locals, &block)
-        method = compiled_method(locals.keys)
-        method.bind(scope).call(locals, &block)
-      end
-
-      # Use instance_eval the first time:
-      evaluate_source(scope, locals, &block)
+      method = compiled_method(locals.keys)
+      method.bind(scope).call(locals, &block)
     end
 
     # Generates all template source by combining the preamble, template, and
@@ -186,7 +186,13 @@ module Tilt
     # source line offset, so adding code to the preamble does not effect line
     # reporting in Kernel::caller and backtraces.
     def precompiled_preamble(locals)
-      locals.map { |k,v| "#{k} = locals[#{k.inspect}]" }.join("\n")
+      locals.map do |k,v|
+        if k.to_s =~ /\A[a-z_][a-zA-Z_0-9]*\z/
+          "#{k} = locals[#{k.inspect}]"
+        else
+          raise "invalid locals key: #{k.inspect} (keys must be variable names)"
+        end
+      end.join("\n")
     end
 
     # Generates postamble code for the precompiled template source. The
@@ -203,34 +209,10 @@ module Tilt
     end
 
   private
-    # Evaluate the template source in the context of the scope object.
-    def evaluate_source(scope, locals, &block)
-      source, offset = precompiled(locals)
-      scope.instance_eval(source, eval_file, line - offset)
-    end
-
-    # JRuby doesn't allow Object#instance_eval to yield to the block it's
-    # closed over. This is by design and (ostensibly) something that will
-    # change in MRI, though no current MRI version tested (1.8.6 - 1.9.2)
-    # exhibits the behavior. More info here:
-    #
-    # http://jira.codehaus.org/browse/JRUBY-2599
-    #
-    # We redefine evaluate_source to work around this issues.
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
-      undef evaluate_source
-      def evaluate_source(scope, locals, &block)
-        source, offset = precompiled(locals)
-        file, lineno = eval_file, (line - offset)
-        scope.instance_eval { Kernel::eval(source, binding, file, lineno) }
-      end
-    end
-
     def compile_template_method(locals)
       source, offset = precompiled(locals)
-      offset += 5
       method_name = "__tilt_#{Thread.current.object_id.abs}"
-      Object.class_eval <<-RUBY, eval_file, line - offset
+      method_source = <<-RUBY
         #{extract_magic_comment source}
         TOPOBJECT.class_eval do
           def #{method_name}(locals)
@@ -238,12 +220,11 @@ module Tilt
             class << self
               this, locals = Thread.current[:tilt_vars]
               this.instance_eval do
-               #{source}
-              end
-            end
-          end
-        end
       RUBY
+      offset += method_source.count("\n")
+      method_source << source
+      method_source << "\nend;end;end;end"
+      Object.class_eval method_source, eval_file, line - offset
       unbind_compiled_method(method_name)
     end
 
@@ -255,30 +236,10 @@ module Tilt
 
     def extract_magic_comment(script)
       comment = script.slice(/\A[ \t]*\#.*coding\s*[=:]\s*([[:alnum:]\-_]+).*$/)
-      return comment if comment and not %w[ascii-8bit binary].include?($1.downcase)
-      "# coding: #{@default_encoding}" if @default_encoding
-    end
-
-    # Special case Ruby 1.9.1's broken yield.
-    #
-    # http://github.com/rtomayko/tilt/commit/20c01a5
-    # http://redmine.ruby-lang.org/issues/show/3601
-    #
-    # Remove when 1.9.2 dominates 1.9.1 installs in the wild.
-    if RUBY_VERSION =~ /^1.9.1/
-      undef compile_template_method
-      def compile_template_method(locals)
-        source, offset = precompiled(locals)
-        offset += 1
-        method_name = "__tilt_#{Thread.current.object_id}"
-        Object.class_eval <<-RUBY, eval_file, line - offset
-          TOPOBJECT.class_eval do
-            def #{method_name}(locals)
-              #{source}
-            end
-          end
-        RUBY
-        unbind_compiled_method(method_name)
+      if comment && !%w[ascii-8bit binary].include?($1.downcase)
+        comment
+      elsif @default_encoding
+        "# coding: #{@default_encoding}"
       end
     end
   end
