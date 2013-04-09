@@ -21,6 +21,7 @@ describe Listen::Adapter do
     before do
       Listen::Adapters::Darwin.stub(:usable_and_works?) { false }
       Listen::Adapters::Linux.stub(:usable_and_works?) { false }
+      Listen::Adapters::BSD.stub(:usable_and_works?) { false }
       Listen::Adapters::Windows.stub(:usable_and_works?) { false }
     end
 
@@ -31,14 +32,28 @@ describe Listen::Adapter do
         described_class.select_and_initialize('dir')
       end
 
-      it "warns with the default polling fallback message" do
-        Kernel.should_receive(:warn).with(Listen::Adapter::POLLING_FALLBACK_MESSAGE)
+      it 'warns with the default polling fallback message' do
+        Kernel.should_receive(:warn).with(/#{Listen::Adapter::POLLING_FALLBACK_MESSAGE}/)
         described_class.select_and_initialize('dir')
+      end
+
+      context 'when the dependencies of an adapter are not satisfied' do
+        before do
+          Listen::Adapters::Darwin.stub(:usable_and_works?).and_raise(Listen::DependencyManager::Error)
+          Listen::Adapters::Linux.stub(:usable_and_works?).and_raise(Listen::DependencyManager::Error)
+          Listen::Adapters::BSD.stub(:usable_and_works?).and_raise(Listen::DependencyManager::Error)
+          Listen::Adapters::Windows.stub(:usable_and_works?).and_raise(Listen::DependencyManager::Error)
+        end
+
+        it 'invites the user to satisfy the dependencies of the adapter in the warning' do
+          Kernel.should_receive(:warn).with(/#{Listen::Adapter::MISSING_DEPENDENCY_MESSAGE}/)
+          described_class.select_and_initialize('dir')
+        end
       end
 
       context "with custom polling_fallback_message option" do
         it "warns with the custom polling fallback message" do
-          Kernel.should_receive(:warn).with('custom')
+          Kernel.should_receive(:warn).with(/custom/)
           described_class.select_and_initialize('dir', :polling_fallback_message => 'custom')
         end
       end
@@ -83,6 +98,22 @@ describe Listen::Adapter do
       end
     end
 
+    context "on BSD" do
+      before { Listen::Adapters::BSD.stub(:usable_and_works?) { true } }
+
+      it "uses Listen::Adapters::BSD" do
+        Listen::Adapters::BSD.should_receive(:new).with('dir', {})
+        described_class.select_and_initialize('dir')
+      end
+
+      context 'when the use of the polling adapter is forced' do
+        it 'uses Listen::Adapters::Polling' do
+          Listen::Adapters::Polling.should_receive(:new).with('dir', {})
+          described_class.select_and_initialize('dir', :force_polling => true)
+        end
+      end
+    end
+
     context "on Windows" do
       before { Listen::Adapters::Windows.stub(:usable_and_works?) { true } }
 
@@ -100,8 +131,18 @@ describe Listen::Adapter do
     end
   end
 
-  [Listen::Adapters::Darwin, Listen::Adapters::Linux, Listen::Adapters::Windows].each do |adapter_class|
+  [Listen::Adapters::Darwin, Listen::Adapters::Linux,
+   Listen::Adapters::BSD, Listen::Adapters::Windows].each do
+    |adapter_class|
     if adapter_class.usable?
+      describe '.usable?' do
+        it 'checks the dependencies' do
+          adapter_class.should_receive(:load_depenencies)
+          adapter_class.should_receive(:dependencies_loaded?)
+          adapter_class.usable?
+        end
+      end
+
       describe '.usable_and_works?' do
         it 'checks if the adapter is usable' do
           adapter_class.stub(:works?)

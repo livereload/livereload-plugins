@@ -1,7 +1,9 @@
 Compass H5bp
-=========================
+============
 
-This is a Compass extension of Html5 mixins extracted from v4 of [Html5 Boilerplate](http://html5boilerplate.com). This gem provides only the CSS mixins and not the html or javascript templates.  This makes sense because any implementation of Html5 Boilerplate should be specific to the language and framework it's built on.
+This is a Compass extension of HTML5 mixins extracted from v4 of [HTML5 Boilerplate](http://html5boilerplate.com).
+This gem provides only the CSS mixins and not the HTML or Javascript templates. This makes sense because any 
+implementation of HTML5 Boilerplate should be specific to the language and framework it's built on.
 
 Browse [html5boilerplate.com](http://html5boilerplate.com) for the full workup.
 
@@ -9,29 +11,41 @@ Or, you can read more about compass extensions [here](http://compass-style.org/h
 
 
 Installation
-=========================
+============
+
+Two options: 
+
+---
+
+1) A raw install using gem:
 
     gem install compass-h5bp
 
-Or, in your Gemfile
+---
+
+2) Or, if using [Bundler](http://gembundler.com/). Place the following line in your Gemfile:
 
     gem 'compass-h5bp'
 
-Then run
+Then run:
 
     $ bundle install
 
 
 Usage
-=========================
+=====
 
-Inside your Scss (or Sass) file, you first need to import the `h5bp`
-compass library before you can use any of the mixins:
+First, you must add the plugin to your `config.rb` (your Compass configuration file). This can be done be placing an
+import line at the top of the file and is required to add the compass plugin to the sass load paths:
+
+    require 'compass-h5bp'
+    
+Then, inside your SCSS (or Sass) file, you must import the `h5bp` compass library before you can use any of the mixins:
 
     @import "h5bp";
 
-Then include the mixins that make up the Normalize portion of Html5
-Boilerplate's styles. http://necolas.github.com/normalize.css
+Then include the mixins that make up the [Normalize portion](http://necolas.github.com/normalize.css) of HTML5
+Boilerplate's styles. 
 
 You can include all of Normalize at once:
 
@@ -69,10 +83,9 @@ Finally, you can include H5bp's predefined print style media query:
 
 
 License
-========
+=======
 
-HTML5 Boilerplate created by by Paul Irish and Divya Manian
-http://html5boilerplate.com
+[HTML5 Boilerplate](http://html5boilerplate.com), created by by Paul Irish and Divya Manian.
 
-Copyright (c) 2012 Peter Gumeson
+Copyright (c) 2012 Peter Gumeson.
 See [LICENSE](https://github.com/sporkd/compass-h5bp/blob/master/LICENSE) for full license.

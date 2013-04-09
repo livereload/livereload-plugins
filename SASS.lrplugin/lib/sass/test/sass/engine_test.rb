@@ -134,13 +134,13 @@ MSG
     '+foo(1 + 1: 2)' => 'Invalid CSS after "(1 + 1": expected comma, was ": 2)"',
     '+foo($var: )' => 'Invalid CSS after "($var: ": expected mixin argument, was ")"',
     '+foo($var: a, $var: b)' => 'Keyword argument "$var" passed more than once',
-    '+foo($var-var: a, $var_var: b)' => 'Keyword argument "$var-var" passed more than once',
-    '+foo($var_var: a, $var-var: b)' => 'Keyword argument "$var_var" passed more than once',
+    '+foo($var-var: a, $var_var: b)' => 'Keyword argument "$var_var" passed more than once',
+    '+foo($var_var: a, $var-var: b)' => 'Keyword argument "$var-var" passed more than once',
     "a\n  b: foo(1 + 1: 2)" => 'Invalid CSS after "foo(1 + 1": expected comma, was ": 2)"',
     "a\n  b: foo($var: )" => 'Invalid CSS after "foo($var: ": expected function argument, was ")"',
     "a\n  b: foo($var: a, $var: b)" => 'Keyword argument "$var" passed more than once',
-    "a\n  b: foo($var-var: a, $var_var: b)" => 'Keyword argument "$var-var" passed more than once',
-    "a\n  b: foo($var_var: a, $var-var: b)" => 'Keyword argument "$var_var" passed more than once',
+    "a\n  b: foo($var-var: a, $var_var: b)" => 'Keyword argument "$var_var" passed more than once',
+    "a\n  b: foo($var_var: a, $var-var: b)" => 'Keyword argument "$var-var" passed more than once',
     "@if foo\n  @extend .bar" => ["Extend directives may only be used within rules.", 2],
     "$var: true\n@while $var\n  @extend .bar\n  $var: false" => ["Extend directives may only be used within rules.", 3],
     "@for $i from 0 to 1\n  @extend .bar" => ["Extend directives may only be used within rules.", 2],
@@ -2380,6 +2380,22 @@ SASS
   end
 
   # Regression tests
+
+  def test_supports_bubbles
+    assert_equal <<CSS, render(<<SASS)
+parent {
+  background: orange; }
+  @supports (perspective: 10px) or (-moz-perspective: 10px) {
+    parent child {
+      background: blue; } }
+CSS
+parent
+  background: orange
+  @supports (perspective: 10px) or (-moz-perspective: 10px)
+    child
+      background: blue
+SASS
+  end
 
   def test_line_numbers_with_dos_line_endings
     assert_equal <<CSS, render(<<SASS, :line_comments => true)

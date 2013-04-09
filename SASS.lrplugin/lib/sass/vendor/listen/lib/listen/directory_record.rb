@@ -18,7 +18,11 @@ module Listen
     # Defines the used precision based on the type of mtime returned by the
     # system (whether its in milliseconds or just seconds)
     #
-    HIGH_PRECISION_SUPPORTED = File.mtime(__FILE__).to_f.to_s[-2..-1] != '.0'
+    begin
+      HIGH_PRECISION_SUPPORTED = File.mtime(__FILE__).to_f.to_s[-2..-1] != '.0'
+    rescue
+      HIGH_PRECISION_SUPPORTED = false
+    end
 
     # Data structure used to save meta data about a path
     #
@@ -88,6 +92,17 @@ module Listen
       @ignoring_patterns.merge(regexps)
     end
 
+    # Replaces ignoring patterns in the record.
+    #
+    # @example Ignore only these paths
+    #   ignore! %r{^ignored/path/}, /man/
+    #
+    # @param [Regexp] regexp a pattern for ignoring paths
+    #
+    def ignore!(*regexps)
+      @ignoring_patterns.replace(regexps)
+    end
+
     # Adds filtering patterns to the listener.
     #
     # @example Filter some files
@@ -97,6 +112,17 @@ module Listen
     #
     def filter(*regexps)
       @filtering_patterns.merge(regexps)
+    end
+
+    # Replaces filtering patterns in the listener.
+    #
+    # @example Filter only these files
+    #   ignore /\.txt$/, /.*\.zip/
+    #
+    # @param [Regexp] regexp a pattern for filtering paths
+    #
+    def filter!(*regexps)
+      @filtering_patterns.replace(regexps)
     end
 
     # Returns whether a path should be ignored or not.
@@ -163,6 +189,7 @@ module Listen
     #
     def relative_to_base(path)
       return nil unless path[@directory]
+      path = path.force_encoding("BINARY") if path.respond_to?(:force_encoding)
       path.sub(%r{^#{Regexp.quote(@directory)}#{File::SEPARATOR}?}, '')
     end
 
@@ -198,8 +225,11 @@ module Listen
 
             # First check if we are in the same second (to update checksums)
             # before checking the time difference
-            if  (meta_data.mtime.to_i == new_mtime.to_i && content_modified?(path)) || meta_data.mtime < new_mtime
-              # Update the meta data of the files
+            if (meta_data.mtime.to_i == new_mtime.to_i && content_modified?(path)) || meta_data.mtime < new_mtime
+              # Update the sha1 checksum of the file
+              insert_sha1_checksum(path)
+
+              # Update the meta data of the file
               meta_data.mtime = new_mtime
               @paths[directory][basename] = meta_data
 
@@ -247,17 +277,40 @@ module Listen
 
     # Returns whether or not a file's content has been modified by
     # comparing the SHA1-checksum to a stored one.
+    # Ensure that the SHA1-checksum is inserted to the sha1_checksums
+    # array for later comparaison if false.
     #
     # @param [String] path the file path
     #
     def content_modified?(path)
-      sha1_checksum = Digest::SHA1.file(path).to_s
-      return false if @sha1_checksums[path] == sha1_checksum
-      @sha1_checksums.key?(path)
-    rescue Errno::EACCES, Errno::ENOENT
-      false
-    ensure
-      @sha1_checksums[path] = sha1_checksum if sha1_checksum
+      @sha1_checksum = sha1_checksum(path)
+      if @sha1_checksums[path] == @sha1_checksum || !@sha1_checksums.key?(path)
+        insert_sha1_checksum(path)
+        false
+      else
+        true
+      end
+    end
+
+    # Inserts a SHA1-checksum path in @SHA1-checksums hash.
+    #
+    # @param [String] path the SHA1-checksum path to insert in @sha1_checksums.
+    #
+    def insert_sha1_checksum(path)
+      if @sha1_checksum ||= sha1_checksum(path)
+        @sha1_checksums[path] = @sha1_checksum
+        @sha1_checksum = nil
+      end
+    end
+
+    # Returns the SHA1-checksum for the file path.
+    #
+    # @param [String] path the file path
+    #
+    def sha1_checksum(path)
+      Digest::SHA1.file(path).to_s
+    rescue Errno::EACCES, Errno::ENOENT, Errno::ENXIO, Errno::EOPNOTSUPP
+      nil
     end
 
     # Traverses the base directory looking for paths that should

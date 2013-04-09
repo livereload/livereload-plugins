@@ -1,3 +1,62 @@
+## 0.7.2 - January 11, 2013
+
+### Bug fix
+
+- [#76] Exception on filename which is not in UTF-8. (fixed by [@piotr-sokolowski][])
+
+## 0.7.1 - January 6, 2013
+
+### Bug fix
+
+- [#75] Default high precision off if the mtime call fails. (fixed by [@zanker][])
+
+## 0.7.0 - December 29, 2012
+
+### Bug fixes
+
+- [#73] Rescue Errno::EOPNOTSUPP on sha1_checksum generation. (fixed by [@thibaudgg][])
+
+### New feature
+
+- Add support for *BSD with rb-kqueue. ([@mat813][])
+
+## 0.6.0 - November 21, 2012
+
+### New feature
+
+- Add bang versions for filter and ignore listener methods. ([@tarsolya][])
+
+## 0.5.3 - October 3, 2012
+
+### Bug fixes
+
+- [#65] Fix ruby warning in adapter.rb. (fixed by [@vongruenigen][])
+- [#64] ENXIO raised when hashing UNIX domain socket file. (fixed by [@sunaku][])
+
+## 0.5.2 - Septemper 23, 2012
+
+### Bug fix
+
+- [#62] Fix double change callback with polling adapter. (fixed by [@thibaudgg][])
+
+## 0.5.1 - Septemper 18, 2012
+
+### Bug fix
+
+- [#61] Fix a synchronisation bug that caused constant fallback to polling. (fixed by [@Maher4Ever][])
+
+## 0.5.0 - Septemper 1, 2012
+
+### New features
+
+- Add a dependency manager to handle platform-specific gems. So there is no need anymore to install
+  extra gems which will never be used on the user system. ([@Maher4Ever][])
+- Add a manual reporting mode to the adapters. ([@Maher4Ever][])
+
+### Improvements
+
+- [#28] Enhance the speed of detecting changes on Windows by using the [WDM][] library. ([@Maher4Ever][])
+
 ## 0.4.7 - June 27, 2012
 
 ### Bug fixes
@@ -128,8 +187,16 @@
 [#21]: https://github.com/guard/listen/issues/21
 [#24]: https://github.com/guard/listen/issues/24
 [#27]: https://github.com/guard/listen/issues/27
+[#28]: https://github.com/guard/listen/issues/28
 [#32]: https://github.com/guard/listen/issues/32
-[#39]: https://github.com/guard/listen/issues/39
+[#41]: https://github.com/guard/listen/issues/41
+[#61]: https://github.com/guard/listen/issues/61
+[#62]: https://github.com/guard/listen/issues/62
+[#64]: https://github.com/guard/listen/issues/64
+[#65]: https://github.com/guard/listen/issues/65
+[#73]: https://github.com/guard/listen/issues/73
+[#75]: https://github.com/guard/listen/issues/75
+[#76]: https://github.com/guard/listen/issues/76
 [@Maher4Ever]: https://github.com/Maher4Ever
 [@dkubb]: https://github.com/dkubb
 [@ebroder]: https://github.com/ebroder
@@ -138,10 +205,17 @@
 [@daemonza]: https://github.com/daemonza
 [@fny]: https://github.com/fny
 [@markiz]: https://github.com/markiz
+[@mat813]: https://github.com/mat813
 [@napcs]: https://github.com/napcs
 [@netzpirat]: https://github.com/netzpirat
 [@nex3]: https://github.com/nex3
+[@piotr-sokolowski]: https://github.com/piotr-sokolowski
 [@rymai]: https://github.com/rymai
 [@scottdavis]: https://github.com/scottdavis
+[@sunaku]: https://github.com/sunaku
 [@textgoeshere]: https://github.com/textgoeshere
 [@thibaudgg]: https://github.com/thibaudgg
+[@tarsolya]: https://github.com/tarsolya
+[@vongruenigen]: https://github.com/vongruenigen
+[@zanker]: https://github.com/zanker
+[WDM]: https://github.com/Maher4Ever/wdm

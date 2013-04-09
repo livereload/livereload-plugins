@@ -129,7 +129,7 @@ textarea {
     content: "";
     display: block;
     width: 0;
-    height: 100%;
+    height: 150%;
 }
 
 /*
@@ -221,8 +221,10 @@ textarea {
     body { margin: 0; } //HACK
 }
 
-@media only screen and (-webkit-min-device-pixel-ratio: 1.5),
-       only screen and (min-resolution: 144dpi) {
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
     /* Style adjustments for high resolution devices */
     body { margin: 0; } //HACK
 }

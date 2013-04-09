@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'spec_helper'
 
 describe Listen::DirectoryRecord do
@@ -41,9 +42,16 @@ describe Listen::DirectoryRecord do
   end
 
   describe '#ignore' do
-    it 'adds the passed paths to the list of ignoted paths in the record' do
+    it 'adds the passed paths to the list of ignored paths in the record' do
       subject.ignore(%r{^\.old/}, %r{\.pid$})
       subject.ignoring_patterns.should include(%r{^\.old/}, %r{\.pid$})
+    end
+  end
+
+  describe '#ignore!' do
+    it 'replace the ignored paths in the record' do
+      subject.ignore!(%r{^\.old/}, %r{\.pid$})
+      subject.ignoring_patterns.should =~ [%r{^\.old/}, %r{\.pid$}]
     end
   end
 
@@ -51,6 +59,13 @@ describe Listen::DirectoryRecord do
     it 'adds the passed regexps to the list of filters that determine the stored paths' do
       subject.filter(%r{\.(?:jpe?g|gif|png)}, %r{\.(?:mp3|ogg|a3c)})
       subject.filtering_patterns.should include(%r{\.(?:jpe?g|gif|png)}, %r{\.(?:mp3|ogg|a3c)})
+    end
+  end
+
+  describe '#filter!' do
+    it 'replaces the passed regexps in the list of filters that determine the stored paths' do
+      subject.filter!(%r{\.(?:jpe?g|gif|png)}, %r{\.(?:mp3|ogg|a3c)})
+      subject.filtering_patterns.should =~ [%r{\.(?:mp3|ogg|a3c)}, %r{\.(?:jpe?g|gif|png)}]
     end
   end
 
@@ -193,7 +208,12 @@ describe Listen::DirectoryRecord do
     it 'returns nil when the passed path is not inside the base-directory' do
       subject.relative_to_base('/tmp/some_random_path').should be_nil
     end
-    
+
+    it 'works with non UTF-8 paths' do
+      path = "tmp/\xE4\xE4"
+      subject.relative_to_base(File.join(base_directory, path))
+    end
+
     context 'when containing regexp characters in the base directory' do
       before do
         fixtures do |path|
@@ -442,6 +462,11 @@ describe Listen::DirectoryRecord do
           it 'detects the modified file the second time if the content have changed' do
             fixtures do |path|
               touch 'existing_file.txt'
+              # Set sha1 path checksum
+              changes(path) do
+                touch 'existing_file.txt'
+              end
+              small_time_difference
 
               changes(path) do
                 touch 'existing_file.txt'
@@ -456,6 +481,58 @@ describe Listen::DirectoryRecord do
               removed.should be_empty
             end
           end
+
+          it "doesn't detects the modified file the second time if just touched - #62" do
+            fixtures do |path|
+              touch 'existing_file.txt'
+              # Set sha1 path checksum
+              changes(path) do
+                touch 'existing_file.txt'
+              end
+              small_time_difference
+
+              changes(path, :use_last_record => true) do
+                open('existing_file.txt', 'w') { |f| f.write('foo') }
+              end
+
+              modified, added, removed = changes(path, :use_last_record => true) do
+                touch 'existing_file.txt'
+              end
+
+              added.should be_empty
+              modified.should be_empty
+              removed.should be_empty
+            end
+          end
+
+          it "adds the path in the paths checksums if just touched - #62" do
+            fixtures do |path|
+              touch 'existing_file.txt'
+              small_time_difference
+
+              changes(path) do
+                touch 'existing_file.txt'
+              end
+
+              @record.sha1_checksums["#{path}/existing_file.txt"].should_not be_nil
+            end
+          end
+
+        it "deletes the path from the paths checksums" do
+          fixtures do |path|
+            touch 'unnecessary.txt'
+
+            changes(path) do
+              @record.sha1_checksums["#{path}/unnecessary.txt"] = 'foo'
+
+              rm 'unnecessary.txt'
+            end
+
+            @record.sha1_checksums["#{path}/unnecessary.txt"].should be_nil
+          end
+        end
+
+
         end
 
         context 'given a hidden file' do
@@ -1092,7 +1169,7 @@ describe Listen::DirectoryRecord do
 
         # simulate a race condition where the file is removed after the
         # change event is tracked, but before the hash is calculated
-        Digest::SHA1.should_receive(:file).and_raise(Errno::ENOENT)
+        Digest::SHA1.should_receive(:file).twice.and_raise(Errno::ENOENT)
 
         lambda {
           fixtures do |path|
@@ -1104,7 +1181,17 @@ describe Listen::DirectoryRecord do
       end
     end
 
-    context 'with symlinks' do
+    context 'within a directory containing a unix domain socket file' do
+      it 'does not raise an exception when hashing a unix domain socket file' do
+        fixtures do |path|
+          require 'socket'
+          UNIXServer.new('unix_domain_socket.sock')
+          lambda { changes(path){} }.should_not raise_error(Errno::ENXIO)
+        end
+      end
+    end
+
+    context 'with symlinks', :unless => windows? do
       it 'looks at symlinks not their targets' do
         fixtures do |path|
           touch 'target'

@@ -293,7 +293,7 @@ module Sass
     # @return [[Sass::Engine]] The dependency documents.
     def dependencies
       _dependencies(Set.new, engines = Set.new)
-      engines - [self]
+      Sass::Util.array_minus(engines, [self])
     end
 
     # Helper for \{#dependencies}.
@@ -714,6 +714,12 @@ WARNING
         parser = Sass::SCSS::Parser.new(value, @options[:filename], @line)
         Tree::MediaNode.new(parser.parse_media_query_list.to_a)
       else
+        unprefixed_directive = directive.gsub(/^-[a-z0-9]+-/i, '')
+        if unprefixed_directive == 'supports'
+          parser = Sass::SCSS::Parser.new(value, @options[:filename], @line)
+          return Tree::SupportsNode.new(directive, parser.parse_supports_condition)
+        end
+
         Tree::DirectiveNode.new(
           value.nil? ? ["@#{directive}"] : ["@#{directive} "] + parse_interp(value, offset))
       end

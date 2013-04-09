@@ -6,10 +6,10 @@ The Listen gem listens to file modifications and notifies you about the changes.
 
 * Works everywhere!
 * Supports watching multiple directories from a single listener.
-* OS-specific adapters for Mac OS X 10.6+, Linux and Windows.
+* OS-specific adapters for Mac OS X 10.6+, Linux, *BSD and Windows.
 * Automatic fallback to polling if OS-specific adapter doesn't work.
-* Detects files modification, addidation and removal.
-* Checksum comparaison for modifications made under the same second.
+* Detects file modification, addition and removal.
+* Checksum comparison for modifications made under the same second.
 * Allows supplying regexp-patterns to ignore and filter paths for better results.
 * Tested on all Ruby environments via [travis-ci](http://travis-ci.org/guard/listen).
 
@@ -215,6 +215,8 @@ with a directory-separator, otherwise they won't work as expected.
 As an example: to ignore the `build` directory in a C-project, use `%r{build/}`
 and not `%r{/build/}`.
 
+Use `#filter!` and `#ignore!` methods to overwrites default patterns.
+
 ### Non-blocking listening to changes
 
 Starting a listener blocks the current thread by default. That means any code after the
@@ -240,7 +242,7 @@ block execution. See the "Block API" section for an example.
 ## Listen adapters
 
 The Listen gem has a set of adapters to notify it when there are changes.
-There are 3 OS-specific adapters to support Mac, Linux and Windows. These adapters are fast
+There are 3 OS-specific adapters to support Mac, Linux, *BSD and Windows. These adapters are fast
 as they use some system-calls to implement the notifying function.
 
 There is also a polling adapter which is a cross-platform adapter and it will
@@ -251,7 +253,6 @@ want to force the use of the polling adapter, either use the `:force_polling` op
 while initializing the listener or call the `force_polling` method on your listener
 before starting it.
 
-<a name="fallback"/>
 ## Polling fallback
 
 When a OS-specific adapter doesn't work the Listen gem automatically falls back to the polling adapter.
@@ -286,6 +287,7 @@ For questions please join us in our [Google group](http://groups.google.com/grou
 * [Michael Kessler (netzpirat)][] for having written the [initial specs](https://github.com/guard/listen/commit/1e457b13b1bb8a25d2240428ce5ed488bafbed1f).
 * [Travis Tilley (ttilley)][] for this awesome work on [fssm][] & [rb-fsevent][].
 * [Nathan Weizenbaum (nex3)][] for [rb-inotify][], a thorough inotify wrapper.
+* [Mathieu Arnold (mat813)][] for [rb-kqueue][], a simple kqueue wrapper.
 * [stereobooster][] for [rb-fchange][], windows support wouldn't exist without him.
 * [Yehuda Katz (wycats)][] for [vigilo][], that has been a great source of inspiration.
 
@@ -304,6 +306,7 @@ For questions please join us in our [Google group](http://groups.google.com/grou
 [Travis Tilley (ttilley)]: https://github.com/ttilley
 [fssm]: https://github.com/ttilley/fssm
 [rb-fsevent]: https://github.com/thibaudgg/rb-fsevent
+[Mathieu Arnold (mat813)]: https://github.com/mat813
 [Nathan Weizenbaum (nex3)]: https://github.com/nex3
 [rb-inotify]: https://github.com/nex3/rb-inotify
 [stereobooster]: https://github.com/stereobooster

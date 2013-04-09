@@ -28,4 +28,10 @@ describe Listen::Adapters::Darwin do
       described_class.should_not be_usable
     end
   end
+
+  if bsd?
+    it "isn't usable on BSD" do
+      described_class.should_not be_usable
+    end
+  end
 end

@@ -1,14 +1,16 @@
 module Listen
 
-  autoload :Turnstile,       'listen/turnstile'
-  autoload :Listener,        'listen/listener'
-  autoload :MultiListener,   'listen/multi_listener'
-  autoload :DirectoryRecord, 'listen/directory_record'
-  autoload :Adapter,         'listen/adapter'
+  autoload :Turnstile,         'listen/turnstile'
+  autoload :Listener,          'listen/listener'
+  autoload :MultiListener,     'listen/multi_listener'
+  autoload :DirectoryRecord,   'listen/directory_record'
+  autoload :DependencyManager, 'listen/dependency_manager'
+  autoload :Adapter,           'listen/adapter'
 
   module Adapters
     autoload :Darwin,  'listen/adapters/darwin'
     autoload :Linux,   'listen/adapters/linux'
+    autoload :BSD,     'listen/adapters/bsd'
     autoload :Windows, 'listen/adapters/windows'
     autoload :Polling, 'listen/adapters/polling'
   end
