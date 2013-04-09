@@ -37,6 +37,11 @@ begin
       end
     end
 
+    test "redcarpet2 is our default choice" do
+      template = Tilt::RedcarpetTemplate.new {}
+      assert_equal Tilt::RedcarpetTemplate::Redcarpet2, template.prepare.class
+    end
+
     test "preparing and evaluating templates on #render" do
       template = Tilt::RedcarpetTemplate.new { |t| "# Hello World!" }
       assert_equal "<h1>Hello World!</h1>\n", template.render
@@ -48,12 +53,19 @@ begin
     end
 
     test "smartypants when :smart is set" do
-      template = Tilt::RedcarpetTemplate.new(:smart => true) { |t|
+      template = Tilt::RedcarpetTemplate.new(:smartypants => true) { |t|
         "OKAY -- 'Smarty Pants'" }
-      assert_match /<p>OKAY &[nm]dash; &lsquo;Smarty Pants&rsquo;<\/p>/,
+      assert_match /<p>OKAY &ndash; &#39;Smarty Pants&#39;<\/p>/,
+        template.render
+    end
+
+    test "smartypants with a rendererer instance" do
+      template = Tilt::RedcarpetTemplate.new(:renderer => Redcarpet::Render::HTML.new(:hard_wrap => true), :smartypants => true) { |t|
+        "OKAY -- 'Smarty Pants'" }
+      assert_match /<p>OKAY &ndash; &#39;Smarty Pants&#39;<\/p>/,
         template.render
     end
   end
 rescue LoadError => boom
-  warn "Tilt::RedcarpetTemplate (disabled)\n"
+  warn "Tilt::RedcarpetTemplate (disabled)"
 end

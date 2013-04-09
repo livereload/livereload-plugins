@@ -22,8 +22,9 @@ module Temple
       }.freeze
 
       define_options :format => :xhtml,
-                     :attr_wrapper => "'",
-                     :autoclose => %w[meta img link br hr input area param col base]
+                     :attr_quote => '"',
+                     :autoclose => %w[meta img link br hr input area param col base],
+                     :js_wrapper => nil
 
       HTML = [:html, :html4, :html5]
 
@@ -32,6 +33,22 @@ module Temple
         unless [:xhtml, *HTML].include?(options[:format])
           raise ArgumentError, "Invalid format #{options[:format].inspect}"
         end
+        wrapper = options[:js_wrapper]
+        wrapper = xhtml? ? :cdata : :comment if wrapper == :guess
+        @js_wrapper =
+          case wrapper
+          when :comment
+            [ "<!--\n", "\n//-->" ]
+          when :cdata
+            [ "\n//<![CDATA[\n", "\n//]]>\n" ]
+          when :both
+            [ "<!--\n//<![CDATA[\n", "\n//]]>\n//-->" ]
+          when nil
+          when Array
+            wrapper
+          else
+            raise ArgumentError, "Invalid JavaScript wrapper #{wrapper.inspect}"
+          end
       end
 
       def xhtml?
@@ -47,7 +64,7 @@ module Temple
 
         if type =~ /^xml(\s+(.+))?$/
           raise(FilterError, 'Invalid xml directive in html mode') if html?
-          w = options[:attr_wrapper]
+          w = options[:attr_quote]
           str = "<?xml version=#{w}1.0#{w} encoding=#{w}#{$2 || 'utf-8'}#{w} ?>"
         elsif html?
           str = HTML_DOCTYPES[type] || raise(FilterError, "Invalid html doctype #{type}")
@@ -88,9 +105,20 @@ module Temple
 
       def on_html_attr(name, value)
         [:multi,
-         [:static, " #{name}=#{options[:attr_wrapper]}"],
+         [:static, " #{name}=#{options[:attr_quote]}"],
          compile(value),
-         [:static, options[:attr_wrapper]]]
+         [:static, options[:attr_quote]]]
+      end
+
+      def on_html_js(content)
+        if @js_wrapper
+          [:multi,
+           [:static, @js_wrapper.first],
+           compile(content),
+           [:static, @js_wrapper.last]]
+        else
+          compile(content)
+        end
       end
     end
   end

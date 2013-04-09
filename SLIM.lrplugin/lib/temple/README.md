@@ -1,7 +1,7 @@
 Temple
 ======
 
-[![Build Status](https://secure.travis-ci.org/judofyr/temple.png?branch=master)](http://travis-ci.org/judofyr/temple) [![Dependency Status](https://gemnasium.com/judofyr/temple.png?travis)](https://gemnasium.com/judofyr/temple) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/judofyr/temple)
+[![Build Status](https://secure.travis-ci.org/judofyr/temple.png?branch=master)](http://travis-ci.org/judofyr/temple) [![Dependency Status](https://gemnasium.com/judofyr/temple.png?travis)](https://gemnasium.com/judofyr/temple) [![Code Climate](https://codeclimate.com/github/judofyr/temple.png)](https://codeclimate.com/github/judofyr/temple)
 
 Temple is an abstraction and a framework for compiling templates to pure Ruby.
 It's all about making it easier to experiment, implement and optimize template
@@ -246,10 +246,10 @@ as following:
 Engines using Temple
 --------------------
 
-* Temple ERB example implementation (Temple::ERB::Template)
-* [Slim](http://github.com/stonean/slim)
+* [Slim](http://github.com/slim-template/slim)
 * [Sal](http://github.com/stonean/sal.rb)
 * [Temple-Mustache (Example implementation)](https://github.com/minad/temple-mustache)
+* Temple ERB example implementation (Temple::ERB::Template)
 
 Acknowledgements
 ----------------

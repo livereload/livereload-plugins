@@ -1,3 +1,20 @@
+0.6.3
+
+  * Fix HTML escaping for HTML::Pretty (Issue #69)
+
+0.6.2
+
+  * [:html, :js, code] abstraction added
+
+0.6.1
+
+  * HTML::Pretty improved
+
+0.6.0
+
+  * HTML::AttributeMerger: rename option :attr_delimiter to :merge_attrs
+  * HTML: rename option :attr_wrapper to :attr_quote
+
 0.5.5
 
   * HTML pretty: Do not remove empty lines, add newline after doctype

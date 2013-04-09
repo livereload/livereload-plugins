@@ -15,7 +15,7 @@ Options
   -y, --layout=<file>  Use <file> as a layout template
 
   -D<name>=<value>     Define variable <name> as <value>
-  -o, --vars=<ruby>    Evaluate <ruby> to Hash and use for variables
+  --vars=<ruby>        Evaluate <ruby> to Hash and use for variables
 
   -h, --help           Show this help message
 
@@ -27,9 +27,9 @@ Process ERB template:
   Answer: 4
 
 Define variables:
-  $ echo "Answer: <%= 2 + n %>" | tilt --locals="{:n=>40, :x=>0}"
+  $ echo "Answer: <%= 2 + n %>" | tilt -t erb --vars="{:n=>40}"
   Answer: 42
-  $ echo "Answer: <%= 2 + n %>" | tilt -Dn=40 -Dx=0
+  $ echo "Answer: <%= 2 + n.to_i %>" | tilt -t erb -Dn=40
   Answer: 42
 USAGE
 
@@ -44,9 +44,11 @@ ARGV.options do |o|
   # list all available template engines
   o.on("-l", "--list") do
     groups = {}
-    Tilt.mappings.each do |pattern,engine|
-      key = engine.name.split('::').last.sub(/Template$/, '')
-      (groups[key] ||= []) << pattern
+    Tilt.mappings.each do |pattern,engines|
+      engines.each do |engine|
+        key = engine.name.split('::').last.sub(/Template$/, '')
+        (groups[key] ||= []) << pattern
+      end
     end
     groups.sort { |(k1,v1),(k2,v2)| k1 <=> k2 }.each do |engine,files|
       printf "%-15s %s\n", engine, files.sort.join(', ')

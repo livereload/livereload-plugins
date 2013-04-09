@@ -26,7 +26,7 @@ module MarkdownTests
     html.encode!("UTF-8") if html.respond_to?(:encode)
     normalize(html)
   end
-  
+
   def test_escape_html
     html = nrender "Hello <b>World</b>"
     assert_equal "<p>Hello <b>World</b></p>", html
@@ -98,7 +98,18 @@ begin
 
     def test_smarty_pants_true
       html = nrender "Hello ``World'' -- This is --- a test ...", :smartypants => true
-      assert_equal "<p>Hello “World” – This is — a test …</p>", html
+      assert_equal "<p>Hello “World'' – This is — a test …</p>", html
+    end
+
+    def test_fenced_code_blocks_with_lang
+      code = <<-COD.gsub(/^\s+/,"")
+      ```ruby
+      puts "hello world"
+      ```
+      COD
+
+      html = nrender code, :fenced_code_blocks => true
+      assert_equal %Q{<pre><code class="ruby">puts "hello world"\n</code></pre>}, html
     end
   end
 rescue LoadError => boom
@@ -133,7 +144,7 @@ rescue LoadError => boom
   # It should already be warned in the main tests
 end
 
-  
+
 begin
   require 'maruku'
 
@@ -155,7 +166,7 @@ rescue LoadError => boom
 end
 
 rescue LoadError
-  warn "Markdown tests need Nokogiri\n"
+  warn "Markdown tests need Nokogiri"
 end
 
 

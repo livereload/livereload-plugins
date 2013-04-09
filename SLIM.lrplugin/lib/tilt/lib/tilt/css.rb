@@ -24,6 +24,10 @@ module Tilt
       @output ||= @engine.render
     end
 
+    def allows_script?
+      false
+    end
+
   private
     def sass_options
       options.merge(:filename => eval_file, :line => line, :syntax => :sass)
@@ -59,13 +63,17 @@ module Tilt
       if ::Less.const_defined? :Engine
         @engine = ::Less::Engine.new(data)
       else
-        parser  = ::Less::Parser.new(:filename => eval_file, :line => line)
+        parser  = ::Less::Parser.new(options.merge :filename => eval_file, :line => line)
         @engine = parser.parse(data)
       end
     end
 
     def evaluate(scope, locals, &block)
-      @output ||= @engine.to_css
+      @output ||= @engine.to_css(options)
+    end
+
+    def allows_script?
+      false
     end
   end
 end

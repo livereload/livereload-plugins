@@ -37,6 +37,10 @@ module Tilt
     def evaluate(scope, locals, &block)
       @output ||= @engine.to_html
     end
+
+    def allows_script?
+      false
+    end
   end
 
   # Upskirt Markdown implementation. See:
@@ -53,12 +57,16 @@ module Tilt
     end
 
     def prepare
-      klass = [Redcarpet1, Redcarpet2].detect { |e| e.engine_initialized? }
+      klass = [Redcarpet2, Redcarpet1].detect { |e| e.engine_initialized? }
       @engine = klass.new(file, line, options) { data }
     end
 
     def evaluate(scope, locals, &block)
       @engine.evaluate(scope, locals, &block)
+    end
+
+    def allows_script?
+      false
     end
 
     # Compatibility mode for Redcarpet 1.x
@@ -80,22 +88,22 @@ module Tilt
       self.default_mime_type = 'text/html'
 
       def self.engine_initialized?
-        defined? ::Redcarpet::Render
+        defined? ::Redcarpet::Render and defined? ::Redcarpet::Markdown
       end
 
       def generate_renderer
-        renderer = options.delete(:renderer) || Redcarpet::Render::HTML
+        renderer = options.delete(:renderer) || ::Redcarpet::Render::HTML
         return renderer unless options.delete(:smartypants)
-        return renderer if renderer <= Redcarpet::Render::SmartyPants
+        return renderer if renderer.is_a?(Class) && renderer <= ::Redcarpet::Render::SmartyPants
 
-        if renderer == Redcarpet::Render::XHTML
-          Redcarpet::Render::SmartyHTML.new(:xhtml => true)
-        elsif renderer == Redcarpet::Render::HTML
-          Redcarpet::Render::SmartyHTML
+        if renderer == ::Redcarpet::Render::XHTML
+          ::Redcarpet::Render::SmartyHTML.new(:xhtml => true)
+        elsif renderer == ::Redcarpet::Render::HTML
+          ::Redcarpet::Render::SmartyHTML
         elsif renderer.is_a? Class
-          Class.new(renderer) { include Redcarpet::Render::SmartyPants }
+          Class.new(renderer) { include ::Redcarpet::Render::SmartyPants }
         else
-          renderer.extend Redcarpet::Render::SmartyPants
+          renderer.extend ::Redcarpet::Render::SmartyPants
         end
       end
 
@@ -109,12 +117,16 @@ module Tilt
         # only raise an exception if someone is trying to enable :escape_html
         options.delete(:escape_html) unless options[:escape_html]
 
-        @engine = Redcarpet::Markdown.new(generate_renderer, options)
+        @engine = ::Redcarpet::Markdown.new(generate_renderer, options)
         @output = nil
       end
 
       def evaluate(scope, locals, &block)
         @output ||= @engine.render(data)
+      end
+
+      def allows_script?
+        false
       end
     end
   end
@@ -140,6 +152,10 @@ module Tilt
     def evaluate(scope, locals, &block)
       @output ||= @engine.to_html
     end
+
+    def allows_script?
+      false
+    end
   end
 
   # Maruku markdown implementation. See:
@@ -160,6 +176,10 @@ module Tilt
 
     def evaluate(scope, locals, &block)
       @output ||= @engine.to_html
+    end
+
+    def allows_script?
+      false
     end
   end
 
@@ -184,6 +204,10 @@ module Tilt
 
     def evaluate(scope, locals, &block)
       @output ||= @engine.to_html
+    end
+
+    def allows_script?
+      false
     end
   end
 end

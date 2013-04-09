@@ -57,7 +57,7 @@ implementations.
 ### Example
 
     Hello <%= world %>!
-    
+
 ### Usage
 
 ERB templates support custom evaluation scopes and locals:
@@ -197,7 +197,7 @@ a replacement for inline page templating systems such as PHP, ASP, and ERB, the
 templating language used in most Ruby on Rails applications. However, Haml
 avoids the need for explicitly coding HTML into the template, because it itself
 is a description of the HTML, with some code to generate dynamic content.
-([more](http://haml-lang.com/about.html))
+([more](http://haml.info/about.html))
 
 
 ### Example
@@ -243,13 +243,13 @@ using this template engine within a threaded environment.
 
 ### Options
 
-Please see the [Haml Reference](http://haml-lang.com/docs/yardoc/file.HAML_REFERENCE.html#options) for all available options.
+Please see the [Haml Reference](http://haml.info/docs/yardoc/file.HAML_REFERENCE.html#options) for all available options.
 
 ### See also
 
-  * [#haml.docs](http://haml-lang.com/docs.html)
-  * [Haml Tutorial](http://haml-lang.com/tutorial.html)
-  * [Haml Reference](http://haml-lang.com/docs/yardoc/HAML_REFERENCE.md.html)
+  * [#haml.docs](http://haml.info/docs.html)
+  * [Haml Tutorial](http://haml.info/tutorial.html)
+  * [Haml Reference](http://haml.info/docs/yardoc/file.HAML_REFERENCE.html)
 
 
 <a name='liquid'></a>
@@ -294,7 +294,7 @@ default. Liquid templates support locals and objects that respond to
 
 Or, use `Tilt::LiquidTemplate` directly to process strings:
 
-    >> require 'haml'
+    >> require 'liquid'
     >> template = Tilt::LiquidTemplate.new { "<h1>Hello Liquid!</h1>" }
     => #<Tilt::LiquidTemplate @file=nil ...>
     >> template.render
@@ -379,7 +379,7 @@ engine, which is a Ruby extension written in C.
 ### Example
 
     h1. Hello Textile Templates
-    
+
     Hello World. This is a paragraph.
 
 ### Usage
@@ -407,9 +407,9 @@ library.
 
 ### Usage
 
-__NOTE:__ It's suggested that your program `require 'rdoc/markup'` and
-`require 'rdoc/markup/to_html'` at load time when using this template
-engine in a threaded environment.
+__NOTE:__ It's suggested that your program `require 'rdoc'`,
+`require 'rdoc/markup'`, and `require 'rdoc/markup/to_html'` at load time
+when using this template engine in a threaded environment.
 
 ### See also
 
@@ -434,7 +434,7 @@ Markdown formatted texts are converted to HTML with one of these libraries:
   * Maruku - `Tilt::MarukuTemplate`
 
 Tilt will use fallback mode (as documented in the README) for determining which
-library to use. RDiscount has highest priority - Maruku has lowest. 
+library to use. RDiscount has highest priority - Maruku has lowest.
 
 ### Example
 
@@ -504,7 +504,7 @@ using this template engine within a threaded environment.
 [sass]: http://sass-lang.com/ "Sass"
 [coffee-script]: http://jashkenas.github.com/coffee-script/ "Coffee Script"
 [erubis]: http://www.kuwata-lab.com/erubis/ "Erubis"
-[haml]: http://haml-lang.org/ "Haml"
+[haml]: http://haml.info/ "Haml"
 [liquid]: http://www.liquidmarkup.org/ "Liquid"
 [radius]: http://radius.rubyforge.org/ "Radius"
 [radiant]: http://radiantcms.org/ "Radiant CMS"
