@@ -28,6 +28,12 @@
           "Type": "checkbox",
           "Title": "No wrapper (--bare)",
           "OnArgument": "--bare"
+        },
+        {
+          "Id": "source-map",
+          "Type": "checkbox",
+          "Title": "Generate source map (--map)",
+          "OnArgument": "--map"
         }
       ]
     }

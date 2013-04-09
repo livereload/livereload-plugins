@@ -22,6 +22,7 @@ OPTIONS = [
 
   "Compilation options:"
   "  -b, --bare         Compile without a top-level function wrapper"
+  "  --map              Generate source map and save as .map files"
 
   "General options:"
   "  -v, --version      Display the version number", printVersion
@@ -50,8 +51,22 @@ compilePath = (source, destination, opts) ->
     process.exit EXIT_E_IO
 
   try
-    js = CoffeeScript.compile coffee.toString(), compilerOptions(source, opts)
+    if opts.map
+      sourceMapPath = destination.replace(/\.js$/, '') + '.map'
+      sourceMapBaseName = path.basename(sourceMapPath)
+
+    compiled = CoffeeScript.compile coffee.toString(), compilerOptions(source, opts, { source, destination, sourceMapPath })
+    if opts.map
+      js = compiled.js
+      sourceMap = compiled.v3SourceMap
+    else
+      js = compiled
+      sourceMap = null
+
     js = ' ' if js.length <= 0
+
+    if sourceMap
+      js = "#{js}\n/*\n//@ sourceMappingURL=#{sourceMapBaseName}\n*/\n"
 
     await exists path.dirname(destination), defer(itExists)
     unless itExists
@@ -62,14 +77,32 @@ compilePath = (source, destination, opts) ->
       console.error err.message
       process.exit EXIT_E_IO
 
+    if sourceMap
+      await fs.writeFile sourceMapPath, sourceMap, defer(err)
+      if err
+        console.error err.message
+        process.exit EXIT_E_IO
+
+
   catch err
     printWarn err instanceof Error and err.stack or "ERROR: #{err}"
     process.exit EXIT_E_COMPILATION
 
 
 
-compilerOptions = (filename, opts) ->
-  {filename, bare: opts.bare, header: yes}
+compilerOptions = (filename, opts, paths) ->
+  srcDir = path.dirname(paths.source)
+  jsDir  = path.dirname(paths.destination)
+
+  {
+    filename,
+    bare: opts.bare,
+    sourceMap: opts.map,
+    header: yes,
+    sourceRoot: path.relative jsDir, srcDir
+    sourceFiles: [path.basename(paths.source)]
+    generatedFile: path.basename(paths.destination)
+  }
 
 
 mkdir_p = (path, mode, callback, position) ->
