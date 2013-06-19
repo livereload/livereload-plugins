@@ -1,0 +1,91 @@
+{
+  "LRCompilers": [
+    {
+      "CommandLine": [
+        "$(node)",
+        "$(plugin)/node_modules/typescript/bin/tsc.js",
+        "$(additional)",
+        "--out",
+        "$(dst_path)",
+        "$(src_path)"
+      ],
+      "DestinationExtension": "js",
+      "Errors": [
+        "((file))\\(((line)),\\d+\\): error TS\\d+: ((message))\n"
+      ],
+      "Extensions": [
+        "ts"
+      ],
+      "Name": "TypeScript",
+      "ExpectedOutputDirectories": [
+        "js",
+        "javascript",
+        "javascripts"
+      ],
+      "Options": [
+        {
+          "Id": "comments",
+          "Type": "checkbox",
+          "Title": "Emit comments to output",
+          "OnArgument": "--comments"
+        },
+        {
+          "Id": "source-map",
+          "Type": "checkbox",
+          "Title": "Generate source map",
+          "OnArgument": "--sourcemap"
+        },
+        {
+          "Id": "declaration",
+          "Type": "checkbox",
+          "Title": "Generate corresponding .d.ts file",
+          "OnArgument": "--declaration"
+        },
+        {
+          "Id": "module-system",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "commonjs",
+              "Title": "CommonJS/Node.js modules",
+              "Argument": "--module commonjs"
+            },
+            {
+              "Id": "amd",
+              "Title": "Async Module Def (AMD) modules",
+              "Argument": "--module amd"
+            }
+          ]
+        },
+        {
+          "Id": "target",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "es3",
+              "Title": "Target ECMAScript 3 (default)",
+              "Argument": "--target ES3"
+            },
+            {
+              "Id": "es5",
+              "Title": "Target ECMAScript 5",
+              "Argument": "--target ES5"
+            }
+          ]
+        },
+        {
+          "Id": "disallow-bool",
+          "Type": "checkbox",
+          "Title": "Throw error for use of deprecated ‘bool’ type",
+          "OnArgument": "--disallowbool"
+        },
+        {
+          "Id": "disallow-import-module",
+          "Type": "checkbox",
+          "Title": "Throw error for use of deprecated ‘module’ kw",
+          "OnArgument": "--disallowimportmodule"
+        }
+      ]
+    }
+  ]
+}

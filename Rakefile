@@ -214,6 +214,7 @@ task 'all:pre'
 
 PluginTask.new 'CoffeeScript', :npm => %w(coffee-script)
 PluginTask.new 'IcedCoffeeScript', :npm => %w(iced-coffee-script)
+PluginTask.new 'TypeScript', :npm => %w(typescript)
 PluginTask.new 'Eco',        :npm => %w(eco)
 PluginTask.new 'LESS',       :npm => %w(less)
 PluginTask.new 'Stylus',     :npm => %w(stylus nib canvas)
