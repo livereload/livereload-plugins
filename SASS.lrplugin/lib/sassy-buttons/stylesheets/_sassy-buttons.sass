@@ -5,6 +5,7 @@
 @import "compass/css3/box-shadow"
 @import "compass/css3/text-shadow"
 @import "compass/css3/images"
+@import "compass/css3/opacity"
 
 @import "sassy-buttons/sassy-button-gradients"
 @import "sassy-buttons/sassy-button-styles"
@@ -52,6 +53,7 @@ $sb-ie-support: true !default
 @mixin sassy-button-default-structure
   display: inline-block
   cursor: pointer
+  text-decoration: none
 
 // The Sassy Button kitchen sink.
 @mixin sassy-button($gradient-style: $sb-gradient-style, $border-radius: $sb-border-radius, $font-size: $sb-font-size, $first-color: $sb-base-color, $second-color: $sb-second-color, $text-color:$sb-text-color, $text-style: $sb-text-style, $auto-states: $sb-pseudo-states, $ie: $sb-ie-support)
@@ -61,9 +63,10 @@ $sb-ie-support: true !default
 
 
 // Structure for a sassy button
-@mixin sassy-button-structure($border-radius: $sb-border-radius, $font-size: $sb-font-size, $padding: $sb-padding)
+@mixin sassy-button-structure($border-radius: $sb-border-radius, $font-size: $sb-font-size, $padding: $sb-padding, $color: $sb-text-color)
   font-size: $font-size
   padding: $padding
+  color: $color
   @include sassy-button-default-structure
   @include border-radius($border-radius)
 

@@ -1,8 +1,6 @@
-<% @side_nav = "using" %>
-
 <div class="row">
   <div class="large-9 push-3 columns"
-    <% @page_title = "Rails" %>
+    <% @page_title = "Installing with Rails" %>
     <div class="row">
       <div class="large-12 columns">
         <h2><%= @page_title %></h2>
@@ -24,7 +22,7 @@ end
 
       <p>Then run <code>bundle install</code> to finish installing Foundation.</p>
 
-      <div class="panel">
+      <div class="alert-box">
         <p><strong>NOTE:</strong> Make sure that your restart your server after running <code>bundle install</code>. Otherwise the asset pipeline may not recognize the new Foundation files.</p>
       </div>
 
@@ -46,19 +44,11 @@ end
 ', :css %>
 
       <h5 class="subheader">Add Foundation to your JS</h5>
-      <p>Append the following lines to your <code>app/assets/javascripts/application.js</code> file:</p>
+      <p>Append the following line to your <code>app/assets/javascripts/application.js</code> file:</p>
 
 <%= code_example '
 //= require foundation
-$(document).foundation();
 ', :js %>
-
-      <h5 class="subheader">Add Modernizr</h5>
-      <p>Make sure that <a href="http://modernizr.com/" rel="nofollow">Modernizr</a> is included in the <code>&lt;head&gt;</code> of your page:</p>
-
-<%= code_example '
-javascript_include_tag "vendor/custom.modernizr"
-', :ruby %>
 
       <h5 class="subheader">Set Viewport Width</h5>
       <p>Add the following line to the <kbd>&lt;head&gt;</kbd> of your page layout:</p>

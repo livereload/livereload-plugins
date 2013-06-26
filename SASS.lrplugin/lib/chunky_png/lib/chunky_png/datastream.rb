@@ -1,7 +1,7 @@
 module ChunkyPNG
 
   # The Datastream class represents a PNG formatted datastream. It supports
-  # both reading from and writing to strings, streams and files.
+  # both reading from and writing to strings, stremas and files.
   #
   # A PNG datastream begins with the PNG signature, and than contains multiple
   # chunks, starting with a header (IHDR) chunk and finishing with an end
@@ -11,7 +11,7 @@ module ChunkyPNG
   class Datastream
 
     # The signature that each PNG file or stream should begin with.
-    SIGNATURE = ChunkyPNG.force_binary([137, 80, 78, 71, 13, 10, 26, 10].pack('C8'))
+    SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10].pack('C8')
 
     # The header chunk of this datastream.
     # @return [ChunkyPNG::Chunk::Header]
@@ -98,8 +98,8 @@ module ChunkyPNG
       #    the beginning of the stream.
       def verify_signature!(io)
         signature = io.read(ChunkyPNG::Datastream::SIGNATURE.length)
-        unless ChunkyPNG.force_binary(signature) == ChunkyPNG::Datastream::SIGNATURE
-          raise ChunkyPNG::SignatureMismatch, "PNG signature not found, found #{signature.inspect} instead of #{ChunkyPNG::Datastream::SIGNATURE.inspect}!"
+        unless signature == ChunkyPNG::Datastream::SIGNATURE
+          raise ChunkyPNG::SignatureMismatch, "PNG signature not found!"
         end
       end
     end
@@ -113,7 +113,7 @@ module ChunkyPNG
     # This will iterate over the chunks using the order in which the chunks
     # should appear in the PNG file.
     #
-    # @yield [chunk] Yields the chunks in this datastream, one by one in the correct order.
+    # @yield [chunk] Yields the chunks in this datastrean, one by one in the correct order.
     # @yieldparam [ChunkyPNG::Chunk::Base] chunk A chunk in this datastream.
     # @see ChunkyPNG::Datastream#chunks
     def each_chunk

@@ -1,0 +1,15 @@
+// Margins
+// =======
+
+// Add margin before or after an element
+@mixin margin-output(
+  $before,
+  $after  : $before,
+  $flow   : $flow
+) {
+  $to: to($flow);
+  $from: from($flow);
+
+  margin-#{$from}: $before;
+  margin-#{$to}: $after;
+}

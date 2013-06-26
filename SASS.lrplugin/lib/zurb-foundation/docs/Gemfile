@@ -1,13 +1,8 @@
-source 'https://rubygems.org'
-
-gem 'redcarpet'
+source :rubygems
 gem 'sprockets'
 gem 'foreman'
 gem 'stasis'
 gem 'sass', :require => false
 gem 'coderay'
 gem 'uglifier'
-
-group :production do
-  gem 'therubyracer'
-end
+gem 'therubyracer'

@@ -1,7 +1,6 @@
 // Orbit Settings
 
 // We use these to control the caption styles
-$orbit-container-bg: #f5f5f5 !default;
 $orbit-caption-bg-old-browser: #000 !default;
 $orbit-caption-bg-old: rgb(0,0,0) !default;
 $orbit-caption-bg: rgba(0,0,0,0.6) !default;
@@ -24,15 +23,12 @@ $orbit-slide-number-bg: rgb(0,0,0) !default;
 $orbit-slide-number-font-color: #fff !default;
 $orbit-slide-number-padding: emCalc(5px) !default;
 
-// Margin for when Orbit is stacked on small screens
-$stack-on-small-margin-bottom: emCalc(20px) !default;
-
 
 .orbit-container {
   overflow: hidden;
   width: 100%;
   position: relative;
-  background: $orbit-container-bg;
+  background: #f5f5f5;
 
   .orbit-slides-container {
     list-style: none;
@@ -44,7 +40,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
 
     &>* {
       position: relative;
-      float: $default-float;
+      float: left;
       height: 100%;
 
       .orbit-caption {
@@ -57,7 +53,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
         padding: 10px 14px;
         font-size: emCalc(14px);
 
-        * { color: $orbit-caption-font-color; }
+        * { color: #fff; }
       }
     }
   }
@@ -65,7 +61,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
   .orbit-slide-number {
     position: absolute;
     top: 10px;
-    #{$default-float}: 10px;
+    left: 10px;
     font-size: 12px;
     span { font-weight: 700; }
   }
@@ -73,7 +69,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
   .orbit-timer {
     position: absolute;
     top: 10px;
-    #{$opposite-direction}: 10px;
+    right: 10px;
     height: 6px;
     width: 100px;
     .orbit-progress {
@@ -88,7 +84,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
       display: none;
       position: absolute;
       top: 10px;
-      #{$opposite-direction}: 0px;
+      right: 0px;
       width: 11px;
       height: 14px;
       border: solid 4px #000;
@@ -98,7 +94,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
 
     &.paused {
       & > span {
-        #{$opposite-direction}: -6px;
+        right: -6px;
         top: 9px;
         width: 11px;
         height: 14px;
@@ -134,25 +130,17 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
       border: solid 16px;
     }
   }
-  .orbit-prev { #{$default-float}: 0;
-    & > span { 
-      border-color: transparent;
-      border-#{$opposite-direction}-color: #fff;
-    }
-    &:hover > span {
-      border-#{$opposite-direction}-color: #ccc;
-    }
+  .orbit-prev { left: 0;
+    & > span { border-color: transparent #fff transparent transparent; }
+    &:hover > span { border-color: transparent #ccc transparent transparent; }
   }
-  .orbit-next { #{$opposite-direction}: 0;
+  .orbit-next { right: 0;
     & > span {
-      border-color: transparent;
-      border-#{$default-float}-color: #fff;
-      #{$default-float}: 50%;
-      margin-#{$default-float}: -8px;
+      border-color: transparent transparent transparent #fff;
+      left: 50%;
+      margin-left: -8px;
     }
-    &:hover > span {
-      border-#{$default-float}-color: #ccc;
-    }
+    &:hover > span { border-color: transparent transparent transparent #ccc; }
   }
 }
 
@@ -167,8 +155,8 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
     width: 18px;
     height: 18px;
     background: #fff;
-    float: $default-float;
-    margin-#{$opposite-direction}: 6px;
+    float: left;
+    margin-right: 6px;
     border: solid 2px #000;
     @include radius(1000px);
 
@@ -176,7 +164,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
       background: #000;
     }
 
-    &:last-child { margin-#{$opposite-direction}: 0; }
+    &:last-child { margin-right: 0; }
   }
 }
 
@@ -189,7 +177,6 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
   .orbit-bullets { display: none; }
 }
 
-
 @media #{$small} {
 
   .touch {
@@ -200,5 +187,7 @@ $stack-on-small-margin-bottom: emCalc(20px) !default;
 
     .orbit-bullets { display: block; }
   }
+
+
 
 }

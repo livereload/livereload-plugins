@@ -11,7 +11,6 @@ Without CSS gradient support:
 ## Install
 
 Install the plugin: (should automatically install latest dependencies for Compass, and Haml)
-
     gem install fancy-buttons
 
 To create a new project based on fancy-buttons:

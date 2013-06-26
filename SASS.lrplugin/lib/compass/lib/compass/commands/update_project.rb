@@ -9,7 +9,7 @@ module Compass
           Usage: compass compile [path/to/project] [path/to/project/src/file.sass ...] [options]
 
           Description:
-          compile project at the path specified or the current director if not specified.
+          compile project at the path specified or the current directory if not specified.
 
           Options:
         }.split("\n").map{|l| l.gsub(/^ */,'')}.join("\n")
@@ -48,7 +48,7 @@ module Compass
 
       def check_for_sass_files!(compiler)
         if compiler.sass_files.empty? && !dry_run?
-          message = "Nothing to compile. If you're trying to start a new project, you have left off the directory argument.\n"
+          message = "Compass can't find any Sass files to compile.\nIs your compass configuration correct?.\nIf you're trying to start a new project, you have left off the directory argument.\n"
           message << "Run \"compass -h\" to get help."
           raise Compass::Error, message
         end
@@ -129,7 +129,6 @@ module Compass
             parser.options[:project_name] = arguments.shift if File.directory?(arguments.first)
             unless arguments.empty?
               parser.options[:sass_files] = arguments.dup
-              parser.options[:force] = true
             end
           end
         end

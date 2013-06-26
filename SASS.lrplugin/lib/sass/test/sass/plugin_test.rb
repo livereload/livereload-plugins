@@ -7,13 +7,13 @@ require 'fileutils'
 module Sass::Script::Functions
   def filename
     filename = options[:filename].gsub(%r{.*((/[^/]+){4})}, '\1')
-    Sass::Script::String.new(filename)
+    Sass::Script::Value::String.new(filename)
   end
 
   def whatever
     custom = options[:custom]
     whatever = custom && custom[:whatever]
-    Sass::Script::String.new(whatever || "incorrect")
+    Sass::Script::Value::String.new(whatever || "incorrect")
   end
 end
 
@@ -118,6 +118,23 @@ Syntax error: Undefined variable: "$bork".
 
 1: bork
 2:   :bork $bork
+CSS
+    end
+    File.delete(tempfile_loc('bork1'))
+  end
+
+  def test_full_exception_with_block_comment
+    File.delete(tempfile_loc('bork5'))
+    check_for_updates!
+    File.open(tempfile_loc('bork5')) do |file|
+      assert_equal(<<CSS.strip, file.read.split("\n")[0...7].join("\n"))
+/*
+Syntax error: Undefined variable: "$bork".
+        on line 3 of #{template_loc('bork5')}
+
+1: bork
+2:   /* foo *\\/
+3:   :bork $bork
 CSS
     end
     File.delete(tempfile_loc('bork1'))
@@ -229,17 +246,6 @@ WARNING
   end
 
   # Callbacks
-
-  def test_updating_stylesheets_callback
-    # Should run even when there's nothing to update
-    Sass::Plugin.options[:template_location] = nil
-    assert_callback :updating_stylesheets, []
-  end
-
-  def test_updating_stylesheets_callback_with_never_update
-    Sass::Plugin.options[:never_update] = true
-    assert_no_callback :updating_stylesheets
-  end
 
   def test_updated_stylesheet_callback_for_updated_template
     Sass::Plugin.options[:always_update] = false

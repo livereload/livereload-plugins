@@ -26,6 +26,11 @@ module Sass
       # @return {Set<Sequence>}
       attr_accessor :sources
 
+      # This sequence source range.
+      #
+      # @return [Sass::Source::Range]
+      attr_accessor :source_range
+
       # @see \{#subject?}
       attr_writer :subject
 
@@ -55,11 +60,12 @@ module Sass
 
       # @param selectors [Array<Simple>] See \{#members}
       # @param subject [Boolean] See \{#subject?}
-      # @param sources [Set<Sequence>]
-      def initialize(selectors, subject, sources = Set.new)
+      # @param source_range [Sass::Source::Range]
+      def initialize(selectors, subject, source_range = nil)
         @members = selectors
         @subject = subject
-        @sources = sources
+        @sources = Set.new
+        @source_range = source_range
       end
 
       # Resolves the {Parent} selectors within this selector
@@ -105,7 +111,7 @@ module Sass
           group.each {|e, _| e.result = :failed_to_unify unless e.result == :succeeded}
           next unless unified = seq.members.last.unify(self_without_sel, subject?)
           group.each {|e, _| e.result = :succeeded}
-          next if group.map {|e, _| check_directives_match!(e, parent_directives)}.none?
+          group.each {|e, _| check_directives_match!(e, parent_directives)}
           new_seq = Sequence.new(seq.members[0...-1] + [unified])
           new_seq.add_sources!(sources + [seq])
           [sels, new_seq]
@@ -129,9 +135,9 @@ module Sass
       #   by the time extension and unification happen,
       #   this exception will only ever be raised as a result of programmer error
       def unify(sels, other_subject)
-        return unless sseq = members.inject(sels) do |sseq, sel|
-          return unless sseq
-          sel.unify(sseq)
+        return unless sseq = members.inject(sels) do |member, sel|
+          return unless member
+          sel.unify(member)
         end
         SimpleSequence.new(sseq, other_subject || subject?)
       end
@@ -171,7 +177,7 @@ module Sass
       def with_more_sources(sources)
         sseq = dup
         sseq.members = members.dup
-        sseq.sources.merge sources
+        sseq.sources = self.sources | sources
         sseq
       end
 
@@ -180,16 +186,15 @@ module Sass
       def check_directives_match!(extend, parent_directives)
         dirs1 = extend.directives.map {|d| d.resolved_value}
         dirs2 = parent_directives.map {|d| d.resolved_value}
-        return true if Sass::Util.subsequence?(dirs1, dirs2)
+        return if Sass::Util.subsequence?(dirs1, dirs2)
 
-        Sass::Util.sass_warn <<WARNING
-DEPRECATION WARNING on line #{extend.node.line}#{" of #{extend.node.filename}" if extend.node.filename}:
-  @extending an outer selector from within #{extend.directives.last.name} is deprecated.
-  You may only @extend selectors within the same directive.
-  This will be an error in Sass 3.3.
-  It can only work once @extend is supported natively in the browser.
-WARNING
-        return false
+        # TODO(nweiz): this should use the Sass stack trace of the extend node,
+        # not the selector.
+        raise Sass::SyntaxError.new(<<MESSAGE)
+You may not @extend an outer selector from within #{extend.directives.last.name}.
+You may only @extend selectors within the same directive.
+From "@extend #{extend.target.join(', ')}" on line #{extend.node.line}#{" of #{extend.node.filename}" if extend.node.filename}.
+MESSAGE
       end
 
       def _hash

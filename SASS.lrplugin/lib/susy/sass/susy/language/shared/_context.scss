@@ -1,0 +1,35 @@
+// Context syntax
+// ==============
+//
+// Functions:
+// - nested()
+//
+// Mixins:
+// - nested()
+
+// return the subset grid for nested context
+@function nested(
+  $context
+) {
+  $context: parse-span($context);
+
+  $this-span          : get-span-setting(span, $context);
+  $this-location      : get-span-setting(location, $context);
+  $this-columns       : get-span-setting(columns, $context);
+
+  $this-columns       : if($this-columns, $this-columns, $columns);
+
+  @return get-columns($this-span, $this-location, $this-columns);
+}
+
+// use the subset grid for a nested context
+@mixin nested(
+  $context
+) {
+  $old-columns: get-setting(columns);
+  $columns: nested($context);
+
+  @content;
+
+  $columns: $old-columns;
+}

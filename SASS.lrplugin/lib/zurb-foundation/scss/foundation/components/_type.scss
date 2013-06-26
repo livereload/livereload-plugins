@@ -40,7 +40,6 @@ $paragraph-margin-bottom:              emCalc(20px) !default;
 $paragraph-aside-font-size:            emCalc(14px) !default;
 $paragraph-aside-line-height:          1.35 !default;
 $paragraph-aside-font-style:           italic !default;
-$paragraph-text-rendering:             optimizeLegibility !default;
 
 // We use these to style <code> tags
 $code-color:                           darken($alert-color, 15%) !default;
@@ -60,7 +59,7 @@ $hr-margin:                            emCalc(20px) !default;
 
 // We use these to style lists
 $list-style-position:                  outside !default;
-$list-side-margin:                     emCalc(20px) !default;
+$list-side-margin:                     emCalc(18px) !default;
 $definition-list-header-weight:        bold !default;
 $definition-list-header-margin-bottom: .3em !default;
 $definition-list-margin-bottom:        emCalc(12px) !default;
@@ -103,6 +102,7 @@ $microformat-abbr-font-decoration:     none !default;
 //
 // Typography Placeholders
 //
+
 %lead {
   font-size: $paragraph-font-size + emCalc(3.5px);
   line-height: 1.6;
@@ -112,8 +112,8 @@ $microformat-abbr-font-decoration:     none !default;
   line-height: $subheader-line-height;
   color: $subheader-font-color;
   font-weight: $subheader-font-weight;
-  margin-top: $subheader-top-margin;
-  margin-bottom: $subheader-bottom-margin;
+  margin-top: $header-top-margin;
+  margin-bottom: $header-bottom-margin;
 }
 
 
@@ -161,7 +161,6 @@ p {
   font-size: $paragraph-font-size;
   line-height: $paragraph-line-height;
   margin-bottom: $paragraph-margin-bottom;
-  text-rendering: $paragraph-text-rendering;
 
   &.lead { @extend %lead; }
 
@@ -179,9 +178,9 @@ h1, h2, h3, h4, h5, h6 {
   font-style: $header-font-style;
   color: $header-font-color;
   text-rendering: $header-text-rendering;
+  line-height: $header-line-height;
   margin-top: $header-top-margin;
   margin-bottom: $header-bottom-margin;
-  line-height: $header-line-height - emCalc(3px);
 
   small {
     font-size: $small-font-size;
@@ -190,10 +189,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-h1 { font-size: $h1-font-size - emCalc(10px); }
-h2 { font-size: $h2-font-size - emCalc(10px); }
-h3 { font-size: $h3-font-size - emCalc(5px); }
-h4 { font-size: $h4-font-size - emCalc(5px); }
+h1 { font-size: $h1-font-size; }
+h2 { font-size: $h2-font-size; }
+h3 { font-size: $h3-font-size; }
+h4 { font-size: $h4-font-size; }
 h5 { font-size: $h5-font-size; }
 h6 { font-size: $h6-font-size; }
 
@@ -239,7 +238,6 @@ dl {
   line-height: $paragraph-line-height;
   margin-bottom: $paragraph-margin-bottom;
   list-style-position: $list-style-position;
-  font-family: $paragraph-font-family;
 }
 
 /* Unordered Lists */
@@ -254,7 +252,7 @@ ul {
   }
   &.square,
   &.circle,
-  &.disc {
+  &.disc { margin-#{$default-float}: $list-side-margin;
     li ul { list-style: inherit; }
   }
 
@@ -265,7 +263,7 @@ ul {
 }
 
 /* Ordered Lists */
-ol {
+ol { margin-#{$default-float}: $list-side-margin;
   li {
     ul,
     ol {
@@ -350,15 +348,6 @@ blockquote p {
     border: none;
     padding: $microformat-abbr-padding;
   }
-}
-
-
-@media #{$small} {
-  h1,h2,h3,h4,h5,h6 { line-height: $header-line-height; }
-  h1 { font-size: $h1-font-size; }
-  h2 { font-size: $h2-font-size; }
-  h3 { font-size: $h3-font-size; }
-  h4 { font-size: $h4-font-size; }
 }
 
 // Only include these styles if you want them.

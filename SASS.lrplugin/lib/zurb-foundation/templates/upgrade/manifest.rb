@@ -1,8 +1,15 @@
 description 'Foundation Compass Gem'
 
-stylesheet '../project/scss/_settings.scss', :to => '_settings.scss'
-stylesheet '../project/scss/app.scss', :to => 'app.scss'
-stylesheet '../../scss/normalize.scss', :to => 'normalize.scss', :media => "screen, projector, print"
+# Images exist in non-standard location so they will play nicely with
+# Rails asset-pipeline.  So this method allows us to copy images from
+# outside the compass template
+def copy_images_from(relative_path, prefix_path)
+  absolute_path = File.join(File.dirname(__FILE__), relative_path, prefix_path)
+  Dir.glob("#{absolute_path}/*.*") do |img|
+    image "#{relative_path}/#{prefix_path}/#{File.basename(img)}", 
+      :to => "#{prefix_path}/#{File.basename(img)}"
+  end
+end
 
 def copy_js_from(relative_path, prefix_path, excludes=[])
   absolute_path = File.join(File.dirname(__FILE__), relative_path, prefix_path)
@@ -14,10 +21,8 @@ def copy_js_from(relative_path, prefix_path, excludes=[])
   end
 end
 
-javascripts = copy_js_from("../../js", "foundation", ["index.js"])
-copy_js_from("../../js", "vendor")
-
-html '../project/index.html', :erb => true, :javascripts => javascripts, :version => Foundation::VERSION, :to => 'upgrade.html'
+copy_images_from("../../vendor/assets/images", "foundation/orbit")
+copy_js_from("../../vendor/assets/javascripts", "foundation", ["app.js","index.js"])
 
 help %Q{
 

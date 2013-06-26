@@ -5,6 +5,5 @@ spec/resources/_*.png
 /doc
 /.yardoc
 /.bundle
-/_site
 Gemfile.lock
-test.*
+*.rbc

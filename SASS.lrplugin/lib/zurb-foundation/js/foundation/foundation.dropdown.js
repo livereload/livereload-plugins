@@ -6,7 +6,7 @@
   Foundation.libs.dropdown = {
     name : 'dropdown',
 
-    version : '4.1.0',
+    version : '4.0.0',
 
     settings : {
       activeClass: 'open'
@@ -14,7 +14,7 @@
 
     init : function (scope, method, options) {
       this.scope = scope || this.scope;
-      Foundation.inherit(this, 'throttle scrollLeft');
+      Foundation.inherit(this, 'throttle');
 
       if (typeof method === 'object') {
         $.extend(true, this.settings, method);
@@ -44,9 +44,13 @@
       $('*, html, body').on('click.fndtn.dropdown', function (e) {
         if (!$(e.target).data('dropdown')) {
           $('[data-dropdown-content]')
-            .css(Foundation.rtl ? 'right':'left', '-99999px')
+            .css('left', '-99999px')
             .removeClass(self.settings.activeClass);
         }
+      });
+
+      $('[data-dropdown-content]').on('click.fndtn.dropdown', function (e) {
+        e.stopPropagation();
       });
 
       $(window).on('resize.fndtn.dropdown', self.throttle(function () {
@@ -59,11 +63,11 @@
     toggle : function (target, resize) {
       var dropdown = $('#' + target.data('dropdown'));
 
-      $('[data-dropdown-content]').not(dropdown).css(Foundation.rtl ? 'right':'left', '-99999px').removeClass(this.settings.activeClass);
+      $('[data-dropdown-content]').not(dropdown).css('left', '-99999px');
 
       if (dropdown.hasClass(this.settings.activeClass)) {
         dropdown
-          .css(Foundation.rtl ? 'right':'left', '-99999px')
+          .css('left', '-99999px')
           .removeClass(this.settings.activeClass);
       } else {
         this
@@ -82,9 +86,7 @@
     },
 
     css : function (dropdown, target) {
-      var position = target.position();
-      position.top += target.offsetParent().offset().top;
-      position.left += target.offsetParent().offset().left;
+      var offset = target.offset();
 
       if (this.small()) {
         dropdown.css({
@@ -92,22 +94,13 @@
           width: '95%',
           left: '2.5%',
           'max-width': 'none',
-          top: position.top + this.outerHeight(target)
+          top: offset.top + this.outerHeight(target),
         });
       } else {
-        if (!Foundation.rtl && $(window).width() > this.outerWidth(dropdown) + target.offset().left) {
-          var left = position.left;
-        } else {
-          if (!dropdown.hasClass('right')) {
-            dropdown.addClass('right');
-          }
-          var left = position.left - (this.outerWidth(dropdown) - this.outerWidth(target));
-        }
-
         dropdown.attr('style', '').css({
           position : 'absolute',
-          top: position.top + this.outerHeight(target),
-          left: left
+          top: offset.top + this.outerHeight(target),
+          left: offset.left
         });
       }
 

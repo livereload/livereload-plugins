@@ -1,7 +1,7 @@
 Welcome to Foundation
 =====================
 
-Foundation is the most advanced responsive front-end framework in the world. You can quickly prototype and build sites or apps that work on any kind of device with Foundation, which includes layout constructs (like a fully responsive grid), elements and best practices.
+Foundation is the most advanced responsive front-end framework in the world. With Foundation you can quickly prototype and build sites or apps that work on any kind of device, with tons of included layout constructs (like a full responsive grid), elements and best practices.
 
 Homepage:      http://foundation.zurb.com<br />
 Documentation: http://foundation.zurb.com/docs<br />
@@ -35,7 +35,6 @@ WordPress
 * [WP-Foundation](http://320press.com/wp-foundation/features/) by 320press
 * [Yeti](https://github.com/modlearning/Yeti) by Modular Learning
 * [Foundation](https://github.com/drewsymo/Foundation) by Drewsymo
-* [required+ Themes](http://themes.required.ch/) by required+
 
 Joomla
 
@@ -45,8 +44,6 @@ Joomla
 Drupal
 
 * [Drupal Theme](https://github.com/drewkennelly/foundation7) by Drew Kennelly
-* [Zurb Foundation](http://drupal.org/project/zurb-foundation) Supporting F3.2, F4 & Drupal 8  by [Ishmael Sanchez](http://ishmaelsanchez.com), [Chris Lee](http://hire.chrisjlee.net)
-* [Zoundation Theme](http://drupal.org/project/zoundation) by [Andrea Burton](https://twitter.com/andreaburton) & [Jeff Graham](https://twitter.com/jgraham909), FunnyMonkey
 
 PyroCMS
 
@@ -63,10 +60,6 @@ MODX
 .NET
 
 * [NuGet Package for ASP.Net MVC](http://www.nuget.org/packages/Foundation3_MVC4) by Edward Charbeneau, @EdCharbeneau
-
-Middleman
-
-* [Middleman Skeleton](https://github.com/axyz/middleman-zurb-foundation) by [Andrea Moretti](https://twitter.com/axyz)
 
 Python
 * [Pyramid Scaffold](https://github.com/ppinette/pyramid_foundation) by Parker Pinette
@@ -85,10 +78,9 @@ Editors
 
 * [Textmate/Sublime Text2 Bundle](https://github.com/liamr/Zurb-Foundation-Textmate-Bundle) by Liam R, @liamr
 
-Templates
+PSD Templates
 
-* [Desktop, Tablet and Phone Grid PSD Templates](http://foundation.zurb.com/files/foundation-psd-templates.zip ) by Bruce Abel at Portfolio Creative Services Group
-* [HAML Web Templates](https://github.com/pbonnell/foundation_templates_haml) by Peter Bonnell
+* [Desktop, Tablet and Phone Grid Templates](http://foundation.zurb.com/files/foundation-psd-templates.zip ) by Bruce Abel at Portfolio Creative Services Group
 
 Grid Generator
 
@@ -98,7 +90,6 @@ Grid displayer
 
 * [Grid displayer bookmarklet](http://alefeuvre.github.com/foundation-grid-displayer/) by [Antoine Lefeuvre](http://twitter.com/jiraisurfer)
 * [Responsive Design Bookmarklet](http://responsive.victorcoulon.fr/) by [Victor Coulon](https://twitter.com/_victa)
-* [Vertical Rhythm Grid Bookmarklet](http://gridwax.gs/) by [Kevin Altman](http://twitter.com/itg)
 
 Modular Scale
 
@@ -107,11 +98,6 @@ Modular Scale
 Ruby on Rails Sass Gems
 
 * [Foundation Icons 2](https://github.com/zaiste/foundation-icons-sass-rails) by J. P. Nowak
-
-Yeoman Generator
-
-* [Yeoman-Foundation](https://npmjs.org/package/yeoman-foundation) by Vincent Mac
-
 
 MIT Open Source License
 =======================

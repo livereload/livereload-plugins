@@ -1,0 +1,23 @@
+// Float span
+// ==========
+
+// Output span
+@mixin float-span-output(
+  $width,
+  $float            : from($flow),
+  $margin-before    : null,
+  $margin-after     : null,
+  $padding-before   : null,
+  $padding-after    : null,
+  $flow             : $flow
+) {
+  $to     : to($flow);
+  $from   : from($flow);
+
+  width: $width;
+  float: $float;
+  margin-#{$from}: $margin-before;
+  margin-#{$to}: $margin-after;
+  padding-#{$from}: $padding-before;
+  padding-#{$to}: $padding-after;
+}

@@ -1,0 +1,14 @@
+// Float Isolation
+// ===============
+
+// Isolation Override
+@mixin isolate-output(
+  $push,
+  $flow     : $flow
+) {
+  $to     : to($flow);
+  $from   : from($flow);
+
+  margin-#{$from}: $push;
+  margin-#{$to}: -100%;
+}

@@ -651,7 +651,7 @@ SCSS
   ## Selectors
 
   # Taken from http://dev.w3.org/csswg/selectors4/#overview
-  def test_summarized_selectors
+  def test_summarized_selectors_with_element
     assert_selector_parses('*')
     assert_selector_parses('E')
     assert_selector_parses('E:not(s)')
@@ -725,7 +725,7 @@ SCSS
 
   # Taken from http://dev.w3.org/csswg/selectors4/#overview, but without element
   # names.
-  def test_summarized_selectors
+  def test_more_summarized_selectors
     assert_selector_parses(':not(s)')
     assert_selector_parses(':not(s1, s2)')
     assert_selector_parses(':matches(s1, s2)')
@@ -1011,6 +1011,17 @@ SCSS
 
   ## Regressions
 
+  def test_double_space_string
+    assert_equal(<<CSS, render(<<SCSS))
+.a {
+  content: "  a"; }
+CSS
+.a {
+  content: "  a";
+}
+SCSS
+  end
+
   def test_very_long_number_with_important_doesnt_take_forever
     assert_equal(<<CSS, render(<<SCSS))
 .foo {
@@ -1075,7 +1086,7 @@ SCSS
   end
 
   def render(scss, options = {})
-    tree = Sass::SCSS::CssParser.new(scss, options[:filename]).parse
+    tree = Sass::SCSS::CssParser.new(scss, options[:filename], nil).parse
     tree.options = Sass::Engine::DEFAULT_OPTIONS.merge(options)
     tree.render
   end

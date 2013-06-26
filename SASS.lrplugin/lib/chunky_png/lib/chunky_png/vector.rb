@@ -40,7 +40,7 @@ module ChunkyPNG
     
     # Initializes a vector based on a list of Point instances.
     #
-    # You usually do not want to use this method directly, but call {ChunkyPNG.Vector} instead.
+    # You usually do not want to use this method directy, but call {ChunkyPNG.Vector} instead.
     #
     # @param [Array<ChunkyPNG::Point>] points
     # @see ChunkyPNG.Vector
@@ -64,20 +64,13 @@ module ChunkyPNG
       yield(points.last, points.first) if close
     end
     
-    # Returns the point with the given indexof this vector.
-    # @param [Integer] index The 0-based index of the point in this vector.
-    # @param [ChunkyPNG::Point] The point instance.
-    def [](index)
-      points[index]
-    end
-    
     # Returns an enumerator that will iterate over all the edges in this vector.
     # @param (see #each_edge)
     # @return [Enumerator] The enumerator that iterates over the edges.
     # @raise [ChunkyPNG::ExpectationFailed] if the vector contains less than two points.
     # @see #each_edge
     def edges(close = true)
-      to_enum(:each_edge, close)
+      Enumerator.new(self, :each_edge, close)
     end
     
     # Returns the number of points in this vector.

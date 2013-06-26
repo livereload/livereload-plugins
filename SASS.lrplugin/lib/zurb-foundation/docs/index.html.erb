@@ -1,28 +1,13 @@
-<% @side_nav = "using" %>
-<% @page_title = "Getting Started" %>
 <div class="row">
-   <div class="large-9 push-3 columns">
+  <div class="large-3 columns">
+    <%= render "_sidebar.html.erb" %>
+  </div>
+
+  <div class="large-9 columns">
 
     <h2>Getting Started</h2>
     <h5 class="subheader">Whether you are using Scss or CSS, we've made it easy to start a project so that you can help take over the world one responsive site at a time.</h5>
     <p>Foundation is developed in <a href="http://www.sass-lang.com">Sass</a>, which is powerful CSS pre-processor that helps you write cleaner, more organized, CSS that you can more easily maintain over time without the typical headaches of vanilla CSS. On top of our minimal styling, we've written powerful Javascript plugins that will make useful interactions easier to implement across screen sizes.</p>
-
-    <div class="" style="font-size: 14px;">
-      <p><strong>Looking for Foundation 3?</strong><br>
-      We're still supporting Foundation 3 for those who don't want to take the leap into the future with us. You can view the docs, download a package or visit the Github page.</p>
-      <ul class="button-group">
-        <li><a class="small button secondary" style="margin-bottom: 0;" href="../download-f3.php">Download</a></li>
-        <li><a class="small button secondary" style="margin-bottom: 0;" href="../old-docs/f3">Docs</a></li>
-        <li><a class="small button secondary" style="margin-bottom: 0;" href="https://github.com/zurb/foundation/tree/3-2-stable">Github</a></li>
-      </ul>
-
-      <hr>
-
-      <p><strong>Ready to Move to 4?</strong><br>
-      We've got you covered with a migration guide that explains the differences.</p>
-
-      <a class="small button secondary" href="../migration.php">Migration Guide</a>
-    </div>
 
     <hr>
 
@@ -131,13 +116,13 @@
     <hr>
 
     <h3>How is a project structured?</h3>
-    <h5 class="subheader">We follow common patterns for directory structure that are logical and easily maintained. Below is an explanation of each file you'll get when you create a project using our gem or download via our <a href="http://foundation.zurb.com/migration.php">customizer</a>.</h5>
+    <h5 class="subheader">We follow common patterns for directory structure that are logical and easily maintained. Below is an explanation of each file you'll get when you create a project using our gem or download via our <a href="/download.php">customizer</a>.</h5>
 
     <div class="row">
       <div class="large-4 columns">
         <dl>
           <dt><h5>css</h5></dt>
-          <dd>Includes <code>foundation.css</code> and <code>foundation.min.css</code> so you can choose which to use. You can add <code>app.css</code> or any other stylesheet to use for custom styles that will sit on top of the Foundation core as overrides.</dd>
+          <dd>Includes <code>foundation.css</code> and <code>foundation.min.css</code> so you can choose which to use. We've also included <code>app.css</code> that you can use for custom styles that will sit on top of the Foundation core as overrides.</dd>
         </dl>
       </div>
       <div class="large-4 columns">
@@ -180,8 +165,8 @@
         <div class="panel">
           <h6 class="subheader"><strong>Using the Gem?</strong> You'll see a couple extra pieces in your project upon creation. These are:</h6>
           <dl>
-            <dt>scss/</dt>
-            <dd>Your main style folder is named <strong>scss/</strong> and contains <code>app.scss</code> (which has the foundation gem import and commented portions you can pick and choose.) and <code>normalize.scss</code>. Override the Foundation styles within your app.scss file. You can see the compiled CSS in your stylesheets directory after you manually <span class="has-tip top" title="$ compass compile <filename>">compile</span> or <span class="has-tip top" title="$ compass watch <directory>">watch</span>. This directory also includes <code>_settings.scss</code>, which is used to control variables that help easily style Foundation.</dd>
+            <dt>sass/</dt>
+            <dd>Your main style folder is named <strong>sass/</strong> and contains <code>app.scss</code>, <code>foundation.scss</code> (which imports Foundation, or the parts you want), and <code>normalize.scss</code>. Override the Foundation styles within your app.scss file. You can see the compiled CSS in your stylesheets directory after you manually <span class="has-tip top" title="$ compass compile <filename>">compile</span> or <span class="has-tip top" title="$ compass watch <directory>">watch</span>. This directory also includes <code>_settings.scss</code>, which is used to control variables that help easily style Foundation.</dd>
             <dt></i>config.rb</dt>
             <dd>This file is used by <a href="http://compass-style.org">Compass</a> to compile your project. Here you can control the output style of your CSS, the structure of your directories and other useful settings.</dd>
           </dl>
@@ -191,10 +176,11 @@
 
     <hr>
 
-    <h3 id="basicHTMLMarkup">HTML Page Markup</h3>
+    <h3>HTML Page Markup</h3>
     <h5 class="subheader">Our markup structure is straight forward and gives you the flexibility you need to create to your hearts desires. Here's an example page that includes the basics:</h5>
 
 <%= code_example '
+
 <!DOCTYPE html>
 <!--[if IE 8]>         <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
@@ -205,6 +191,7 @@
   <title>Foundation 4</title>
 
   <link rel="stylesheet" href="css/normalize.css" />
+  <link rel="stylesheet" href="css/foundation.css" />
   <link rel="stylesheet" href="css/app.css" />
 
   <script src="js/vendor/custom.modernizr.js"></script>
@@ -219,23 +206,36 @@
   (\'__proto__\' in {} ? \'js/vendor/zepto\' : \'js/vendor/jquery\') +
   \'.js><\/script>\')
   </script>
-  <script src="js/foundation/foundation.js"></script>
+
   <script src="js/foundation/foundation.alerts.js"></script>
+
   <script src="js/foundation/foundation.clearing.js"></script>
+
   <script src="js/foundation/foundation.cookie.js"></script>
+
   <script src="js/foundation/foundation.dropdown.js"></script>
+
   <script src="js/foundation/foundation.forms.js"></script>
+
   <script src="js/foundation/foundation.joyride.js"></script>
+
+  <script src="js/foundation/foundation.js"></script>
+
   <script src="js/foundation/foundation.magellan.js"></script>
+
   <script src="js/foundation/foundation.orbit.js"></script>
+
   <script src="js/foundation/foundation.placeholder.js"></script>
+
   <script src="js/foundation/foundation.reveal.js"></script>
+
   <script src="js/foundation/foundation.section.js"></script>
+
   <script src="js/foundation/foundation.tooltips.js"></script>
+
   <script src="js/foundation/foundation.topbar.js"></script>
-  <script>
-  $(document).foundation();
-  </script>
+
+  <script src="js/foundation/app.js"></script>
 </body>
 </html>
 
@@ -257,15 +257,19 @@
           <dt><h5>CSS &amp; Modernizr</h5></dt>
           <dd>The default CSS download includes everything you need to get going, including necessary styles and our custom Modernizr script.</dd>
           <dt>CSS</dt>
-          <dd>We include <code>foundation.min.css</code> and <code>foundation.css</code>. The difference here is whether or not you want minified code or not (link whichever you want, but not both).</dd>
+          <dd>We include <code>foundation.min.css</code> and <code>foundation.css</code>. The difference here is whether or not you want minified code or not (link whichever you want, but not both). You'll also notice <code>app.css</code>, which can be used for your own Foundation overrides.</dd>
+          <dt>Modernizr</dt>
+          <dd>We use this to give us the HTML5 Shiv, touch classes and JS media queries that help us control Foundation.</dd>
         </dl>
       </div>
       <div class="large-4 columns">
         <dl>
-          <dt>Modernizr</dt>
-          <dd>We use this to give us the HTML5 Shiv, touch classes and JS media queries that help us control Foundation.</dd>
           <dt><h5>Javascripts</h5></dt>
           <dd>Our JS is linked up right before the closing body tag and includes all necessary plugins and initializers to hit the ground running.</dd>
+          <dt>jQuery</dt>
+          <dd>We stay as close as possible to the latest version of jQuery at all times. jQuery needs to be included before any Foundation JS.</dd>
+          <dt>Foundation JS</dt>
+          <dd>We include <code>foundation.min.js</code> by default, which includes all the available plugins. If you want to customize, we have every individual plugin commented for you to quickly pick and choose.</dd>
         </dl>
       </div>
     </div>
@@ -275,15 +279,14 @@
     <div class="panel">
       <h3>Get going!</h3>
       <h5 class="subheader">Now that you understand the gist of what Foundation is and how it works, it's time to start a project! We've got two different ways for you to build projects with Foundation, a Compass Gem using Scss or a with plain CSS.</h5>
-      <a href="./sass.html" class="button">Using the Gem</a></li>
-      <a href="http://foundation.zurb.com/migration.php" class="button secondary">Quickstart with CSS</a></li>
+      <a href="../sass.html" class="button">Using the Gem</a></li>
+      <a href="../download.php" class="button secondary">Quickstart with CSS</a></li>
     </div>
-
-
-
   </div>
-  <div class="large-3 pull-9 columns">
-    <%= render "_sidebar.html.erb" %>
+</div>
+</section>
+
+
   </div>
 </div>
 

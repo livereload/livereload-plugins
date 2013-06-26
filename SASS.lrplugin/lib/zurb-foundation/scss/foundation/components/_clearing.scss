@@ -86,7 +86,7 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
 
 .clearing-close {
   z-index: 999;
-  padding-#{$default-float}: 20px;
+  padding-left: 20px;
   padding-top: 10px;
   font-size: $clearing-close-size;
   line-height: 1;
@@ -104,8 +104,8 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
 
 // Large screen overrides
 @media #{$small} {
-  .clearing-main-prev,
-  .clearing-main-next {
+  .clearing-main-left,
+  .clearing-main-right {
     position: absolute;
     height: 100%;
     width: 40px;
@@ -119,24 +119,22 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
       border: solid $clearing-arrow-size;
     }
   }
-  .clearing-main-prev {
-    #{$default-float}: 0;
+  .clearing-main-left {
+    left: 0;
     & > span {
-      #{$default-float}: 5px;
-      border-color: transparent;
-      border-#{$opposite-direction}-color: $clearing-arrow-color;
+      left: 5px;
+      border-color: transparent $clearing-arrow-color transparent transparent;
     }
   }
-  .clearing-main-next {
-    #{$opposite-direction}: 0;
+  .clearing-main-right {
+    right: 0;
     & > span {
-      border-color: transparent;
-      border-#{$default-float}-color: $clearing-arrow-color;
+      border-color: transparent transparent transparent $clearing-arrow-color;
     }
   }
 
-  .clearing-main-prev.disabled,
-  .clearing-main-next.disabled { opacity: 0.5; }
+  .clearing-main-left.disabled,
+  .clearing-main-right.disabled { opacity: 0.5; }
 
   // If you want to show a lightbox, but only have a single image come through as the thumbnail
   .clearing-feature ~ li { display: none; }
@@ -153,7 +151,7 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
         z-index: 999;
         width: 200%;
         height: 100%;
-        margin-#{$default-float}: 0;
+        margin-left: 0;
         position: relative;
         #{$default-float}: 0;
 
@@ -164,7 +162,7 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
           padding: 0;
           float: $default-float;
           overflow: hidden;
-          margin-#{$opposite-direction}: 1px;
+          margin-#{$default-opposite}: 1px;
           position: relative;
           cursor: pointer;
           opacity: 0.4;
@@ -204,8 +202,8 @@ $clearing-carousel-thumb-active-border: 4px solid rgb(255,255,255) !default;
   .clearing-close {
     position: absolute;
     top: 10px;
-    #{$opposite-direction}: 20px;
-    padding-#{$default-float}: 0;
+    #{$default-opposite}: 20px;
+    padding-left: 0;
     padding-top: 0;
   }
 }

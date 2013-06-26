@@ -57,14 +57,15 @@ $switch-label-outline:            1px dotted #888 !default;
   // Default label styles for type and transition
   label {
     position: relative;
-    #{$default-float}: 0;
+    left: 0;
     z-index: 2;
-    float: $default-float;
+    float: left;
     width: 50%;
     height: 100%;
     margin: 0;
+    text-align: right;
     font-weight: bold;
-    text-align: $default-float;
+    text-align: left;
 
     // Transition for the switch label to follow paddle
     @include single-transition(all, $transition-speed, $transition-ease);
@@ -90,7 +91,7 @@ $switch-label-outline:            1px dotted #888 !default;
   & > span {
     position: absolute;
     top: -1px;
-    #{$default-float}: -1px;
+    left: -1px;
     z-index: 1;
     display: block;
     padding: 0;
@@ -101,27 +102,19 @@ $switch-label-outline:            1px dotted #888 !default;
     @include single-transition(all, $transition-speed, $transition-ease);
   }
 
+  // Change text alignment for the second label
+  input:last-of-type + label { text-align: right; }
+
   // When a label isn't :checked, we hide it as it slides away.
   input:not(:checked) + label { opacity: 0; }
 
   // Controlling the position of the labels as they are toggled.
-  input:checked { display: none !important; }
-  input { #{$default-float}: 0; display: block !important; }
-
-  // Left Label alignment and position changes, including fixes for while inside a custom form
-  input:first-of-type + label,
-  input:first-of-type + span + label { #{$default-float}: -50%; }
-  input:first-of-type:checked + label,
-  input:first-of-type:checked + span + label { #{$default-float}: 0%; }
-
-  // Right Label alignment and position changes, including fixes for while inside a custom form
-  input:last-of-type + label,
-  input:last-of-type + span + label {#{$opposite-direction}: -50%; #{$default-float}: auto; text-align: $opposite-direction; }
-  input:last-of-type:checked + label,
-  input:last-of-type:checked + span + label { #{$opposite-direction}: 0%; #{$default-float}: auto; }
-
-  // Hiding custom form spans since we auto-create them
-  span.custom { display: none !important; }
+  input:checked { display: none; }
+  input { left: 0; }
+  input:first-of-type + label { left: -50%; }
+  input:first-of-type:checked + label { left: 0%; }
+  input:last-of-type + label { right: -50%; left: auto; }
+  input:last-of-type:checked + label { right: 0%; left: auto; }
 
   // Bugfix for older Webkit, including mobile Webkit. Adapted from:
   // http://css-tricks.com/webkit-sibling-bug/
@@ -143,8 +136,8 @@ $switch-label-outline:            1px dotted #888 !default;
   input {
     // Move the paddle to the right position
     &:first-of-type:checked ~ span {
-      #{$default-float}: 100%;
-      margin-#{$default-float}: emCalc(-$height + 1px);
+      left: 100%;
+      margin-left: emCalc(-$height + 1px);
     }
   }
 
@@ -212,13 +205,13 @@ $switch-label-outline:            1px dotted #888 !default;
   @include switch-style($paddle-bg, $positive-color, $negative-color, $radius, $base-style);
 }
 
-@if $include-html-button-classes {
+@if $include-html-classes {
 
   /* Foundation Switches */
   @media only screen {
 
     // Containing element for the radio switch
-    div.switch {
+    .switch {
       @include switch;
 
       // Large radio switches

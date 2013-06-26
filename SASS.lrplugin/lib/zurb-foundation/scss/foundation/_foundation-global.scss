@@ -3,11 +3,7 @@
 // Variables
 //
 
-// The default font-size is set to 100% of the browser style sheet (usually 16px)
-// for compatibility with brower-based text zoom or user-set defaults.
-$base-font-size: 100% !default;
-
-// Set your base font-size in pixels so emCalc can do its magic below
+// This is the default html and body font-size for the base em value.
 $em-base: 16px !default;
 
 // We use these to control various global styles
@@ -17,17 +13,20 @@ $body-font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif !
 $body-font-weight: normal !default;
 $body-font-style: normal !default;
 
+// We use this to control font-smoothing
+$font-smoothing: antialiased !default;
+
 // We use these to control text direction settings
 $text-direction: ltr !default; // Controls default global text direction, 'rtl' or 'ltr'
 $default-float: left !default;
-$opposite-direction: right !default;
+$default-opposite: right !default;
 // No need to change this conditional statement, $text-direction variable controls it all.
 @if $text-direction == ltr {
   $default-float: left;
-  $opposite-direction: right;
+  $default-opposite: right;
 } @else {
   $default-float: right;
-  $opposite-direction: left;
+  $default-opposite: left;
 }
 
 // We use these as default colors throughout
@@ -49,20 +48,6 @@ $shiny-edge-active-color: rgba(#000, .2) !default;
 $include-html-classes: true !default;
 $include-print-styles: true !default;
 
-$include-html-grid-classes: $include-html-classes !default;
-$include-html-visibility-classes: $include-html-classes !default;
-$include-html-button-classes: $include-html-classes !default;
-$include-html-form-classes: $include-html-classes !default;
-$include-html-media-classes: $include-html-classes !default;
-$include-html-section-classes: $include-html-classes !default;
-$include-html-reveal-classes: $include-html-classes !default;
-$include-html-alert-classes: $include-html-classes !default;
-$include-html-nav-classes: $include-html-classes !default;
-$include-html-label-classes: $include-html-classes !default;
-$include-html-panel-classes: $include-html-classes !default;
-$include-html-pricing-classes: $include-html-classes !default;
-$include-html-progress-classes: $include-html-classes !default;
-$include-html-magellan-classes: $include-html-classes !default;
 
 //
 // Functions
@@ -98,38 +83,21 @@ $include-html-magellan-classes: $include-html-classes !default;
 
 // We use this to create equal side border radius on elements.
 @mixin side-radius($side, $radius) {
-  @include radius(0);
   @if $side == left {
-    -moz-border-radius-bottomleft: $radius;
-    -moz-border-radius-topleft: $radius;
-    -webkit-border-bottom-left-radius: $radius;
-    -webkit-border-top-left-radius: $radius;
-    border-bottom-left-radius: $radius;
-    border-top-left-radius: $radius;
+    -webkit-border-radius: $radius 0 0 $radius;
+    border-radius: $radius 0 0 $radius;
   }
   @else if $side == right {
-    -moz-border-radius-topright: $radius;
-    -moz-border-radius-bottomright: $radius;
-    -webkit-border-top-right-radius: $radius;
-    -webkit-border-bottom-right-radius: $radius;
-    border-top-right-radius: $radius;
-    border-bottom-right-radius: $radius;
+    -webkit-border-radius: 0 $radius $radius 0;
+    border-radius: 0 $radius $radius 0;
   }
   @else if $side == top {
-    -moz-border-radius-topright: $radius;
-    -moz-border-radius-topleft: $radius;
-    -webkit-border-top-right-radius: $radius;
-    -webkit-border-top-left-radius: $radius;
-    border-top-right-radius: $radius;
-    border-top-left-radius: $radius;
+    -webkit-border-radius: $radius $radius 0 0;
+    border-radius: $radius $radius 0 0;
   }
   @else if $side == bottom {
-    -moz-border-radius-bottomright: $radius;
-    -moz-border-radius-bottomleft: $radius;
-    -webkit-border-bottom-right-radius: $radius;
-    -webkit-border-bottom-left-radius: $radius;
-    border-bottom-right-radius: $radius;
-    border-bottom-left-radius: $radius;
+    -webkit-border-radius: 0 0 $radius $radius;
+    border-radius: 0 0 $radius $radius;
   }
 }
 
@@ -185,14 +153,74 @@ $include-html-magellan-classes: $include-html-classes !default;
   &:after { clear: both; }
 }
 
+
+// Set box-sizing globally to handle padding and border widths
+*,
+*:before,
+*:after {
+  @include box-sizing(border-box);
+}
+
+html,
+body { font-size: $em-base; }
+
+// Default body styles
+body {
+  background: $body-bg;
+  color: $body-font-color;
+  padding: 0;
+  font-family: $body-font-family;
+  font-weight: $body-font-weight;
+  font-style: $body-font-style;
+  line-height: 1;
+  -webkit-font-smoothing: $font-smoothing;
+}
+
+// Grid Defaults to get images and embeds to work properly
+img,
+object,
+embed { max-width: 100%; height: auto; }
+
+object,
+embed { height: 100%; }
+img { -ms-interpolation-mode: bicubic; }
+
+#map_canvas,
+.map_canvas {
+  img,
+  embed,
+  object { max-width: none !important;
+  }
+}
+
+// Miscellaneous useful HTML classes
+.left         { float: left; }
+.right        { float: right; }
+.text-left    { text-align: left; }
+.text-right   { text-align: right; }
+.text-center  { text-align: center; }
+.text-justify { text-align: justify; }
+.hide         { display: none; }
+
+// Get rid of gap under images by making them display: block; by default
+img { display: block; }
+
+//
+// Global resets for forms
+//
+
+// Make sure textarea takes on height automatically
+textarea { height: auto; min-height: 50px; }
+
+// Make select elements 100% width by default
+select { width: 100%; }
+
+
 // Media Queries
 $small-screen: emCalc(768px) !default;
 $medium-screen: emCalc(1280px) !default;
 $large-screen: emCalc(1440px) !default;
 
-$screen: "only screen" !default;
 $small: "only screen and (min-width:"#{$small-screen}")" !default;
 $medium: "only screen and (min-width:"#{$medium-screen}")" !default;
 $large: "only screen and (min-width:"#{$large-screen}")" !default;
-$landscape: "only screen and (orientation: landscape)" !default;
-$portrait: "only screen and (orientation: portrait)" !default;

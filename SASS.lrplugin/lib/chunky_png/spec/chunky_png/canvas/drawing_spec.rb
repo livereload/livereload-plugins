@@ -2,21 +2,27 @@ require 'spec_helper'
 
 describe ChunkyPNG::Canvas::Drawing do
   
-  describe '#compose_pixel' do
+  describe '#point' do
     subject { ChunkyPNG::Canvas.new(1, 1, ChunkyPNG::Color.rgb(200, 150, 100)) }
     
     it "should compose colors correctly" do
       subject.compose_pixel(0,0, ChunkyPNG::Color(100, 150, 200, 128))
-      subject[0, 0].should == ChunkyPNG::Color(150, 150, 150)
+      subject['0,0'].should == ChunkyPNG::Color(150, 150, 150)
     end
     
     it "should return the composed color" do
       subject.compose_pixel(0, 0, ChunkyPNG::Color.rgba(100, 150, 200, 128)).should == ChunkyPNG::Color.rgb(150, 150, 150)
     end
     
+    it "should accept point-like arguments as well" do
+      lambda { subject.compose_pixel('0,0', ChunkyPNG::Color.rgba(100, 150, 200, 128)) }.should change { subject['0,0'] }
+      lambda { subject.compose_pixel({:x => 0, :y => 0}, ChunkyPNG::Color.rgba(100, 150, 200, 128)) }.should change { subject['0,0'] }
+      lambda { subject.compose_pixel(ChunkyPNG::Point.new(0, 0), ChunkyPNG::Color.rgba(100, 150, 200, 128)) } .should change { subject['0,0'] }
+    end
+    
     it "should do nothing when the coordinates are out of bounds" do
       subject.compose_pixel(1, -1, :black).should be_nil
-      lambda { subject.compose_pixel(1, -1, :black) }.should_not change { subject[0, 0] }
+      lambda { subject.compose_pixel(1, -1, :black) }.should_not change { subject['0,0'] }
     end
   end
   
@@ -118,53 +124,6 @@ describe ChunkyPNG::Canvas::Drawing do
 
     it "should return itself to allow chaining" do
       subject.polygon('(2,2) (20,5) (5,20)').should equal(subject)
-    end
-  end
-  
-  describe '#bezier_curve' do
-    subject { ChunkyPNG::Canvas.new(24, 24, ChunkyPNG::Color::WHITE) }
-    
-    it "should draw a bezier curve starting at the first point" do
-      subject.bezier_curve('3,20 10,10, 20,20')
-      subject[3, 20].should == ChunkyPNG::Color::BLACK
-    end
-    
-    it "should draw a bezier curve ending at the last point" do
-      subject.bezier_curve('3,20 10,10, 20,20')
-      subject[20, 20].should == ChunkyPNG::Color::BLACK
-    end
-    
-    it "should draw a bezier curve with a color of green" do
-      subject.bezier_curve('3,20 10,10, 20,20', :green)
-      subject[3, 20].should == ChunkyPNG::Color(:green)
-    end
-    
-    it "should draw a three point bezier curve" do
-      subject.bezier_curve('1,23 12,10 23,23').should == reference_canvas('bezier_three_point')
-    end
-    
-    it "should draw a three point bezier curve flipped" do
-      subject.bezier_curve('1,1 12,15 23,1').should == reference_canvas('bezier_three_point_flipped')
-    end
-    
-    it "should draw a four point bezier curve" do
-      subject.bezier_curve('1,23 1,5 22,5 22,23').should == reference_canvas('bezier_four_point')
-    end
-    
-    it "should draw a four point bezier curve flipped" do
-      subject.bezier_curve('1,1 1,19 22,19 22,1').should == reference_canvas('bezier_four_point_flipped')
-    end
-    
-    it "should draw a four point bezier curve with a shape of an s" do
-      subject.bezier_curve('1,23 1,5 22,23 22,5').should == reference_canvas('bezier_four_point_s')
-    end
-    
-    it "should draw a five point bezier curve" do
-      subject.bezier_curve('10,23 1,10 12,5 23,10 14,23').should == reference_canvas('bezier_five_point')
-    end
-    
-    it "should draw a six point bezier curve" do
-      subject.bezier_curve('1,23 4,15 8,20 2,2 23,15 23,1').should == reference_canvas('bezier_six_point')
     end
   end
 end

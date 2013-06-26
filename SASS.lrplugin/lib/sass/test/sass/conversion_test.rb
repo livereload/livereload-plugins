@@ -1347,7 +1347,7 @@ div
 SASS
   end
 
-   def test_loud_comment_conversion
+  def test_loud_comment_conversion
     assert_renders(<<SASS, <<SCSS)
 /*! \#{"interpolated"}
 SASS
@@ -1618,6 +1618,22 @@ SCSS
 
   ## Regression Tests
 
+  def test_list_in_args
+    assert_renders(<<SASS, <<SCSS)
++mixin((a, b, c))
+
++mixin($arg: (a, b, c))
+
++mixin(a, b, (c, d, e)...)
+SASS
+@include mixin((a, b, c));
+
+@include mixin($arg: (a, b, c));
+
+@include mixin(a, b, (c, d, e)...);
+SCSS
+  end
+
   def test_media_query_with_expr
     assert_scss_to_sass <<SASS, <<SCSS
 @media foo and (bar: baz)
@@ -1625,14 +1641,6 @@ SCSS
 SASS
 @media foo and (bar: baz) {
   a: b; }
-SCSS
-  end
-
-  def test_empty_lists
-    assert_renders(<<SASS, <<SCSS)
-$foo: ()
-SASS
-$foo: ();
 SCSS
   end
 

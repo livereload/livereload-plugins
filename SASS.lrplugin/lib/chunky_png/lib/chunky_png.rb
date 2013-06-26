@@ -25,7 +25,7 @@ module ChunkyPNG
 
   # The current version of ChunkyPNG. This value will be updated 
   # automatically by them <tt>gem:release</tt> rake task.
-  VERSION = "1.2.8"
+  VERSION = "1.0.0.rc2"
 
   ###################################################
   # PNG international standard defined constants
@@ -104,7 +104,7 @@ module ChunkyPNG
   class Exception < ::StandardError
   end
 
-  # Exception that is raised for an unsupported PNG image.
+  # Exception that is raised for an unsopported PNG image.
   class NotSupported < ChunkyPNG::Exception
   end
 
@@ -113,7 +113,7 @@ module ChunkyPNG
   class SignatureMismatch < ChunkyPNG::Exception
   end
 
-  # Exception that is raised if the CRC check for a block fails
+  # Exception that is raised if the CRC check for a block failes
   class CRCMismatch < ChunkyPNG::Exception
   end
 
@@ -124,21 +124,17 @@ module ChunkyPNG
   # Exception that is raised if an expectation fails.
   class OutOfBounds < ChunkyPNG::ExpectationFailed
   end
-
-  def self.force_binary(str)
-    str.respond_to?(:force_encoding) ? str.force_encoding('BINARY') : str
-  end
   
   # Empty byte array. This basically is an empty string, but with the encoding
   # set correctly to ASCII-8BIT (binary) in Ruby 1.9.
   # @return [String] An empty string, with encoding set to binary in Ruby 1.9
   # @private
-  EMPTY_BYTEARRAY = force_binary("").freeze
+  EMPTY_BYTEARRAY = String.method_defined?(:force_encoding) ? "".force_encoding('ASCII-8BIT').freeze : "".freeze
 
   # Null-byte, with the encoding set correctly to ASCII-8BIT (binary) in Ruby 1.9.
   # @return [String] A binary string, consisting of one NULL-byte. 
   # @private
-  EXTRA_BYTE = force_binary("\0").freeze
+  EXTRA_BYTE = String.method_defined?(:force_encoding) ? "\0".force_encoding('ASCII-8BIT') : "\0"
 end
 
 

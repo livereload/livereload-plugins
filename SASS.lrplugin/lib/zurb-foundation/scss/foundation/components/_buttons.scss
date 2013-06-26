@@ -13,7 +13,6 @@ $button-display:          inline-block !default;
 $button-margin-bottom:    emCalc(20px) !default;
 
 // We use these to control button text styles.
-$button-font-family:      inherit !default;
 $button-font-color:       #fff !default;
 $button-font-color-alt:   #333 !default;
 $button-font-med:         emCalc(16px) !default;
@@ -33,7 +32,6 @@ $button-border-color:     darken($primary-color, $button-function-factor) !defau
 
 // We use this to set the default radius used throughout the core.
 $button-radius:           $global-radius !default;
-$button-round:            $global-rounded !default;
 
 // We use this to set default opacity for disabled buttons.
 $button-disabled-opacity: 0.6 !default;
@@ -49,7 +47,7 @@ $button-disabled-opacity: 0.6 !default;
     border-style: $button-border-style;
     border-width: $button-border-width;
     cursor: pointer;
-    font-family: $button-font-family;
+    font-family: inherit;
     font-weight: $button-font-weight;
     line-height: 1;
     margin: 0 0 $button-margin-bottom;
@@ -67,9 +65,9 @@ $button-disabled-opacity: 0.6 !default;
   // these can be turned off by setting $padding:false
   @if $padding {
     padding-top: $padding;
-    padding-#{$opposite-direction}: $padding * 2;
+    padding-right: $padding * 2;
     padding-bottom: $padding + emCalc(1px);
-    padding-#{$default-float}: $padding * 2;
+    padding-left: $padding * 2;
 
     // We control the font-size based on mixin input.
     @if      $padding == $button-med { font-size: $button-font-med; }
@@ -82,9 +80,9 @@ $button-disabled-opacity: 0.6 !default;
   // We can set $full-width:true to remove side padding extend width.
   @if $full-width {
     padding-top: $padding;
-    padding-#{$opposite-direction}: 0px;
+    padding-right: 0px;
     padding-bottom: $padding + emCalc(1px);
-    padding-#{$default-float}: 0px;
+    padding-left: 0px;
     width: 100%;
   }
 
@@ -155,11 +153,11 @@ $button-disabled-opacity: 0.6 !default;
 //
 
 // Only include these classes if the variable is true, otherwise they'll be left out.
-@if $include-html-button-classes {
+@if $include-html-classes {
 
   // Default styles applied outside of media query
-  button, .button {
-    @include button-base;
+  .button {
+    @include button-base($display:block);
     @include button-size;
     @include button-style;
 
@@ -170,7 +168,7 @@ $button-disabled-opacity: 0.6 !default;
     &.large  { @include button-size($padding:$button-lrg); }
     &.small  { @include button-size($padding:$button-sml); }
     &.tiny   { @include button-size($padding:$button-tny); }
-    &.expand { @include button-size(false,$full-width:true); }
+    &.expand { @include button-size($padding:false, $full-width:true); }
 
     &.left-align  { text-align: left; text-indent: emCalc(12px); }
     &.right-align { text-align: right; padding-right: emCalc(12px); }
@@ -203,7 +201,7 @@ $button-disabled-opacity: 0.6 !default;
       &.tiny   { @include button-size($padding:false, $full-width:false); }
 
       &.radius { @include button-style($bg:false, $radius:true); }
-      &.round  { @include button-style($bg:false, $radius:$button-round); }
+      &.round  { @include button-style($bg:false, $radius:1000px); }
     }
 
   }

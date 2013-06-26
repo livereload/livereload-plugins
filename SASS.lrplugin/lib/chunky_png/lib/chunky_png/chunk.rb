@@ -4,7 +4,7 @@ module ChunkyPNG
   # contained within, help with handling these chunks. It supports both
   # reading and writing chunks.
   #
-  # All chunk types are instances of the {ChunkyPNG::Chunk::Base} class. For
+  # All chunck types are instances of the {ChunkyPNG::Chunk::Base} class. For
   # some chunk types a specialized class is available, e.g. the IHDR chunk is
   # represented by the {ChunkyPNG::Chunk::Header} class. These specialized
   # classes help accessing the content of the chunk. All other chunks are
@@ -72,7 +72,7 @@ module ChunkyPNG
 
       # Writes the chunk to the IO stream.
       #
-      # It will call the +content+ method to get the content for this chunk,
+      # It will call te +content+ method to get the content for this chunk,
       # and will calculate and append the checksum automatically.
       # @param [IO] io The IO stream to write to.
       def write(io)
@@ -177,46 +177,12 @@ module ChunkyPNG
     class Palette < Generic
     end
 
-    # A transparency (tRNS) chunk defines the transparency for an image.
-    #
-    # * For indexed images, it contains the alpha channel for the colors defined in the Palette (PLTE) chunk.
-    # * For grayscale images, it contains the grayscale teint that should be considered fully transparent.
-    # * For truecolor images, it contains the color that should be considered fully transparent.
-    #
-    # Images having a color mode that already includes an alpha channel, this chunk should not be included.
+    # A transparency (tRNS) chunk contains the alpha channel for the colors 
+    # defined in the Palette (PLTE) chunk
     #
     # @see ChunkyPNG::Chunk::Palette
     # @see ChunkyPNG::Palette
     class Transparency < Generic
-      
-      # Returns the alpha channel for the palette of an indexed image.
-      #
-      # This method should only be used for images having color mode ChunkyPNG::COLOR_INDEXED (3).
-      #
-      # @return [Array<Integer>] Returns an array of alpha channel values [0-255].
-      def palette_alpha_channel
-        content.unpack('C*')
-      end
-      
-      # Returns the truecolor entry to be replaced by transparent pixels,
-      #
-      # This method should only be used for images having color mode ChunkyPNG::COLOR_TRUECOLOR (2).
-      #
-      # @return [Integer] The color to replace with fully transparent pixels.
-      def truecolor_entry(bit_depth)
-        values = content.unpack('nnn').map { |c| ChunkyPNG::Canvas.send(:"decode_png_resample_#{bit_depth}bit_value", c) }
-        ChunkyPNG::Color.rgb(*values)
-      end
-
-      # Returns the grayscale entry to be replaced by transparent pixels.
-      #
-      # This method should only be used for images having color mode ChunkyPNG::COLOR_GRAYSCALE (0).
-      #
-      # @return [Integer] The (grayscale) color to replace with fully transparent pixels.      
-      def grayscale_entry(bit_depth)
-        value = ChunkyPNG::Canvas.send(:"decode_png_resample_#{bit_depth}bit_value", content.unpack('n')[0])
-        ChunkyPNG::Color.grayscale(value)
-      end
     end
 
     class ImageData < Generic

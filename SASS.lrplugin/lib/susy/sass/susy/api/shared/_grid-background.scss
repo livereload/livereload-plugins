@@ -1,0 +1,20 @@
+// -------------------------
+// Grid Overlay & Background
+//
+// Note: Sub-pixel rounding can lead to several pixels of variation between browsers.
+
+@import "compass/css3";
+
+// Grid Background Output
+// ----------------------
+
+@mixin grid-background-output (
+  $stops,
+  $flow   : $flow
+) {
+  $to     : to($flow);
+  $from   : from($flow);
+
+  @include background(linear-gradient($from, $stops...));
+  background: linear-gradient(to $to, $stops...);
+}

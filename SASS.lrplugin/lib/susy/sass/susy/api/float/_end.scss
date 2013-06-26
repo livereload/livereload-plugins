@@ -1,0 +1,21 @@
+// Float ends
+// ==========
+
+// Last Unit
+@mixin float-last(
+  $flow: $flow
+) {
+  $to: to($flow);
+
+  float: $to;
+  margin-#{$to}: 0;
+}
+
+// Last Unit
+@mixin float-first(
+  $flow: $flow
+) {
+  $from: from($flow);
+
+  margin-#{$from}: 0;
+}

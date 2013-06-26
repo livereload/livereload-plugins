@@ -6,14 +6,14 @@
   Foundation.libs.clearing = {
     name : 'clearing',
 
-    version : '4.1.0',
+    version : '4.0.0',
 
     settings : {
       templates : {
         viewing : '<a href="#" class="clearing-close">&times;</a>' +
           '<div class="visible-img" style="display: none"><img src="//:0">' +
-          '<p class="clearing-caption"></p><a href="#" class="clearing-main-prev"><span></span></a>' +
-          '<a href="#" class="clearing-main-next"><span></span></a></div>'
+          '<p class="clearing-caption"></p><a href="#" class="clearing-main-left"><span></span></a>' +
+          '<a href="#" class="clearing-main-right"><span></span></a></div>'
       },
 
       // comma delimited list of selectors that, on click, will close clearing,
@@ -25,7 +25,8 @@
       locked : false
     },
 
-    init : function (method, options) {
+    init : function (scope, method, options) {
+      this.scope = this.scope || scope;
       Foundation.inherit(this, 'set_data get_data remove_data throttle');
 
       if (typeof method === 'object') {
@@ -79,9 +80,9 @@
             self.update_paddles(target);
           })
 
-        .on('click.fndtn.clearing', '.clearing-main-next',
+        .on('click.fndtn.clearing', '.clearing-main-right',
           function (e) { this.nav(e, 'next') }.bind(this))
-        .on('click.fndtn.clearing', '.clearing-main-prev',
+        .on('click.fndtn.clearing', '.clearing-main-left',
           function (e) { this.nav(e, 'prev') }.bind(this))
         .on('click.fndtn.clearing', this.settings.close_selectors,
           function (e) { Foundation.libs.clearing.close(e, this) })
@@ -100,7 +101,6 @@
 
       $(this.scope)
         .on('touchstart.fndtn.clearing', '.visible-img', function(e) {
-          if (!e.touches) { e = e.originalEvent; }
           var data = {
                 start_page_x: e.touches[0].pageX,
                 start_page_y: e.touches[0].pageY,
@@ -113,7 +113,6 @@
           e.stopPropagation();
         })
         .on('touchmove.fndtn.clearing', '.visible-img', function(e) {
-          if (!e.touches) { e = e.originalEvent; }
           // Ignore pinch/zoom events
           if(e.touches.length > 1 || e.scale && e.scale !== 1) return;
 
@@ -268,27 +267,20 @@
 
       if (target.prev().length) {
         visible_image
-          .find('.clearing-main-prev')
+          .find('.clearing-main-left')
           .removeClass('disabled');
       } else {
         visible_image
-          .find('.clearing-main-prev')
+          .find('.clearing-main-left')
           .addClass('disabled');
       }
     },
 
     center : function (target) {
-      if (!this.rtl) {
-        target.css({
-          marginLeft : -(this.outerWidth(target) / 2),
-          marginTop : -(this.outerHeight(target) / 2)
-        });
-      } else {
-        target.css({
-          marginRight : -(this.outerWidth(target) / 2),
-          marginTop : -(this.outerHeight(target) / 2)
-        });
-      }
+      target.css({
+        marginLeft : -(this.outerWidth(target) / 2),
+        marginTop : -(this.outerHeight(target) / 2)
+      });
       return this;
     },
 
@@ -334,7 +326,7 @@
         return;
       }
 
-      if (image[0].complete || image[0].readyState === 4) {
+      if (this.complete || this.readyState === 4) {
         loaded();
       } else {
         bindLoad.call(image);

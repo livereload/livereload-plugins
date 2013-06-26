@@ -53,13 +53,6 @@ $section-bottom-margin:          emCalc(20px) !default;
   @else if $section-type == vertical-nav {
 
   }
-
-  // Horizontal Nav container border styles
-  @else if $section-type == horizontal-nav {
-    position: relative;
-    background: $section-title-bg;
-    border: $section-border-size $section-border-style $section-border-color;
-  }
 }
 
 // We use this mixin to create the styles for sections as accordions.
@@ -70,6 +63,9 @@ $section-bottom-margin:          emCalc(20px) !default;
 
     border-top: $section-border-size $section-border-style $section-border-color;
     position: relative;
+
+    *>:first-child { padding-top: 0; }
+    *>:last-child { padding-bottom: 0; }
 
     .title {
       top: 0;
@@ -94,11 +90,8 @@ $section-bottom-margin:          emCalc(20px) !default;
       padding: $section-padding;
       background-color: $section-content-bg;
 
-      &>*:last-child { margin-bottom: 0; }
-      &>*:first-child { padding-top: 0; }
-      &>*:last-child { padding-bottom: 0; }
+      *:last-child { margin-bottom: 0; }
     }
-
 
     &.active {
       .content { display: block; }
@@ -115,22 +108,21 @@ $section-bottom-margin:          emCalc(20px) !default;
     position: static;
 
     .title {
+      top: 1px;
       width: auto;
       border: $section-border-size $section-border-style $section-border-color;
-      border-#{$opposite-direction}: 0;
-      border-bottom: 0;
+      border-right: 0;
       position: absolute;
       z-index: 1;
 
       a { width: 100%; }
     }
-    &:last-child .title { border-#{$opposite-direction}: $section-border-size $section-border-style $section-border-color; }
+    &:last-child .title { border-right: $section-border-size $section-border-style $section-border-color; }
 
     .content {
       border: $section-border-size $section-border-style $section-border-color;
       position: absolute;
       z-index: 10;
-      top: -1px;
     }
 
     &.active {
@@ -157,76 +149,29 @@ $section-bottom-margin:          emCalc(20px) !default;
       .content {
         display: block;
         position: absolute;
-        #{$default-float}: 100%;
+        left: 100%;
         top: -1px;
         z-index: 999;
         min-width: $section-vertical-nav-min-width;
-        border: $section-border-size $section-border-style $section-border-color;
-      }
-    }
-  }
-
-  // Horizontal Nav Styles
-  @else if $section-type == horizontal-nav {
-    padding-top: 0;
-    border: 0;
-    position: static;
-
-    .title {
-      width: auto;
-      border: $section-border-size $section-border-style $section-border-color;
-      border-#{$default-float}: 0;
-      top: -1px;
-      position: absolute;
-      z-index: 1;
-
-      a { width: 100%; }
-    }
-
-    .content { display: none; }
-
-    &.active {
-      .content {
-        display: block;
-        position: absolute;
-        z-index: 999;
-        #{$default-float}: 0;
-        top: -2px;
-        min-width: $section-vertical-nav-min-width;
-        border: $section-border-size $section-border-style $section-border-color;
+        border: $section-border-size $section-border-style $section-border-color;;
       }
     }
   }
 }
 
 
-@if $include-html-section-classes {
+@if $include-html-classes {
 
   /* Sections */
-  .section-container, .section-container.auto {
+  .section-container {
     @include section-container;
 
     section,
-    .section {
-      @include section;
-    }
-  }
-
-  .section-container.tabs {
-    @include section-container(false, tabs);
-
-    section,
-    .section { @include section(tabs); }
+    .section { @include section; }
   }
 
   @media #{$small} {
 
-    .section-container.auto {
-      @include section-container(false, tabs);
-
-      section,
-      .section { @include section(tabs); }
-    }
     .section-container.accordion .section {
       padding-top: 0 !important;
     }
@@ -238,11 +183,11 @@ $section-bottom-margin:          emCalc(20px) !default;
       .section { @include section(vertical-nav); }
     }
 
-    .section-container.horizontal-nav {
-      @include section-container(false, horizontal-nav);
+    .section-container.tabs {
+      @include section-container(false, tabs);
 
       section,
-      .section { @include section(horizontal-nav); }
+      .section { @include section(tabs); }
     }
   }
 

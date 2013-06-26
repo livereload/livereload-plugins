@@ -25,13 +25,18 @@ module ChunkyPNG
   # @return [Integer] The determined color value as RGBA integer.
   # @raise [ArgumentError] if the arguments weren't understood as a color.
   # @see ChunkyPNG::Color
-  # @see ChunkyPNG::Color.parse
   def self.Color(*args)
     case args.length
-      when 1; ChunkyPNG::Color.parse(args.first)
-      when 2; (ChunkyPNG::Color.parse(args.first) & 0xffffff00) | args[1].to_i
-      when 3; ChunkyPNG::Color.rgb(*args)
       when 4; ChunkyPNG::Color.rgba(*args)
+      when 3; ChunkyPNG::Color.rgb(*args)
+      when 2; (ChunkyPNG::Color(args[0]) & 0xffffff00) | args[1].to_i
+      when 1
+        case source = args.first.to_s
+          when Integer, /^\d+$/; source.to_i
+          when ChunkyPNG::Color::HEX_COLOR_REGEXP;  ChunkyPNG::Color.from_hex(source)
+          when ChunkyPNG::Color::HTML_COLOR_REGEXP; ChunkyPNG::Color.html_color(source)
+          else raise ArgumentError, "Don't know how to create a color from #{source.inspect}!"
+        end
       else raise ArgumentError, "Don't know how to create a color from #{args.inspect}!"
     end
   end
@@ -40,7 +45,7 @@ module ChunkyPNG
   # library, the concepts of pixels and colors are both used, and they are
   # both represented by a Integer.
   #
-  # Pixels/colors are represented in RGBA components. Each of the four
+  # Pixels/colors are represented in RGBA componetns. Each of the four
   # components is stored with a depth of 8 bits (maximum value = 255 =
   # {ChunkyPNG::Color::MAX}). Together, these components are stored in a 4-byte
   # Integer.
@@ -66,22 +71,6 @@ module ChunkyPNG
     ####################################################################
     # CONSTRUCTING COLOR VALUES
     ####################################################################
-
-    # Parses a color value given a numeric or string argument.
-    #
-    # It supports color numbers, colors in hex notation and named HTML colors.
-    #
-    # @param [Integer, String] The color value.
-    # @return [Integer] The color value, with the opacity applied if one was given.
-    def parse(source)
-      return source if source.kind_of?(Integer)
-      case source.to_s
-        when /^\d+$/; source.to_s.to_i
-        when ChunkyPNG::Color::HEX_COLOR_REGEXP;  ChunkyPNG::Color.from_hex(source.to_s)
-        when ChunkyPNG::Color::HTML_COLOR_REGEXP; ChunkyPNG::Color.html_color(source.to_s)
-        else raise ArgumentError, "Don't know how to create a color from #{source.inspect}!"
-      end
-    end
 
     # Creates a new color using an r, g, b triple and an alpha value.
     # @param [Integer] r The r-component (0-255)
@@ -208,7 +197,7 @@ module ChunkyPNG
     
     # Returns the opaque value of this color by removing the alpha channel.
     # @param [Integer] value The color to transform.
-    # @return [Integer] The opaque color
+    # @return [Integer] The opauq color
     def opaque!(value)
       value | 0x000000ff
     end
@@ -305,51 +294,6 @@ module ChunkyPNG
       (fg + bg) >> 1
     end
 
-    # Interpolates the foreground and background colors by the given alpha value.
-    # This also blends the alpha channels themselves.
-    #
-    # A blending factor of 255 will give entirely the foreground,
-    # while a blending factor of 0 will give the background.
-    #
-    # @param [Integer] fg The foreground color.
-    # @param [Integer] bg The background color.
-    # @param [Integer] alpha The blending factor (fixed 8bit)
-    # @param [Integer] The interpolated color.
-    def interpolate_quick(fg, bg, alpha)
-      return fg if alpha >= 255
-      return bg if alpha <= 0
-      
-      alpha_com = 255 - alpha
-
-      new_r = int8_mult(alpha, r(fg)) + int8_mult(alpha_com, r(bg))
-      new_g = int8_mult(alpha, g(fg)) + int8_mult(alpha_com, g(bg))
-      new_b = int8_mult(alpha, b(fg)) + int8_mult(alpha_com, b(bg))
-      new_a = int8_mult(alpha, a(fg)) + int8_mult(alpha_com, a(bg))
-      
-      return rgba(new_r, new_g, new_b, new_a)
-    end
-
-    # Calculates the grayscale teint of an RGB color.
-    #
-    # @param [Integer] color The color to convert.    
-    # @return [Integer] The grayscale teint of the input color, 0-255.
-    def grayscale_teint(color)
-      (r(color) * 0.3 + g(color) * 0.59 + b(color) * 0.11).round
-    end
-    
-    # Converts a color to a fiting grayscale value. It will conserve the alpha
-    # channel.
-    #
-    # This method will return a full color value, with the R, G, and B value set
-    # to the grayscale teint calcuated from the input color's R, G and B values.
-    #
-    # @param [Integer] color The color to convert.
-    # @return [Integer] The input color, converted to the best fitting grayscale.
-    # @see #grayscale_teint
-    def to_grayscale(color)
-      grayscale_alpha(grayscale_teint(color), a(color))
-    end    
-
     # Lowers the intensity of a color, by lowering its alpha by a given factor.
     # @param [Integer] color The color to adjust.
     # @param [Integer] factor Fade factor as an integer between 0 and 255.
@@ -365,7 +309,7 @@ module ChunkyPNG
     # operation if alpha composition.
     #
     # If the color cannot be decomposed, this method will return the fully
-    # transparent variant of the mask color.
+    # transparentvariant of the mask color.
     #
     # @param [Integer] color The color that was the result of compositing.
     # @param [Integer] mask The opaque variant of the color that was being composed
@@ -386,7 +330,7 @@ module ChunkyPNG
     # all of which should be opaque. 
     #
     # @param [Integer] color The color that was the result of compositing.
-    # @param [Integer] mask The opaque variant of the color that was being composed
+    # @param [Integer] mask The opauqe variant of the color that was being composed
     # @param [Integer] bg The background color on which the color was composed.
     # @param [Integer] tolerance The decomposition tolerance level, a value between 0 and 255.
     # @return [Boolean] True if the alpha component can be decomposed successfully.
@@ -406,7 +350,7 @@ module ChunkyPNG
     # value of this method is undefined.
     #
     # @param [Integer] color The color that was the result of compositing.
-    # @param [Integer] mask The opaque variant of the color that was being composed
+    # @param [Integer] mask The opauqe variant of the color that was being composed
     # @param [Integer] bg The background color on which the color was composed.
     # @return [Integer] The best fitting alpha channel, a value between 0 and 255.
     # @see #alpha_decomposable?
@@ -418,22 +362,17 @@ module ChunkyPNG
     # Decomposes an alpha channel for either the r, g or b color channel.
     # @param [:r, :g, :b] channel The channel to decompose the alpha channel from.
     # @param [Integer] color The color that was the result of compositing.
-    # @param [Integer] mask The opaque variant of the color that was being composed
+    # @param [Integer] mask The opaqe variant of the color that was being composed
     # @param [Integer] bg The background color on which the color was composed.
     # @return [Integer] The decomposed alpha value for the channel.
     def decompose_alpha_component(channel, color, mask, bg)
-      cc, mc, bc = send(channel, color), send(channel, mask), send(channel, bg)
-      
-      return 0x00 if bc == cc
-      return 0xff if bc == mc
-      return 0xff if cc == mc
-      
-      (((bc - cc).to_f / (bc - mc).to_f) * MAX).round
+      ((send(channel, bg) - send(channel, color)).to_f / 
+          (send(channel, bg) - send(channel, mask)).to_f * MAX).round
     end
     
     # Decomposes the alpha channels for the r, g and b color channel.
     # @param [Integer] color The color that was the result of compositing.
-    # @param [Integer] mask The opaque variant of the color that was being composed
+    # @param [Integer] mask The opauqe variant of the color that was being composed
     # @param [Integer] bg The background color on which the color was composed.    
     # @return [Array<Integer>] The decomposed alpha values for the r, g and b channels.
     def decompose_alpha_components(color, mask, bg)
@@ -487,13 +426,10 @@ module ChunkyPNG
     # Returns an array with the grayscale teint and alpha channel values
     # for this color.
     #
-    # This method expects the color to be grayscale, i.e. r,g and b value 
-    # to be equal and uses only the B channel. If you need to convert a 
-    # color to grayscale first, see {#to_grayscale}.
+    # This method expects the r,g and b value to be equal.
     #
     # @param [Integer] color The grayscale color to convert.
     # @return [Array<Integer>] An array with 2 Integer elements.
-    # @see #to_grascale
     def to_grayscale_alpha_bytes(color)
       [b(color), a(color)] # assumption r == g == b
     end
@@ -502,7 +438,7 @@ module ChunkyPNG
     # COLOR CONSTANTS
     ####################################################################
 
-    # @return [Hash<Symbol, Integer>] All the predefined color names in HTML.
+    # @return [Hash<Symbol, Integer>] All the prefined color names in HTML.
     PREDEFINED_COLORS = {
       :aliceblue => 0xf0f8ff00,
       :antiquewhite => 0xfaebd700,
@@ -660,7 +596,7 @@ module ChunkyPNG
     # all return the same color value.
     #
     # You can include a opacity level in the color name (e.g. <tt>'red @ 0.5'</tt>) or give
-    # an explicit opacity value as second argument. If no opacity value is given, the color
+    # an explit opacity value as second argument. If no opacity value is given, the color
     # will be fully opaque.
     #
     # @param [Symbol, String] color_name The color name. It may include an opacity specifier
@@ -675,7 +611,7 @@ module ChunkyPNG
         base_color_name = $1.gsub(/[^a-z]+/i, '').downcase.to_sym
         return PREDEFINED_COLORS[base_color_name] | opacity if PREDEFINED_COLORS.has_key?(base_color_name)
       end
-      raise ArgumentError, "Unknown color name #{color_name}!"
+      raise ChunkyPNG::Exception, "Unknown color name #{color_name}!"
     end
 
     # @return [Integer] Black pixel/color

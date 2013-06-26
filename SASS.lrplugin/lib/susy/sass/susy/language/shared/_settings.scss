@@ -1,0 +1,216 @@
+// Grid Syntax
+// ===========
+
+// Set a new grid using a shorthand
+@mixin set-grid(
+  $grid,
+  $clean: false
+) {
+  $grid               : parse-grid($grid);
+
+  // get values
+  $new-columns        : get-setting(columns, $grid);
+  $new-gutters        : get-setting(gutters, $grid);
+  $new-container      : get-setting(container, $grid);
+  $new-column-width   : get-setting(column-width, $grid);
+  $new-static         : get-setting(static, $grid);
+  $new-isolate        : get-setting(isolate, $grid);
+
+  $new-flow           : get-setting(flow, $grid);
+  $new-gutter-place   : get-setting(gutter-placement, $grid);
+  $new-show-grids     : get-setting(show-grids, $grid);
+  $new-box            : get-setting(box-sizing, $grid);
+
+  // fill missing values
+  @if not $clean {
+    $new-columns          : if($new-columns, $new-columns, $columns);
+    $new-gutters          : if($new-gutters, $new-gutters, $gutters);
+    $new-container        : if($new-container, $new-container, $container);
+    $new-column-width     : if($new-column-width, $new-column-width, $column-width);
+    $new-static           : if($new-static, $new-static, $static);
+    $new-isolate          : if($new-isolate, $new-isolate, $isolate);
+    $new-box              : if($new-box, $new-box, $box-sizing);
+  }
+
+  // set values
+  $columns            : $new-columns;
+  $gutters            : $new-gutters;
+  $container          : $new-container;
+  $column-width       : $new-column-width;
+  $static             : $new-static;
+  $isolate            : $new-isolate;
+  $box-sizing         : $new-box;
+
+  $flow               : if($new-flow, $new-flow, $flow);
+  $gutter-placement   : if($new-gutter-place, $new-gutter-place, $gutter-placement);
+  $show-grids         : if($new-show-grids, $new-show-grids, $show-grids);
+}
+
+// Use an arbitrary grid for a section of code
+@mixin use-grid(
+  $grid,
+  $clean: false
+) {
+  $old-grid: get-grid();
+
+  @include set-grid($grid, $clean);
+  @content;
+  @include set-grid($old-grid, $clean);
+}
+
+// Grid helpers
+// ------------
+
+// Get the current grid settings as a shorthand list
+@function get-grid(
+) {
+  $gutter-setting       : $gutters;
+  $static-setting       : false;
+  $isolate-setting      : false;
+  $show-grids-setting   : false;
+
+  // Use units for column/gutter ratio if available
+  @if $column-width {
+    $gutter-setting: $column-width $column-width * $gutters;
+  }
+
+  // Create keyword for static setting
+  @if $static and $static != fluid {
+    $static-setting: static;
+  } @else {
+    $static-setting: fluid;
+  }
+
+  // Create keyword for isolate setting
+  @if $isolate and $isolate != float {
+    $isolate-setting: isolate;
+  } @else {
+    $isolate-setting: float;
+  }
+
+  // Create keyword for show-grids setting
+  @if $show-grids and $show-grids != hide {
+    $show-grids-setting: show;
+  } @else {
+    $show-grids-setting: hide;
+  }
+
+  // Return grid shorthand
+  @return compact($container $columns $gutter-setting $static-setting $isolate-setting $show-grids-setting $flow $gutter-placement $box-sizing);
+}
+
+// Parse a shorthand grid, and return an ordered list of settings
+@function parse-grid(
+  $grid: get-grid()
+) {
+  $columns-setting        : false;
+  $gutters-setting        : false;
+  $container-setting      : false;
+  $column-width-setting   : false;
+  $static-setting         : false;
+  $isolate-setting        : false;
+  $flow-setting           : false;
+  $gutter-place-setting   : false;
+  $show-setting           : false;
+  $box-setting            : false;
+
+  $columns-check          : false;
+
+  @each $value in $grid {
+    @if type-of($value) == string {
+      // output: static | fluid
+      @if $value == static {
+        $static-setting: static;
+      } @else if $value == fluid {
+        $static-setting: fluid;
+      }
+
+      // output: isolate | fluid
+      @if $value == isolate {
+        $isolate-setting: isolate;
+      } @else if $value == float {
+        $isolate-setting: float;
+      }
+
+      // flow: ltr | rtl
+      @if $value == rtl {
+        $flow-setting: rtl;
+      } @else if $value == ltr {
+        $flow-setting: ltr;
+      }
+
+      // show-grid: show | hide
+      @if $value == show {
+        $show-setting: show;
+      } @else if $value == hide {
+        $show-setting: hide;
+      }
+
+      // gutter-placement: before | after | split | no-gutters
+      @if $value == before {
+        $gutter-place-setting: before;
+      } @else if $value == after {
+        $gutter-place-setting: after;
+      } @else if $value == split {
+        $gutter-place-setting: split;
+      } @else if $value == inside {
+        $gutter-place-setting: inside;
+      } @else if $value == no-gutters {
+        $gutter-place-setting: no-gutters;
+      }
+
+      // box-sizing: border-box | content-box
+      @if $value == border-box {
+        $box-setting: border-box;
+      } @else if $value == content-box {
+        $box-setting: content-box;
+      }
+    }
+
+    // container, columns, or gutters
+    @else if type-of($value) == number {
+      @if not unitless($value) {
+        $container-setting: $value;
+      } @else if not $columns-check {
+        $columns-setting: $value;
+        $columns-check: true;
+      } @else {
+        $gutters-setting: $value;
+      }
+    }
+
+    // columns or gutters
+    @else if type-of($value) == list {
+      @if unitless(nth($value,1)) {
+        $columns-setting: $value;
+        $columns-check: true;
+      } @else {
+        $column-width-setting: nth($value,1);
+        $gutters-setting: nth($value,2) / nth($value,1);
+      }
+    }
+  }
+
+  @return $columns-setting $gutters-setting $container-setting $column-width-setting $static-setting $isolate-setting $flow-setting $gutter-place-setting $show-setting $box-setting;
+}
+
+// Return one setting from a shorhand grid
+@function get-setting(
+  $setting,
+  $grid   : parse-grid(get-grid()),
+  $parse  : false
+) {
+  $options  : columns gutters container column-width static isolate flow gutter-placement show-grids box-sizing;
+  $key      : index($options, $setting);
+  $value    : false;
+
+  @if $parse {
+    $grid: parse-grid($grid);
+  }
+
+  @if $key and not ($key > length($grid)) {
+    $value: nth($grid, $key);
+  }
+
+  @return $value;
+}

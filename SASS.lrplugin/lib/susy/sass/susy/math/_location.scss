@@ -1,0 +1,47 @@
+// Location math
+// =============
+
+// Find if a span covers the last columns
+@function is-last(
+  $span,
+  $location,
+  $columns: $columns
+) {
+  $is-last: false;
+
+  @if $location == "last" or $location == "omega" {
+    $is-last: true;
+  } @else if $location + ($span - 1) == column-count($columns) {
+    $is-last: true;
+  }
+
+  @return $is-last;
+}
+
+// Find if a span covers the first columns
+@function is-first(
+  $location
+) {
+  @if $location == "first" or $location == "alpha" or $location == 1 {
+    @return true;
+  } @else {
+    @return false;
+  }
+}
+
+// Return a numeric location, even if a first/last keyword is used
+@function get-location-position(
+  $span,
+  $location,
+  $columns: $columns
+) {
+  @if type-of($location) == number {
+    @return $location;
+  } @else if $location == first or $location == alpha {
+    @return 1;
+  } @else if $location == last or $location == omega {
+    @return column-count($columns) - $span + 1;
+  } @else {
+    @return false;
+  }
+}

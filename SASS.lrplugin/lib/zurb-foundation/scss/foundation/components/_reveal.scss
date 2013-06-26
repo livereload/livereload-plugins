@@ -10,7 +10,7 @@ $reveal-overlay-bg-old:  #000 !default;
 
 // We use these to control the style of the modal itself.
 $reveal-modal-bg:        #fff !default;
-$reveal-position-top:    50px !default;
+$reveal-position-top:    emCalc(15px) !default;
 $reveal-default-width:   80% !default;
 $reveal-modal-padding:   emCalc(20px) !default;
 $reveal-box-shadow:      0 0 10px rgba(#000,.4) !default;
@@ -41,7 +41,7 @@ $reveal-border-color:    #666 !default;
   z-index: 98;
   display: none;
   top: 0;
-  #{$default-float}: 0;
+  left: 0;
 }
 
 // We use this mixin to create the structure of a reveal modal
@@ -93,13 +93,13 @@ $reveal-border-color:    #666 !default;
   line-height: 1;
   position: absolute;
   top: $reveal-close-top;
-  #{$opposite-direction}: $reveal-close-side;
+  #{$default-opposite}: $reveal-close-side;
   color: $color;
   font-weight: $reveal-close-weight;
   cursor: pointer;
 }
 
-@if $include-html-reveal-classes {
+@if $include-html-classes {
   // Reveal Modals
   .reveal-modal-bg { @include reveal-bg; }
 

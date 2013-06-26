@@ -8,15 +8,12 @@ set :user, application
 set :deploy_to, "/var/www/foundation-docs"
 set :deploy_via, :remote_cache
 set :use_sudo, false
-set :branch, "master"
+set :branch, "4.0-wip"
 set :bundle_gemfile, "docs/Gemfile"
 
 set :scm, :git
 
-foundation1_ip = '166.78.3.108'
-foundation2_ip = '166.78.18.29'
-
-role :web, foundation1_ip, foundation2_ip
+server 'foundation.zurb.com', :web
 
 after "deploy:update_code", "deploy:generate_static_site"
 set :keep_releases, 3

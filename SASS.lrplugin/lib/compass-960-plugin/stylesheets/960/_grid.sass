@@ -4,8 +4,6 @@ $ninesixty-grid-width: 960px !default
 
 $ninesixty-columns: 12 !default
 
-$ninesixty-class-separator: "_" !default
-
 =grid-container
   margin-left: auto
   margin-right: auto
@@ -32,10 +30,10 @@ $ninesixty-class-separator: "_" !default
   margin-right: 0
 
 =grids($cols: $ninesixty-columns, $gutter-width: $ninesixty-gutter-width)
-  #{enumerate(".grid", 1, $cols, $ninesixty-class-separator)}
-    +grid-unit-base($gutter-width)
+  #{enumerate(".grid", 1, $cols, "_")}
+    +grid-unit-base
   @for $n from 1 through $cols
-    .grid#{$ninesixty-class-separator}#{$n}
+    .grid_#{$n}
       +grid-width($n, $cols, $gutter-width)
 
 =grid-prefix($n, $cols: $ninesixty-columns)
@@ -43,7 +41,7 @@ $ninesixty-class-separator: "_" !default
 
 =grid-prefixes($cols: $ninesixty-columns)
   @for $n from 1 through $cols - 1
-    .prefix#{$ninesixty-class-separator}#{$n}
+    .prefix_#{$n}
       +grid-prefix($n, $cols)
 
 =grid-suffix($n, $cols: $ninesixty-columns)
@@ -51,7 +49,7 @@ $ninesixty-class-separator: "_" !default
 
 =grid-suffixes($cols: $ninesixty-columns)
   @for $n from 1 through $cols - 1
-    .suffix#{$ninesixty-class-separator}#{$n}
+    .suffix_#{$n}
       +grid-suffix($n, $cols)
 
 =grid-children
@@ -63,29 +61,21 @@ $ninesixty-class-separator: "_" !default
 =grid-move-base
   position: relative
 
-=grid-move-push($n, $cols)
+=grid-push($n, $cols)
   left: ($ninesixty-grid-width / $cols) * $n
 
-=grid-move-pull($n, $cols)
+=grid-pull($n, $cols)
   left: -($ninesixty-grid-width / $cols) * $n
 
-=grid-push($n, $cols: $ninesixty-columns)
-  +grid-move-base
-  +grid-move-push($n, $cols)
-
-=grid-pull($n, $cols: $ninesixty-columns)
-  +grid-move-base
-  +grid-move-pull($n, $cols)
-
 =grid-movements($cols: $ninesixty-columns)
-  #{enumerate(".push", 1, $cols - 1, $ninesixty-class-separator)},
-  #{enumerate(".pull", 1, $cols - 1, $ninesixty-class-separator)}
+  #{enumerate(".push", 1, $cols, "_")},
+  #{enumerate(".pull", 1, $cols, "_")}
     +grid-move-base
-  @for $n from 1 through $cols - 1
-    .push#{$ninesixty-class-separator}#{$n}
-      +grid-move-push($n, $cols)
-    .pull#{$ninesixty-class-separator}#{$n}
-      +grid-move-pull($n, $cols)
+  @for $n from 1 through $cols
+    .push_#{$n}
+      +grid-push($n, $cols)
+    .pull_#{$n}
+      +grid-pull($n, $cols)
 
 =grid-system($cols: $ninesixty-columns)
   +grid-container
@@ -94,7 +84,3 @@ $ninesixty-class-separator: "_" !default
   +grid-suffixes($cols)
   +grid-children
   +grid-movements($cols)
-
-=grid-system-complete($cols: $ninesixty-columns)
-  .container#{$ninesixty-class-separator}#{$cols}
-    +grid-system($cols)

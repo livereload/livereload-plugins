@@ -49,15 +49,13 @@ $tooltip-pip-size:            5px !default;
   line-height: $tooltip-line-height;
   padding: $tooltip-padding;
   max-width: 85%;
-  #{$default-float}: 50%;
+  left: 50%;
   width: 100%;
   color: $tooltip-font-color;
   background: $tooltip-bg;
-  @include radius($tooltip-radius);
 
   &>.nub {
     display: block;
-    #{$default-float}: $tooltip-pip-size;
     position: absolute;
     width: 0;
     height: 0;
@@ -70,6 +68,8 @@ $tooltip-pip-size:            5px !default;
     color: $has-tip-font-color-hover !important;
     border-bottom: $has-tip-border-bottom-hover !important;
   }
+
+  &.radius{ @include radius($tooltip-radius); }
 }
 
 .tap-to-close {

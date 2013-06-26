@@ -1,0 +1,15 @@
+// Padding
+// =======
+
+// Add padding before or after an element
+@mixin padding-output(
+  $before,
+  $after    : $before,
+  $flow     : $flow
+) {
+  $to: to($flow);
+  $from: from($flow);
+
+  padding-#{$from}: $before;
+  padding-#{$to}: $after;
+}

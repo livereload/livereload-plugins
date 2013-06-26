@@ -1,0 +1,22 @@
+// Shared container output
+// =======================
+
+// Output container styles
+@mixin container-output(
+  $width        : $container,
+  $justify      : $container-position,
+  $show-grids   : $show-grids
+) {
+  $position   : parse-container-position($justify);
+  $property   : if($static, width, max-width);
+  $left       : nth($position,1);
+  $right      : nth($position,2);
+
+  @if not $width {
+    $width: 100%;
+  }
+
+  #{$property}: $width;
+  margin-left: $left;
+  margin-right: $right;
+}

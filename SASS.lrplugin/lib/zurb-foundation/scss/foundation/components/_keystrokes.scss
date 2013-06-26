@@ -17,7 +17,7 @@ $keystroke-bg:              darken(#fff, $keystroke-function-factor) !default;
 $keystroke-border-style:    solid !default;
 $keystroke-border-width:    1px !default;
 $keystroke-border-color:    darken($keystroke-bg, $keystroke-function-factor) !default;
-$keystroke-radius:          $global-radius !default;
+$keystroke-radius:          $button-radius !default;
 
 //
 // Keystroke Mixins
@@ -44,9 +44,9 @@ $keystroke-radius:          $global-radius !default;
 }
 
 
-@if $include-html-media-classes {
+@if $include-html-classes {
 
-  /* Keystroke Characters */
+  /* Keytroke Characters */
   .keystroke,
   kbd {
     @include keystroke;
