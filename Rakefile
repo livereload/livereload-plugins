@@ -217,7 +217,12 @@ PluginTask.new 'IcedCoffeeScript', :npm => %w(iced-coffee-script)
 PluginTask.new 'TypeScript', :npm => %w(typescript)
 PluginTask.new 'Eco',        :npm => %w(eco)
 PluginTask.new 'LESS',       :npm => %w(less)
+
+# Cairo prob on OS X? Try this:
+#   export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
+# see: https://github.com/mxcl/homebrew/issues/14123
 PluginTask.new 'Stylus',     :npm => %w(stylus nib canvas)
+
 PluginTask.new 'Jade',       :npm => %w(jade markdown)
 
 PluginTask.new 'HAML',       :gems => %w(haml tilt)
