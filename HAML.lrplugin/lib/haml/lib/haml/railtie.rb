@@ -10,7 +10,6 @@ end
 module Haml
   class Railtie < ::Rails::Railtie
     initializer :haml do |app|
-      require "haml/template"
       if defined?(::Sass::Rails::SassTemplate) && app.config.assets.enabled
         require "haml/sass_rails_filter"
       end

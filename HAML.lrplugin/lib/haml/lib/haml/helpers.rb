@@ -381,7 +381,7 @@ MESSAGE
         end
 
         captured.map do |line|
-          line.slice(min_tabs, line.length)
+          line[min_tabs..-1]
         end.join
       end
     ensure

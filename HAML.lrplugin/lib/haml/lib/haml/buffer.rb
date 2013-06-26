@@ -156,7 +156,7 @@ module Haml
       <% end %>
 
       <% if ugly %>
-        fix_textareas!(result) if toplevel? && result.include?('<textarea')
+        fix_textareas!(result, nil) if toplevel? && result.include?('<textarea')
         return result
       <% else %>
         <% if !(in_tag && preserve_tag && !nuke_inner_whitespace) %>
@@ -184,7 +184,7 @@ module Haml
           <% if in_tag && !nuke_inner_whitespace %> result = tabs(tabulation) + result <% end %>
         end
 
-        fix_textareas!(result) if toplevel? && result.include?('<textarea')
+        fix_textareas!(result, tabs(tabulation)) if toplevel? && result.include?('<textarea')
 
         <% if in_tag && !nuke_inner_whitespace %>
           result = "\\n\#{result}\\n\#{tabs(tabulation-1)}"
@@ -267,17 +267,18 @@ RUBY
     # a newline after textarea helpers.
     #
     # @param input [String] The text to process
+    # @param tabs [String] The tabs provided by the Haml::Buffer
+    # @param options [Hash] The options hash provided by the Haml::Buffer
     # @since Haml 4.0.1
     # @private
-    def fix_textareas!(input)
+    def fix_textareas!(input, tabs)
       pattern = /([ ]*)<(textarea)([^>]*)>(\n|&#x000A;)(.*?)(<\/\2>)/im
       input.gsub!(pattern) do |s|
         match = pattern.match(s)
         content = match[5]
-        if match[4] == '&#x000A;'
-          content.sub!(/\A /, '&#x0020;')
-        else
-          content.sub!(/\A[ ]*/, '')
+        unless tabs.nil?
+          content.sub!(match[1].to_s, '')
+          content.sub!(tabs, '')
         end
         "#{match[1]}<#{match[2]}#{match[3]}>\n#{content}</#{match[2]}>"
       end

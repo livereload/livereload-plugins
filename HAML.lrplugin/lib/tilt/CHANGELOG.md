@@ -1,5 +1,18 @@
 ## master
 
+## 1.4.1 (2013-05-08)
+
+* Support Arrays in pre/postambles (#193, jbwiv)
+
+## 1.4.0 (2013-05-01)
+
+* Better encoding support
+
+## 1.3.7 (2013-04-09)
+
+* Erubis: Check for the correct constant (#183, mattwildig)
+* Don't fail when BasicObject is defined in 1.8 (#182, technobrat, judofyr)
+
 ## 1.3.6 (2013-03-17)
 
 * Accept Hash that implements #path as options (#180, lawso017)
