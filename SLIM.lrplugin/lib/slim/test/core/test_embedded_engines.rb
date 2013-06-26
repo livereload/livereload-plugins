@@ -14,6 +14,22 @@ p
     assert_html "<p><b>Hello from BEFORE ERB BLOCK!</b>\nSecond Line!\ntrue</p>", source
   end
 
+  def test_wip_render_with_asciidoc
+    source = %q{
+asciidoc:
+  == Header
+  Hello from #{"AsciiDoc!"}
+
+  #{1+2}
+
+  * one
+  * two
+}
+    output = render(source)
+    assert_match 'sect1', output
+    assert_match 'Hello from AsciiDoc!', output
+  end
+
   def test_render_with_markdown
     source = %q{
 markdown:
@@ -25,13 +41,22 @@ markdown:
   * one
   * two
 }
-    assert_html "<h1 id=\"header\">Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
+    if ::Tilt['md'].name =~ /Redcarpet/
+      # redcarpet
+      assert_html "<h1>Header</h1>\n\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n", source
+    elsif ::Tilt['md'].name =~ /RDiscount/
+      # rdiscount
+      assert_html "<h1>Header</h1>\n\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n\n", source
+    else
+      # kramdown, :auto_ids by default
+      assert_html "<h1 id=\"header\">Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
 
-    Slim::EmbeddedEngine.with_options(:markdown => {:auto_ids => false}) do
-      assert_html "<h1>Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
+      Slim::Embedded.with_options(:markdown => {:auto_ids => false}) do
+        assert_html "<h1>Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
+      end
+
+      assert_html "<h1 id=\"header\">Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
     end
-
-    assert_html "<h1 id=\"header\">Header</h1>\n<p>Hello from Markdown!</p>\n\n<p>3</p>\n\n<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n", source
   end
 
   def test_render_with_creole
@@ -88,6 +113,34 @@ javascript:
   $(function() { #{func} });
 }
     assert_html %q|<script type="text/javascript">$(function() { alert('hello'); });</script>|, source
+  end
+
+  def test_render_with_javascript_with_explicit_html_comment
+    Slim::Engine.with_options(:js_wrapper => :comment) do
+      source = "javascript:\n\t$(function() {});\n\talert('hello')\np Hi"
+      assert_html "<script type=\"text/javascript\"><!--\n$(function() {});\nalert('hello')\n//--></script><p>Hi</p>", source
+    end
+  end
+
+  def test_render_with_javascript_with_explicit_cdata_comment
+    Slim::Engine.with_options(:js_wrapper => :cdata) do
+      source = "javascript:\n\t$(function() {});\n\talert('hello')\np Hi"
+      assert_html "<script type=\"text/javascript\">\n//<![CDATA[\n$(function() {});\nalert('hello')\n//]]>\n</script><p>Hi</p>", source
+    end
+  end
+
+  def test_render_with_javascript_with_format_xhtml_comment
+    Slim::Engine.with_options(:js_wrapper => :guess, :format => :xhtml) do
+      source = "javascript:\n\t$(function() {});\n\talert('hello')\np Hi"
+      assert_html "<script type=\"text/javascript\">\n//<![CDATA[\n$(function() {});\nalert('hello')\n//]]>\n</script><p>Hi</p>", source
+    end
+  end
+
+  def test_render_with_javascript_with_format_html_comment
+    Slim::Engine.with_options(:js_wrapper => :guess, :format => :html) do
+      source = "javascript:\n\t$(function() {});\n\talert('hello')\np Hi"
+      assert_html "<script type=\"text/javascript\"><!--\n$(function() {});\nalert('hello')\n//--></script><p>Hi</p>", source
+    end
   end
 
   def test_render_with_ruby

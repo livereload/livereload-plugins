@@ -1,28 +1,55 @@
 # Slim
 
-[![Build Status](https://secure.travis-ci.org/slim-template/slim.png?branch=master)](http://travis-ci.org/slim-template/slim) [![Dependency Status](https://gemnasium.com/slim-template/slim.png?travis)](https://gemnasium.com/slim-template/slim) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/slim-template/slim)
+[![Gem Version](https://badge.fury.io/rb/slim.png)](http://rubygems.org/gems/slim) [![Build Status](https://secure.travis-ci.org/slim-template/slim.png?branch=master)](http://travis-ci.org/slim-template/slim) [![Dependency Status](https://gemnasium.com/slim-template/slim.png?travis)](https://gemnasium.com/slim-template/slim) [![Code Climate](https://codeclimate.com/github/slim-template/slim.png)](https://codeclimate.com/github/slim-template/slim)
 
 Slim is a template language whose goal is to reduce the view syntax to the essential parts without becoming cryptic. It started as an exercise to see how much could be removed from a standard html template (<, >, closing tags, etc...). As more people took an interest in Slim, the functionality grew and so did the flexibility of the syntax.
 
 A short list of the features...
 
-* Short syntax without closing tags (Using indentation instead)
-* Embedded engines like Markdown and Textile
-* Configurable shortcut tags (`#` for `div id` and `.` for `div class` in the default configuration)
-* Automatic HTML escaping and support for Rails' `html_safe?`
-* HTML style mode with closing tags
-* Logic less mode similar to Mustache, realized as plugin
-* Translator/I18n, realized as plugin
-* Highly configurable and extendable
-* High performance (Comparable to ERB)
+* Elegant syntax
+    * Short syntax without closing tags (Using indentation instead)
+    * HTML style mode with closing tags
+    * Configurable shortcut tags (`#` for `<div id="...">` and `.` for `<div class="...">` in the default configuration)
+* Safety
+    * Automatic HTML escaping by default
+    * Support for Rails' `html_safe?`
+* Highly configurable and extendable via plugins
+    * Logic less mode similar to Mustache, realized as plugin
+    * Translator/I18n, realized as plugin
+* High performance
+    * Comparable speed to ERB/Erubis
+    * Streaming support in Rails
 * Supported by all major frameworks (Rails, Sinatra, ...)
-* Streaming support in Rails
+* Full Unicode support for tags and attributes on Ruby 1.9
+* Embedded engines like Markdown and Textile
+
+## Links
+
+* Source: <http://github.com/slim-template/slim>
+* Bugs:   <http://github.com/slim-template/slim/issues>
+* List:   <http://groups.google.com/group/slim-template>
+* API documentation:
+    * Latest Gem: <http://rubydoc.info/gems/slim/frames>
+    * GitHub master: <http://rubydoc.info/github/slim-template/slim/master/frames>
+
+## Upgrade to version 2.0
+
+If you are already using Slim 1.x and want to upgrade to the newest version 2.0, you should at first
+upgrade to at least Slim 1.3.8 which will emit warnings for deprecated features. This way you can easily
+see if your application is already Slim 2.0 compliant!
+
+Slim 2.0 removes deprecated features from the 1.3 series and cleans up some minor
+inconsistencies in the syntax (Attribute wrapper and quoted attribute escaping).
+Of course it also includes new features and bugfixes. See the CHANGES for details.
+
+In general don't be afraid of upgrading! We try to be backward compatible and follow [semantic versions](http://semver.org/)
+as good as possible.
 
 ## Introduction
 
 ### What is Slim?
 
-Slim is a fast, lightweight templating engine with support for __Rails 3__. It has been heavily tested on all major ruby implementations. We use
+Slim is a fast, lightweight templating engine with support for __Rails 3 and 4__. It has been heavily tested on all major ruby implementations. We use
 continous integration (travis-ci).
 
 Slim's core syntax is guided by one thought: "What's the minimum required to make this work".
@@ -38,9 +65,12 @@ by the logic less plugin and the translator plugin which provides I18n.
 
 Within the Rails community, _Erb_ and _Haml_ are without doubt the two most popular templating engines. However, _Erb_'s syntax is cumbersome and _Haml_'s syntax can be quite cryptic to the uninitiated.
 
+There is also some development in logic-less engines (e.g. [Mustache](https://github.com/defunkt/mustache) which requires you to write standard HTML). You can also use Slim in logic-less mode if you like the Slim syntax to build your HTML but don't want to write Ruby in your templates.
+
 Slim was born to bring a minimalist syntax approach with speed. If people chose not to use Slim, it would not be because of speed.
 
-___Yes, Slim is speedy!___ Benchmarks are provided at the end of this README file. Don't trust the numbers? That's as it should be. Therefore we provide a benchmark rake task so you could test it yourself (`rake bench`).
+___Yes, Slim is speedy!___ Benchmarks are done for every commit at <http://travis-ci.org/#!/slim-template/slim>.
+Don't trust the numbers? That's as it should be. Please try the benchmark rake task yourself!
 
 ### How to start?
 
@@ -70,11 +100,11 @@ Here's a quick example to demonstrate what a Slim template looks like:
         #content
           p This example shows you how a basic Slim file looks like.
 
-        = yield
+        == yield
 
         - if items.any?
           table#items
-            - for item in items do
+            - for item in items
               tr
                 td.name = item.name
                 td.price = item.price
@@ -83,8 +113,8 @@ Here's a quick example to demonstrate what a Slim template looks like:
             Thank you!
 
         div id="footer"
-          = render 'footer'
-          | Copyright &copy; #{year} #{author}
+          == render 'footer'
+          | Copyright &copy; #{@year} #{@author}
 
 Indentation matters, but the indentation depth can be chosen as you like. If you want to first indent 2 spaces, then 5 spaces, it's your choice. To nest markup you only need to indent by one space, the rest is gravy.
 
@@ -109,10 +139,10 @@ Each following line that is indented greater than the pipe is copied over.
 
     body
       p
-        |  This line is on the left margin.
-            This line will have one space in front of it.
-              This line will have two spaces in front of it.
-                And so on...
+        | This line is on the left margin.
+           This line will have one space in front of it.
+             This line will have two spaces in front of it.
+               And so on...
 
 You can also embed html in the text line
 
@@ -153,22 +183,20 @@ If your ruby code needs to use multiple lines, append a backslash `\` at the end
 The equal sign tells Slim it's a Ruby call that produces output to add to the buffer. If your ruby code needs to use multiple lines, append a backslash `\` at the end of the lines, for example:
 
     = javascript_include_tag \
-       "jquery", \
+       "jquery",
        "application"
 
-If your line ends with comma `,` (e.g because of a method call) you don't need the additional backslash before the linebreak.
+If your line ends with comma `,` (e.g because of a method call) you don't need the additional backslash before the linebreak. For trailing or leading whitespace the modifiers `>` and `<` are supported.
 
-### Output with trailing white space `='`
-
-Same as the single equal sign (`=`), except that it adds a trailing white space.
+* Output with trailing white space `=>`. Same as the single equal sign (`=`), except that it adds a trailing white space. The legacy syntax `='` is also supported.
+* Output with leading white space `=<`. Same as the single equal sign (`=`), except that it adds a leading white space.
 
 ### Output without HTML escaping `==`
 
-Same as the single equal sign (`=`), but does not go through the `escape_html` method.
+Same as the single equal sign (`=`), but does not go through the `escape_html` method. For trailing or leading whitespace the modifiers `>` and `<` are supported.
 
-### Output without HTML escaping and trailing ws `=='`
-
-Same as the double equal sign (`==`), except that it adds a trailing white space.
+* Output without HTML escaping and trailing white space `==>`. Same as the double equal sign (`==`), except that it adds a trailing white space. The legacy syntax `=='` is also supported.
+* Output without HTML escaping and leading white space `==<`. Same as the double equal sign (`==`), except that it adds a leading white space.
 
 ### Code comment `/`
 
@@ -266,6 +294,22 @@ You can close tags explicitly by appending a trailing `/`.
 Note, that this is usually not necessary since the standard html
 tags (img, br, ...) are closed automatically.
 
+### Trailing and leading whitespace (`<`, `>`)
+
+You can force Slim to add a trailing whitespace after a tag by adding a >.
+
+    a> href='url1' Link1
+    a> href='url2' Link2
+
+You can add a leading whitespace by adding <.
+
+    a< href='url1' Link1
+    a< href='url2' Link2
+
+You can also combine both.
+
+    a<> href='url1' Link1
+
 ### Inline tags
 
 Sometimes you may want to be a little more compact and inline the tags.
@@ -287,7 +331,7 @@ Either start on the same line as the tag
     body
       h1 id="headline" Welcome to my site.
 
-Or nest it.  You must use a pipe or a backtick to escape processing
+Or nest it.  You must use a pipe or an apostrophe to escape processing
 
     body
       h1 id="headline"
@@ -328,6 +372,11 @@ If you wrap the attributes, you can spread them across multiple lines:
     h2[id="tagline"
        class="small tagline"] = page_tagline
 
+You may use spaces around the wrappers and assignments:
+
+    h1 id = "logo" = page_logo
+    h2 [ id = "tagline" ] = page_tagline
+
 #### Quoted attributes
 
 Example:
@@ -338,7 +387,7 @@ You can use text interpolation in the quoted attributes:
 
     a href="http://#{url}" Goto the #{url}
 
-The attribute value will be escaped if the option `:escape_quoted_attrs` is set. Use == if you want to disable escaping in the attribute.
+The attribute value will be escaped by default. Use == if you want to disable escaping in the attribute.
 
     a href=="&amp;"
 
@@ -350,14 +399,14 @@ You can break quoted attributes with backslash `\`
 #### Ruby attributes
 
 Write the ruby code directly after the `=`. If the code contains spaces you have to wrap
-the code into parentheses `(...)`, `{...}` or `[...]`. The code in the parentheses will be evaluated.
+the code into parentheses `(...)`. You can also directly write hashes `{...}` and arrays `[...]`.
 
     body
       table
-        - for user in users do
+        - for user in users
           td id="user_#{user.id}" class=user.role
             a href=user_action(user, :edit) Edit #{user.name}
-            a href={path_to_user user} = user.name
+            a href=(path_to_user user) = user.name
 
 The attribute value will be escaped by default. Use == if you want to disable escaping in the attribute.
 
@@ -380,7 +429,7 @@ as booleans. If you use the attribut wrapper you can omit the attribute assigmen
 
 #### Attribute merging
 
-You can configure attributes to be merged if multiple are given (See option `:attr_delimiter`). In the default configuration
+You can configure attributes to be merged if multiple are given (See option `:merge_attrs`). In the default configuration
 this is done for class attributes with the white space as delimiter.
 
     a.menu class="highlight" href="http://slim-lang.com/" Slim-lang.com
@@ -409,7 +458,7 @@ You can also use methods or instance variables which return a hash as shown here
     .card *method_which_returns_hash = place.name
     .card *@hash_instance_variable = place.name
 
-The hash attributes which support attribute merging (see Slim option `:attr_delimiter`) can be given as an `Array`
+The hash attributes which support attribute merging (see Slim option `:merge_attrs`) can be given as an `Array`
 
     .first *{:class => [:second, :third]} Text
 
@@ -505,6 +554,33 @@ This is the same as
       div class="content"
         = show_content
 
+## Helpers and capturing
+
+If you use Slim you might want to extend your template with some helpers. Assume that you have the following helper
+
+~~~ruby
+module Helpers
+  def headline
+    "<h1>#{yield}</h1>"
+  end
+end
+~~~
+
+which can be used in Slim as follows
+
+    p
+      = headline do
+        ' Hello
+        = user.name
+
+The content in the `do` block is then captured automatically and passed to the helper via `yield`. As a syntactic
+sugar you can omit the `do` keyword and write only
+
+    p
+      = headline
+        ' Hello
+        = user.name
+
 ## Text interpolation
 
 Use standard Ruby interpolation. The text will be html escaped by default.
@@ -545,6 +621,7 @@ Supported engines:
 <tr><td>less:</td><td>less</td><td>Compile time</td><td>Embed less css code and wrap in style tag</td></tr>
 <tr><td>styl:</td><td>styl</td><td>Compile time</td><td>Embed stylus css code and wrap in style tag</td></tr>
 <tr><td>coffee:</td><td>coffee-script</td><td>Compile time</td><td>Compile coffee script code and wrap in script tag</td></tr>
+<tr><td>asciidoc:</td><td>asciidoctor</td><td>Compile time + Interpolation</td><td>Compile AsciiDoc code and interpolate #\{variables} in text</td></tr>
 <tr><td>markdown:</td><td>redcarpet/rdiscount/kramdown</td><td>Compile time + Interpolation</td><td>Compile markdown code and interpolate #\{variables} in text</td></tr>
 <tr><td>textile:</td><td>redcloth</td><td>Compile time + Interpolation</td><td>Compile textile code and interpolate #\{variables} in text</td></tr>
 <tr><td>creole:</td><td>creole</td><td>Compile time + Interpolation</td><td>Compile creole code and interpolate #\{variables} in text</td></tr>
@@ -556,9 +633,9 @@ Supported engines:
 </tbody>
 </table>
 
-The embedded engines can be configured in Slim by setting the options directly on the `Slim::EmbeddedEngine` filter. Example:
+The embedded engines can be configured in Slim by setting the options directly on the `Slim::Embedded` filter. Example:
 
-    Slim::EmbeddedEngine.default_options[:markdown] = {:auto_ids => false}
+    Slim::Embedded.default_options[:markdown] = {:auto_ids => false}
 
 ## Configuring Slim
 
@@ -617,17 +694,18 @@ There are a lot of them but the good thing is, that Slim checks the configuratio
 <tr><td>String</td><td>:encoding</td><td>"utf-8"</td><td>Set encoding of template</td></tr>
 <tr><td>String</td><td>:default_tag</td><td>"div"</td><td>Default tag to be used if tag name is omitted</td></tr>
 <tr><td>Hash</td><td>:shortcut</td><td>\{'.' => {:attr => 'class'}, '#' => {:attr => 'id'}}</td><td>Attribute shortcuts</td></tr>
-<tr><td>Symbol/String list</td><td>:enable_engines</td><td>nil <i>(All enabled)</i></td><td>List of enabled embedded engines (whitelist)</td></tr>
-<tr><td>Symbol/String list</td><td>:disable_engines</td><td>nil <i>(None disabled)</i></td><td>List of disabled embedded engines (blacklist)</td></tr>
+<tr><td>Array&lt;Symbol,String&gt;</td><td>:enable_engines</td><td>nil <i>(All enabled)</i></td><td>List of enabled embedded engines (whitelist)</td></tr>
+<tr><td>Array&lt;Symbol,String&gt;</td><td>:disable_engines</td><td>nil <i>(None disabled)</i></td><td>List of disabled embedded engines (blacklist)</td></tr>
 <tr><td>Boolean</td><td>:disable_capture</td><td>false (true in Rails)</td><td>Disable capturing in blocks (blocks write to the default buffer </td></tr>
 <tr><td>Boolean</td><td>:disable_escape</td><td>false</td><td>Disable automatic escaping of strings</td></tr>
-<tr><td>Boolean</td><td>:escape_quoted_attrs</td><td>false</td><td>Escape quoted attributes</td></tr>
 <tr><td>Boolean</td><td>:use_html_safe</td><td>false (true in Rails)</td><td>Use String#html_safe? from ActiveSupport (Works together with :disable_escape)</td></tr>
 <tr><td>Symbol</td><td>:format</td><td>:xhtml</td><td>HTML output format (Possible formats :xhtml, :html4, :html5, :html)</td></tr>
-<tr><td>String</td><td>:attr_wrapper</td><td>'"'</td><td>Character to wrap attributes in html (can be ' or ")</td></tr>
-<tr><td>Hash</td><td>:attr_delimiter</td><td>\{'class' => ' '}</td><td>Joining character used if multiple html attributes are supplied (e.g. class="class1 class2")</td></tr>
+<tr><td>String</td><td>:attr_quote</td><td>'"'</td><td>Character to wrap attributes in html (can be ' or ")</td></tr>
+<tr><td>Hash</td><td>:merge_attrs</td><td>\{'class' => ' '}</td><td>Joining character used if multiple html attributes are supplied (e.g. class="class1 class2")</td></tr>
+<tr><td>Array&lt;String&gt;</td><td>:hyphen_attrs</td><td>%w(data)</td><td>Attributes which will be hyphenated if a Hash is given (e.g. data={a:1,b:2} will render as data-a="1" data-b="2")</td></tr>
 <tr><td>Boolean</td><td>:sort_attrs</td><td>true</td><td>Sort attributes by name</td></tr>
-<tr><td>Boolean</td><td>:pretty</td><td>false</td><td>Pretty html indenting <b>(This is slower!)</b></td></tr>
+<tr><td>Symbol</td><td>:js_wrapper</td><td>nil</td><td>Wrap javascript by :comment, :cdata or :both. You can also :guess the wrapper based on :format.</td></tr>
+<tr><td>Boolean</td><td>:pretty</td><td>false</td><td>Pretty HTML indenting, only block level tags are indented <b>(This is slower!)</b></td></tr>
 <tr><td>String</td><td>:indent</td><td>'  '</td><td>Indentation string</td></tr>
 <tr><td>Boolean</td><td>:streaming</td><td>false (true in Rails > 3.1)</td><td>Enable output streaming</td></tr>
 <tr><td>Class</td><td>:generator</td><td>Temple::Generators::ArrayBuffer/RailsOutputBuffer</td><td>Temple code generator (default generator generates array buffer)</td></tr>
@@ -656,149 +734,10 @@ It is also possible to set options for superclasses like `Temple::Engine`. But t
 
 ## Plugins
 
-### Logic less mode
+Slim currently provides plugins for logic less mode and I18n. See the plugin documentation.
 
-<a name="logicless">Logic less mode</a> is inspired by [Mustache](https://github.com/defunkt/mustache). Logic less mode uses a dictionary object
-e.g. a recursive hash tree which contains the dynamic content.
-
-#### Conditional
-
-If the object is not false or empty?, the content will show
-
-    - article
-      h1 = title
-
-#### Inverted conditional
-
-If the object is false or empty?, the content will show
-
-    -! article
-      p Sorry, article not found
-
-#### Iteration
-
-If the object is an array, the section will iterate
-
-    - articles
-      tr: td = title
-
-#### Lambdas
-
-Like mustache, Slim supports lambdas.
-
-    = person
-      = name
-
-The lambda method could be defined like this
-
-    def lambda_method
-      "<div class='person'>#{yield(:name => 'Andrew')}</div>"
-    end
-
-You can optionally pass one or more hashes to `yield`. If you pass multiple hashes, the block will be iterated as described above.
-
-#### Dictionary access
-
-Example code:
-
-    - article
-      h1 = title
-
-The dictionary object is accessed in the order given by the `:dictionary_access`. Default order:
-
-1. `:symbol` - If `article.respond_to?(:has_key?)` and `article.has_key?(:title)`, Slim will execute `article[:title]`
-2. `:string` - If `article.respond_to?(:has_key?)` and `article.has_key?('title')`, Slim will execute `article['title']`
-3. `:method` - If `article.respond_to?(:title)`, Slim will execute `article.send(:title)`
-4. `:instance_variable` - If `article.instance_variable_defined?(@title)`, Slim will execute `article.instance_variable_get @title`
-
-If all the above fails, Slim will try to resolve the title reference in the same order against the parent object. In this example, the parent would be the dictionary object you are rendering the template against.
-
-As you might have guessed, the article reference goes through the same steps against the dictionary. Instance variables are not allowed in the view code, but Slim will find and use them. Essentially, you're just using dropping the @ prefix in your template. Parameterized method calls are not allowed.
-
-#### Logic less in Rails
-
-Install:
-
-    $ gem install slim
-
-Require:
-
-    gem 'slim', :require => 'slim/logic_less'
-
-You might want to activate logic less mode only for a few actions, you should disable logic-less mode globally at first in the configuration
-
-    Slim::Engine.set_default_options :logic_less => false
-
-and activate logic less mode per render call in your action
-
-    class Controller
-      def action
-        Slim::Engine.with_options(:logic_less => true) do
-          render
-        end
-      end
-    end
-
-#### Logic less in Sinatra
-
-Sinata has built-in support for Slim. All you have to do is require the logic less Slim plugin. This can be done in your config.ru:
-
-    require 'slim/logic_less'
-
-You are then ready to rock!
-
-You might want to activate logic less mode only for a few actions, you should disable logic-less mode globally at first in the configuration
-
-    Slim::Engine.set_default_options :logic_less => false
-
-and activate logic less mode per render call in your application
-
-    get '/page'
-      slim :page, :logic_less => true
-    end
-
-#### Options
-
-<table>
-<thead style="font-weight:bold"><tr><td>Type</td><td>Name</td><td>Default</td><td>Purpose</td></tr></thead>
-<tbody>
-<tr><td>Boolean</td><td>:logic_less</td><td>true</td><td>Enable logic less mode (Enabled if 'slim/logic_less' is required)</td></tr>
-<tr><td>String</td><td>:dictionary</td><td>"self"</td><td>Dictionary where variables are looked up</td></tr>
-<tr><td>Symbol/Array of Symbols</td><td>:dictionary_access</td><td>[:symbol, :string, :method, :instance_variable]</td><td>Dictionary access order (:symbol, :string, :method, :instance_variable)</td></tr>
-</tbody>
-</table>
-
-### Translator/I18n
-
-The translator plugin provides automatic translation of the templates using Gettext, Fast-Gettext or Rails I18n. Static text
-in the template is replaced by the translated version.
-
-Example:
-
-    h1 Welcome to #{url}!
-
-Gettext translates the string from english to german where interpolations are replaced by %1, %2, ...
-
-    "Welcome to %1!" -> "Willkommen auf %1!"
-
-and renders as
-
-    <h1>Willkommen auf slim-lang.com!</h1>
-
-Enable the translator plugin with
-
-    require 'slim/translator'
-
-#### Options
-
-<table>
-<thead style="font-weight:bold"><tr><td>Type</td><td>Name</td><td>Default</td><td>Purpose</td></tr></thead>
-<tbody>
-<tr><td>Boolean</td><td>:tr</td><td>true</td><td>Enable translator (Enabled if 'slim/translator' is required)</td></tr>
-<tr><td>Symbol</td><td>:tr_mode</td><td>:dynamic</td><td>When to translate: :static = at compile time, :dynamic = at runtime</td></tr>
-<tr><td>String</td><td>:tr_fn</td><td>Depending on installed translation library</td><td>Translation function, could be '_' for gettext</td></tr>
-</tbody>
-</table>
+* [Logic less mode](doc/logic_less.md)
+* [Translator/I18ne](doc/translator.md)
 
 ## Framework support
 
@@ -837,7 +776,7 @@ Then just use the .slim extension and you're good to go.
 
 #### Streaming
 
-HTTP streaming is enabled enabled by default if you use a Rails version which supports it.
+HTTP streaming is enabled by default if you use a Rails version which supports it.
 
 ## Tools
 
@@ -851,6 +790,7 @@ Usage: slimrb [options]
     -s, --stdin                      Read input from standard input instead of an input file
         --trace                      Show a full traceback on error
     -c, --compile                    Compile only but do not run
+    -e, --erb                        Convert to ERB
     -r, --rails                      Generate rails compatible code (Implies --compile)
     -t, --translator                 Enable translator plugin
     -l, --logic-less                 Enable logic less plugin
@@ -897,8 +837,9 @@ There are plugins for various text editors (including the most important ones - 
 
 ### Template Converters (HAML, ERB, ...)
 
+* Slim can be converted to ERB using `slimrb` or `Slim::ERBConverter' which are both included in the Slim gem
 * [Haml2Slim converter](https://github.com/slim-template/haml2slim)
-* [HTML2Slim converter](https://github.com/slim-template/html2slim)
+* [ERB2Slim, HTML2Slim converter](https://github.com/slim-template/html2slim)
 
 ## Testing
 
@@ -914,16 +855,16 @@ run the slow parsing benchmark which needs more time. You can also increase the 
 
     rake bench slow=1 iterations=1000
 
-We run the benchmarks for every commit on Travis-CI. Take a look at the newest benchmarking results: {http://travis-ci.org/#!/slim-template/slim}
+We run the benchmarks for every commit on Travis-CI. Take a look at the newest benchmarking results: <http://travis-ci.org/#!/slim-template/slim>
 
 ### Test suite and continous integration
 
 Slim provides an extensive test-suite based on minitest. You can run the tests
 with 'rake test' and the rails integration tests with 'rake test:rails'.
 
-We are currently experimenting with human-readable literate tests which are written as markdown files: {file:test/literate/TESTS.md TESTS.md}
+We are currently experimenting with human-readable literate tests which are written as markdown files: [TESTS.md](test/literate/TESTS.md)
 
-Travis-CI is used for continous integration testing: {http://travis-ci.org/#!/slim-template/slim}
+Travis-CI is used for continous integration testing: <http://travis-ci.org/#!/slim-template/slim>
 
 Slim is working well on all major Ruby implementations:
 
@@ -944,12 +885,7 @@ Work your magic and then submit a pull request. We love pull requests!
 
 Please remember to test against Ruby versions 1.9.2 and 1.8.7.
 
-If you find the documentation lacking (and you probably will), help us out
-The docs are located in the gh-pages branch:
-
-    $ git checkout gh-pages
-
-If you don't have the time to work on Slim, but found something we should know about, please submit an issue.
+If you find the documentation lacking (and you probably will), help us out and update this README.md. If you don't have the time to work on Slim, but found something we should know about, please submit an issue.
 
 ## License
 
@@ -973,7 +909,7 @@ Template compilation framework:
 
 Framework support:
 
-* [Rails 3 generators (slim-rails)](https://github.com/slim-template/slim-rails)
+* [Rails generators (slim-rails)](https://github.com/slim-template/slim-rails)
 
 Syntax highlighting:
 
@@ -986,7 +922,7 @@ Syntax highlighting:
 Template Converters (HAML, ERB, ...):
 
 * [Haml2Slim converter](https://github.com/slim-template/haml2slim)
-* [HTML2Slim converter](https://github.com/slim-template/html2slim)
+* [ERB2Slim, HTML2Slim converter](https://github.com/slim-template/html2slim)
 
 Language ports/Similar languages:
 
@@ -995,5 +931,6 @@ Language ports/Similar languages:
 * [Hamlet.rb (Similar template language)](https://github.com/gregwebs/hamlet.rb)
 * [Plim (Python port of Slim)](https://github.com/2nd/plim)
 * [Skim (Slim for Javascript)](https://github.com/jfirebaugh/skim)
+* [Emblem.js (Javascript, similar to Slim)](https://github.com/machty/emblem.js)
 * [Haml (Older engine which inspired Slim)](https://github.com/haml/haml)
 * [Jade (Similar engine for javascript)](https://github.com/visionmedia/jade)

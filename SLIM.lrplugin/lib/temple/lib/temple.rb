@@ -3,8 +3,7 @@ require 'temple/version'
 module Temple
   autoload :InvalidExpression,    'temple/exceptions'
   autoload :FilterError,          'temple/exceptions'
-  autoload :Generator,            'temple/generators'
-  autoload :Generators,           'temple/generators'
+  autoload :Generator,            'temple/generator'
   autoload :Parser,               'temple/parser'
   autoload :Engine,               'temple/engine'
   autoload :Utils,                'temple/utils'
@@ -32,7 +31,16 @@ module Temple
     autoload :Template,           'temple/erb/template'
   end
 
+  module Generators
+    autoload :ERB,                'temple/generators/erb'
+    autoload :Array,              'temple/generators/array'
+    autoload :ArrayBuffer,        'temple/generators/array_buffer'
+    autoload :StringBuffer,       'temple/generators/string_buffer'
+    autoload :RailsOutputBuffer,  'temple/generators/rails_output_buffer'
+  end
+
   module Filters
+    autoload :CodeMerger,         'temple/filters/code_merger'
     autoload :ControlFlow,        'temple/filters/control_flow'
     autoload :MultiFlattener,     'temple/filters/multi_flattener'
     autoload :StaticMerger,       'temple/filters/static_merger'
@@ -40,6 +48,8 @@ module Temple
     autoload :Escapable,          'temple/filters/escapable'
     autoload :Eraser,             'temple/filters/eraser'
     autoload :Validator,          'temple/filters/validator'
+    autoload :Encoding,           'temple/filters/encoding'
+    autoload :RemoveBOM,          'temple/filters/remove_bom'
   end
 
   module HTML

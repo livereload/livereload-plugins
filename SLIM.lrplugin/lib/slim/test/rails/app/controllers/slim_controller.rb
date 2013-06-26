@@ -2,6 +2,9 @@ class SlimController < ApplicationController
   def normal
   end
 
+  def xml
+  end
+
   def no_layout
     render :layout => false
   end
@@ -23,7 +26,7 @@ class SlimController < ApplicationController
   end
 
   def thread_options
-    Slim::Engine.with_options(:shortcut => {'@' => "div #{params[:attr]}"}) do
+    Slim::Engine.with_options(:shortcut => {'@' => { :attr => params[:attr] }}) do
       render
     end
   end

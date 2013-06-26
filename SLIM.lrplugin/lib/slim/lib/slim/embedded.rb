@@ -60,7 +60,7 @@ module Slim
 
   # Temple filter which processes embedded engines
   # @api private
-  class EmbeddedEngine < Filter
+  class Embedded < Filter
     @engines = {}
 
     # Register embedded engine
@@ -155,7 +155,7 @@ module Slim
           :style => options[:pretty] ? :expanded : :compressed,
           :cache => false)) { text }.render
         text.chomp!
-        [:static, options[:pretty] ? "\n#{text}\n" : text]
+        [:static, text]
       end
     end
 
@@ -221,6 +221,18 @@ module Slim
       end
     end
 
+    # Javascript wrapper engine.
+    # Like TagEngine, but can wrap content in html comment or cdata.
+    class JavaScriptEngine < TagEngine
+      disable_option_validator!
+
+      set_default_options :tag => :script, :attributes => { :type => 'text/javascript' }
+
+      def on_slim_embedded(engine, body)
+        super(engine, [:html, :js, body])
+      end
+    end
+
     # Embeds ruby code
     class RubyEngine < Engine
       def on_slim_embedded(engine, body)
@@ -229,6 +241,7 @@ module Slim
     end
 
     # These engines are executed at compile time, embedded ruby is interpolated
+    register :asciidoc,   InterpolateTiltEngine
     register :markdown,   InterpolateTiltEngine
     register :textile,    InterpolateTiltEngine
     register :rdoc,       InterpolateTiltEngine
@@ -237,7 +250,7 @@ module Slim
     register :mediawiki,  InterpolateTiltEngine
 
     # These engines are executed at compile time
-    register :coffee,     TagEngine, :tag => :script, :attributes => { :type => 'text/javascript' },  :engine => StaticTiltEngine
+    register :coffee,     JavaScriptEngine, :engine => StaticTiltEngine
     register :less,       TagEngine, :tag => :style,  :attributes => { :type => 'text/css' },         :engine => StaticTiltEngine
     register :styl,       TagEngine, :tag => :style,  :attributes => { :type => 'text/css' },         :engine => StaticTiltEngine
     register :sass,       TagEngine, :pretty, :tag => :style, :attributes => { :type => 'text/css' }, :engine => SassEngine
@@ -249,7 +262,7 @@ module Slim
     register :builder,    PrecompiledTiltEngine
 
     # Embedded javascript/css
-    register :javascript, TagEngine, :tag => :script, :attributes => { :type => 'text/javascript' }
+    register :javascript, JavaScriptEngine
     register :css,        TagEngine, :tag => :style,  :attributes => { :type => 'text/css' }
 
     # Embedded ruby code

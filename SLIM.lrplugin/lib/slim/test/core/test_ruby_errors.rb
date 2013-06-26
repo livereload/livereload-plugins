@@ -161,7 +161,7 @@ p
   - test = 123
     = "Hello from within a block! "
 }
-    assert_ruby_syntax_error "(__TEMPLATE__):5", source
+    assert_ruby_syntax_error "(__TEMPLATE__):3", source
   end
 
   def test_invalid_nested_output
@@ -170,7 +170,7 @@ p
   = "Hello Ruby!"
     = "Hello from within a block! "
 }
-    assert_ruby_syntax_error "(__TEMPLATE__):5", source
+    assert_ruby_syntax_error "(__TEMPLATE__):3", source
   end
 
   def test_invalid_embedded_engine

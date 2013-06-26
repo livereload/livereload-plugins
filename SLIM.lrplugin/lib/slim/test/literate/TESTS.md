@@ -87,7 +87,9 @@ body
 renders as
 
 ~~~ html
-<body>Text</body>
+<body>
+  Text
+</body>
 ~~~
 
 You can embed html code in the text which is not escaped.
@@ -211,7 +213,15 @@ HTML tags allow nested blocks inside.
 renders as
 
 ~~~ html
-<html><head><title>Example</title></head><body>yes</body></html>
+<html><head>
+<title>
+  Example
+</title>
+</head>
+<body>
+  yes
+</body>
+</html>
 ~~~
 
 ### Control code `-`
@@ -248,6 +258,74 @@ renders as
 
 ~~~ html
 Hello, World!
+~~~
+
+You can also write loops like this
+
+~~~ slim
+- items = [{:name => 'table', :price => 10}, {:name => 'chair', :price => 5}]
+table#items
+  - for item in items do
+    tr
+      td.name = item[:name]
+      td.price = item[:price]
+~~~
+
+which renders as
+
+~~~ html
+<table id="items">
+  <tr>
+    <td class="name">
+      table
+    </td>
+    <td class="price">
+      10
+    </td>
+  </tr>
+  <tr>
+    <td class="name">
+      chair
+    </td>
+    <td class="price">
+      5
+    </td>
+  </tr>
+</table>
+~~~
+
+The `do` keyword can be omitted.
+
+~~~ slim
+- items = [{:name => 'table', :price => 10}, {:name => 'chair', :price => 5}]
+table#items
+  - for item in items
+    tr
+      td.name = item[:name]
+      td.price = item[:price]
+~~~
+
+which renders as
+
+~~~ html
+<table id="items">
+  <tr>
+    <td class="name">
+      table
+    </td>
+    <td class="price">
+      10
+    </td>
+  </tr>
+  <tr>
+    <td class="name">
+      chair
+    </td>
+    <td class="price">
+      5
+    </td>
+  </tr>
+</table>
 ~~~
 
 ### Output `=`
@@ -324,9 +402,19 @@ renders as
 <script>evil();</script>
 ~~~
 
-### Output with trailing white space `='`
+The equal sign with modifier `=>` produces dynamic output with a trailing white space.
 
-The equal sign with apostrophe `='` produces dynamic output with a trailing white space.
+~~~ slim
+=> 7*7
+~~~
+
+renders as
+
+~~~ html
+49 
+~~~
+
+The legacy syntax `='` is also supported.
 
 ~~~ slim
 =' 7*7
@@ -336,6 +424,30 @@ renders as
 
 ~~~ html
 49 
+~~~
+
+The equal sign with modifier `=<` produces dynamic output with a leading white space.
+
+~~~ slim
+=< 7*7
+~~~
+
+renders as
+
+~~~ html
+ 49
+~~~
+
+The equal sign with modifiers `=<>` produces dynamic output with a leading and trailing white space.
+
+~~~ slim
+=<> 7*7
+~~~
+
+renders as
+
+~~~ html
+ 49 
 ~~~
 
 ### Output without HTML escaping `==`
@@ -370,10 +482,19 @@ renders as
 <script>evil();</script>
 ~~~
 
-### Output without HTML escaping and trailing ws `=='`
+The double equal sign with modifier `==>` produces dynamic output without HTML escaping and trailing white space.
 
+~~~ slim
+==> '<script>evil();</script>'
+~~~
 
-The double equal sign with apostrophe `=='` produces dynamic output without HTML escaping and trailing white space.
+renders as
+
+~~~ html
+<script>evil();</script> 
+~~~
+
+The legacy syntax `=='` is also supported.
 
 ~~~ slim
 ==' '<script>evil();</script>'
@@ -421,7 +542,9 @@ renders as
 
 ~~~ html
 <body>
-  <p>Hello!</p>
+  <p>
+    Hello!
+  </p>
 </body>
 ~~~
 
@@ -448,7 +571,9 @@ renders as
 <body>
   <!--Another comment
   with multiple lines-->
-  <p>Hello!</p>
+  <p>
+    Hello!
+  </p>
   <!--First line determines indentation
   
   of the comment-->
@@ -465,7 +590,11 @@ renders as
 renders as
 
 ~~~ html
-<!--[if IE]><p>Get a better browser.</p><![endif]-->
+<!--[if IE]>
+<p>
+  Get a better browser.
+</p>
+<![endif]-->
 ~~~
 
 ## HTML tags
@@ -570,6 +699,64 @@ renders as
 
 ~~~ html
 <img src="image.png" />
+~~~
+
+### Trailing and leading whitespace
+
+You can force a trailing whitespace behind a tag by adding `>`. The legacy syntax with `'` is also supported.
+
+~~~ slim
+a#closed> class="test" /
+a#closed> class="test"/
+a> href='url1' Link1
+a' href='url2' Link2
+~~~
+
+renders as
+
+~~~ html
+<a class="test" id="closed" /> <a class="test" id="closed" /> <a href="url1">Link1</a> <a href="url2">Link2</a> 
+~~~
+
+If you combine > and =' only one trailing whitespace is added.
+
+~~~ slim
+a> =' 'Text1'
+a =' 'Text2'
+a> = 'Text3'
+a>= 'Text4'
+~~~
+
+renders as
+
+~~~ html
+<a>Text1</a> <a>Text2</a> <a>Text3</a> <a>Text4</a> 
+~~~
+
+You can force a leading whitespace before a tag by adding `<`.
+
+~~~ slim
+a#closed< class="test" /
+a#closed< class="test"/
+a< href='url1' Link1
+a< href='url2' Link2
+~~~
+
+~~~ html
+ <a class="test" id="closed" /> <a class="test" id="closed" /> <a href="url1">Link1</a> <a href="url2">Link2</a>
+~~~
+
+You can also combine both.
+
+~~~ slim
+a#closed<> class="test" /
+a#closed>< class="test"/
+a<> href='url1' Link1
+a<> href='url2' Link2
+~~~
+
+~~~ html
+ <a class="test" id="closed" />  <a class="test" id="closed" />  <a href="url1">Link1</a>  <a href="url2">Link2</a> 
 ~~~
 
 ### Inline tags
@@ -677,6 +864,24 @@ renders as
 <dl itemprop="address" itemscope="itemscope" itemtype="http://schema.org/PostalAddress"></dl>
 ~~~
 
+You may use spaces around the wrappers and assignments:
+
+~~~ slim
+h1 id = "logo" Logo
+h2 [ id = "tagline" ] Tagline
+~~~
+
+renders as
+
+~~~ html
+<h1 id="logo">
+  Logo
+</h1>
+<h2 id="tagline">
+  Tagline
+</h2>
+~~~
+
 #### Quoted attributes
 
 You can use single or double quotes for simple text attributes.
@@ -704,13 +909,7 @@ renders as
 <a href="http://slim-lang.com">Goto the slim-lang.com</a>
 ~~~
 
-The attribute value will be escaped if the option
-
-~~~ options
-:escape_quoted_attrs => true
-~~~
-
-is set. Use == if you want to disable escaping in the attribute.
+The attribute value will be escaped by default. Use == if you want to disable escaping in the attribute.
 
 ~~~ slim
 li
@@ -815,7 +1014,7 @@ renders as
 
 #### Attribute merging
 
-You can configure attributes to be merged if multiple are given (See option `:attr_delimiter`). In the default configuration
+You can configure attributes to be merged if multiple are given (See option `:merge_attrs`). In the default configuration
 this is done for class attributes with the white space as delimiter.
 
 ~~~ slim
@@ -927,24 +1126,6 @@ renders to
 <input name="user" type="text" /><input name="pw" type="password" /><input class="CLASS" id="ID" type="submit" />
 ~~~
 
-Test deprecated shortcuts:
-
-~~~ options
-:shortcut => {'&' => 'input type', '#' => 'id', '.' => 'class' }
-~~~
-
-~~~ slim
-&text name="user"
-&password name="pw"
-&submit.CLASS#ID
-~~~
-
-renders to
-
-~~~ html
-<input name="user" type="text" /><input name="pw" type="password" /><input class="CLASS" id="ID" type="submit" />
-~~~
-
 #### ID shortcut and class shortcut `.`
 
 ## Text interpolation
@@ -959,7 +1140,9 @@ h1 Welcome #{user}!
 renders as
 
 ~~~ html
-<h1>Welcome John Doe &lt;john@doe.net&gt;!</h1>
+<h1>
+  Welcome John Doe &lt;john@doe.net&gt;!
+</h1>
 ~~~
 
 ## Embedded engines
@@ -967,7 +1150,3 @@ renders as
 ## Configuring Slim
 
 ## Plugins
-
-### Logic less mode
-
-### Translator

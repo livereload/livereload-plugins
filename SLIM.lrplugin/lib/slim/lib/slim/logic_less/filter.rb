@@ -12,17 +12,11 @@ module Slim
 
     def initialize(opts = {})
       super
-      access = options[:dictionary_access]
-      if access == :wrapped
-        warn 'Slim::LogicLess - Wrapped dictionary access is deprecated'
-        access = DEFAULT_ACCESS_ORDER
-      else
-        access = [access].flatten.compact
-        access.each do |type|
-          raise ArgumentError, "Invalid dictionary access #{type.inspect}" unless DEFAULT_ACCESS_ORDER.include?(type)
-        end
-        raise ArgumentError, 'Option dictionary access is missing' if access.empty?
+      access = [options[:dictionary_access]].flatten.compact
+      access.each do |type|
+        raise ArgumentError, "Invalid dictionary access #{type.inspect}" unless DEFAULT_ACCESS_ORDER.include?(type)
       end
+      raise ArgumentError, 'Option dictionary access is missing' if access.empty?
       @access = access.inspect
     end
 
@@ -73,7 +67,14 @@ module Slim
     private
 
     def access(name)
-      name == 'yield' ? name : "#{@context}[#{name.to_sym.inspect}]"
+      case name
+      when 'yield'
+        'yield'
+      when 'self'
+        "#{@context}.to_s"
+      else
+        "#{@context}[#{name.to_sym.inspect}]"
+      end
     end
   end
 end
