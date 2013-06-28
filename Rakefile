@@ -195,6 +195,8 @@ class PluginTask
 
             File.open(@versions_json, 'w') { |f| f.puts JSON.pretty_generate(dep_versions) }
 
+            sh "find . -name example -or -name examples -or -name test -or -name tests -or -name spec | xargs rm -rf"
+
             puts "Committing #{@name}..."
             Dir.chdir @plugin_dir do
                 sh "git add -A versions.json " + Dir['{lib,node_modules}'].join(' ')
