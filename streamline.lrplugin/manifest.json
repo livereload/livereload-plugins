@@ -1,0 +1,68 @@
+{
+  "LRCompilers": [
+    {
+      "Name": "streamline.js",
+      "Optional": true,
+      "CommandLine": [
+        "$(node)",
+        "$(plugin)/node_modules/.bin/_node",
+        "-f",
+        "$(additional)",
+        "-c",
+        "$(src_path)",
+        "$(dst_path)"
+      ],
+      "Extensions": [
+        "_js"
+      ],
+      "DestinationExtension": "js",
+      "Errors": [
+      ],
+      "ExpectedOutputDirectories": [
+      ],
+      "Options": [
+        {
+          "Id": "target-runtime",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "callbacks",
+              "Title": "Callbacks (default)"
+            },
+            {
+              "Id": "fibers",
+              "Title": "Fibers runtime",
+              "Argument": "--fibers"
+            },
+            {
+              "Id": "generators",
+              "Title": "Harmony generators",
+              "Argument": "--generators"
+            }
+          ]
+        },
+        {
+          "Id": "line-numbers",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "preserve",
+              "Title": "Preserve line numbers (default)",
+              "Argument": "--lines-preserve"
+            },
+            {
+              "Id": "mark",
+              "Title": "Mark with line numbers",
+              "Argument": "--lines-mark"
+            },
+            {
+              "Id": "ignore",
+              "Title": "Ignore line numbers",
+              "Argument": "--lines-ignore"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

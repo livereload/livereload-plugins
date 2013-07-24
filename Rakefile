@@ -227,6 +227,8 @@ PluginTask.new 'Stylus',     :npm => %w(stylus nib canvas)
 
 PluginTask.new 'Jade',       :npm => %w(jade markdown)
 
+PluginTask.new 'streamline', :npm => %w(streamline)
+
 PluginTask.new 'HAML',       :gems => %w(haml tilt)
 PluginTask.new 'SLIM',       :gems => %w(slim temple tilt)
 PluginTask.new 'SASS',       :gems => %w(sass compass chunky_png html5-boilerplate compass-h5bp compass-960-plugin susy zurb-foundation compass-colors fancy-buttons compass-slickmap grid-coordinates compass-rgbapng compass-baseline compass-vgrid-plugin compass-less-plugin sassy-buttons compass-thesquaregrid compass-fancybox-plugin font-stack compass-squaregrid-plugin compass_formalize compass-lucid-grid stitch), :important => %w(sass compass)
