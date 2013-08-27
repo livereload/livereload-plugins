@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "actions": [
+    {
+      "type": "filter",
+      "id": "autoprefixer",
+      "objc_class": "AutoprefixerAction",
+      "input": "*.css",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/.bin/autoprefixer",
+        "$(additional)",
+        "$(src_path)"
+      ]
+    },
+  ]
+}

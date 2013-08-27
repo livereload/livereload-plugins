@@ -228,6 +228,7 @@ PluginTask.new 'Stylus',     :npm => %w(stylus nib canvas)
 PluginTask.new 'Jade',       :npm => %w(jade markdown)
 
 PluginTask.new 'streamline', :npm => %w(streamline)
+PluginTask.new 'autoprefixer', :npm => %w(autoprefixer)
 
 PluginTask.new 'HAML',       :gems => %w(haml tilt)
 PluginTask.new 'SLIM',       :gems => %w(slim temple tilt)
