@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "actions": [
+    {
+      "type": "postproc",
+      "id": "command",
+      "objc_class": "CustomCommandAction",
+      "objc_rowClass": "RunCustomCommandActionRow"
+    },
+    {
+      "type": "postproc",
+      "id": "script",
+      "objc_class": "UserScriptAction",
+      "objc_rowClass": "RunScriptActionRow"
+    }
+  ]
+}
