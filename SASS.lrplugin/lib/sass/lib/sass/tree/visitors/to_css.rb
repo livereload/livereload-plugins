@@ -1,7 +1,7 @@
 # A visitor for converting a Sass tree into CSS.
 class Sass::Tree::Visitors::ToCss < Sass::Tree::Visitors::Base
   # The source mapping for the generated CSS file. This is only set if
-  # `build_source_mapping` is passed to the constructor and \{#render} has been
+  # `build_source_mapping` is passed to the constructor and \{Sass::Engine#render} has been
   # run.
   attr_reader :source_mapping
 
@@ -116,7 +116,12 @@ class Sass::Tree::Visitors::ToCss < Sass::Tree::Visitors::Base
     node.children.each do |child|
       next if child.invisible?
       visit(child)
-      output "\n" unless node.style == :compressed
+      unless node.style == :compressed
+        output "\n"
+        if child.is_a?(Sass::Tree::DirectiveNode) && child.has_children && !child.bubbles?
+          output "\n"
+        end
+      end
     end
     rstrip!
     return "" if @result.empty?
@@ -210,18 +215,19 @@ class Sass::Tree::Visitors::ToCss < Sass::Tree::Visitors::Base
       end
     end
     rstrip!
-    output(if node.style == :compressed
-             "}"
-           else
-             (node.style == :expanded ? "\n" : " ") + "}\n"
-           end)
+    if node.style == :expanded
+      output("\n#{tab_str}")
+    elsif node.style != :compressed
+      output(" ")
+    end
+    output("}")
   ensure
     @in_directive = was_in_directive
   end
 
   def visit_media(node)
     with_tabs(@tabs + node.tabs) {visit_directive(node)}
-    erase! 1 unless node.style == :compressed || node.group_end || @result[-1] != ?\n
+    output("\n") if node.group_end
   end
 
   def visit_supports(node)
@@ -280,7 +286,7 @@ class Sass::Tree::Visitors::ToCss < Sass::Tree::Visitors::Base
           output "\n"
         elsif node.options[:trace_selectors]
           output("#{old_spaces}/* ")
-          output(node.stack_trace.join("\n   #{old_spaces}"))
+          output(node.stack_trace.gsub("\n", "\n   #{old_spaces}"))
           output(" */\n")
         elsif node.options[:line_comments]
           output("#{old_spaces}/* line #{node.line}")

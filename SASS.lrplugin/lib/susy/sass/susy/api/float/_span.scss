@@ -1,10 +1,18 @@
-// Float span
-// ==========
+// Float Span API
+// ==============
 
-// Output span
+// Float Span Output
+// -----------------
+// - $width             : <length>
+// - [$float]           : from | to
+// - [$margin-before]   : <length>
+// - [$margin-after]    : <length>
+// - [$padding-before]  : <length>
+// - [$padding-after]   : <length>
+// - [$flow]            : ltr | rtl
 @mixin float-span-output(
   $width,
-  $float            : from($flow),
+  $float            : from,
   $margin-before    : null,
   $margin-after     : null,
   $padding-before   : null,
@@ -13,6 +21,12 @@
 ) {
   $to     : to($flow);
   $from   : from($flow);
+
+  @if $float {
+    $float: if($float == to, $to, $from);
+  } @else {
+    $float: null;
+  }
 
   width: $width;
   float: $float;

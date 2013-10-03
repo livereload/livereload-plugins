@@ -1,4 +1,4 @@
-# Sass
+# Sass [![Gem Version](https://badge.fury.io/rb/sass.png)](http://badge.fury.io/rb/sass)
 
 **Sass makes CSS fun again**. Sass is an extension of CSS3,
 adding nested rules, variables, mixins, selector inheritance, and more.
@@ -56,7 +56,7 @@ to `config.ru`.
 Then any Sass files in `public/stylesheets/sass`
 will be compiled into CSS files in `public/stylesheets` on every request.
 
-To use Sass programatically,
+To use Sass programmatically,
 check out the [YARD documentation](http://sass-lang.com/docs/yardoc/).
 
 ## Formatting
@@ -170,6 +170,18 @@ The `sass-convert` executable converts between CSS, Sass, and SCSS.
 When converting from CSS to Sass or SCSS,
 nesting is applied where appropriate.
 See `sass-convert --help` for further information and options.
+
+### Running locally
+
+To run the Sass executables from a source checkout instead of from rubygems:
+
+```
+$ cd <SASS_CHECKOUT_DIRECTORY>
+$ bundle
+$ bundle exec sass ...
+$ bundle exec scss ...
+$ bundle exec sass-convert ...
+```
 
 ## Authors
 

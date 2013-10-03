@@ -1,89 +1,135 @@
 # A visitor for converting a dynamic Sass tree into a static Sass tree.
 class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
-  # @param root [Tree::Node] The root node of the tree to visit.
-  # @param environment [Sass::Environment] The lexical environment.
-  # @return [Tree::Node] The resulting tree of static nodes.
-  def self.visit(root, environment = nil)
-    new(environment).send(:visit, root)
-  end
+  class << self
+    # @param root [Tree::Node] The root node of the tree to visit.
+    # @param environment [Sass::Environment] The lexical environment.
+    # @return [Tree::Node] The resulting tree of static nodes.
+    def visit(root, environment = nil)
+      new(environment).send(:visit, root)
+    end
 
-  # @api private
-  def self.perform_arguments(callable, args, keywords, splat)
-    desc = "#{callable.type.capitalize} #{callable.name}"
-    downcase_desc = "#{callable.type} #{callable.name}"
+    # @api private
+    def perform_arguments(callable, args, keywords, splat)
+      desc = "#{callable.type.capitalize} #{callable.name}"
+      downcase_desc = "#{callable.type} #{callable.name}"
 
-    begin
-      unless keywords.empty?
-        unknown_args = Sass::Util.array_minus(keywords.keys,
-          callable.args.map {|var| var.first.underscored_name})
-        if callable.splat && unknown_args.include?(callable.splat.underscored_name)
-          raise Sass::SyntaxError.new("Argument $#{callable.splat.name} of #{downcase_desc} cannot be used as a named argument.")
-        elsif unknown_args.any?
-          description = unknown_args.length > 1 ? 'the following arguments:' : 'an argument named'
-          raise Sass::SyntaxError.new("#{desc} doesn't have #{description} #{unknown_args.map {|name| "$#{name}"}.join ', '}.")
+      # If variable arguments were passed, there won't be any explicit keywords.
+      if splat && !splat.keywords.empty?
+        old_keywords_accessed = splat.keywords_accessed
+        keywords = splat.keywords
+        splat.keywords_accessed = old_keywords_accessed
+      end
+
+      begin
+        unless keywords.empty?
+          unknown_args = Sass::Util.array_minus(keywords.keys,
+            callable.args.map {|var| var.first.underscored_name})
+          if callable.splat && unknown_args.include?(callable.splat.underscored_name)
+            raise Sass::SyntaxError.new("Argument $#{callable.splat.name} of #{downcase_desc} cannot be used as a named argument.")
+          elsif unknown_args.any?
+            description = unknown_args.length > 1 ? 'the following arguments:' : 'an argument named'
+            raise Sass::SyntaxError.new("#{desc} doesn't have #{description} #{unknown_args.map {|name| "$#{name}"}.join ', '}.")
+          end
         end
-      end
-    rescue Sass::SyntaxError => keyword_exception
-    end
-
-    # If there's no splat, raise the keyword exception immediately. The actual
-    # raising happens in the ensure clause at the end of this function.
-    return if keyword_exception && !callable.splat
-
-    if args.size > callable.args.size && !callable.splat
-      takes = callable.args.size
-      passed = args.size
-      raise Sass::SyntaxError.new(
-        "#{desc} takes #{takes} argument#{'s' unless takes == 1} " +
-        "but #{passed} #{passed == 1 ? 'was' : 'were'} passed.")
-    end
-
-    splat_sep = :comma
-    if splat
-      args += splat.to_a
-      splat_sep = splat.separator if splat.is_a?(Sass::Script::Value::List)
-      # If the splat argument exists, there won't be any keywords passed in
-      # manually, so we can safely overwrite rather than merge here.
-      keywords = splat.keywords if splat.is_a?(Sass::Script::Value::ArgList)
-    end
-
-    keywords = keywords.dup
-    env = Sass::Environment.new(callable.environment)
-    callable.args.zip(args[0...callable.args.length]) do |(var, default), value|
-      if value && keywords.include?(var.underscored_name)
-        raise Sass::SyntaxError.new("#{desc} was passed argument $#{var.name} both by position and by name.")
+      rescue Sass::SyntaxError => keyword_exception
       end
 
-      value ||= keywords.delete(var.underscored_name)
-      value ||= default && default.perform(env)
-      raise Sass::SyntaxError.new("#{desc} is missing argument #{var.inspect}.") unless value
-      env.set_local_var(var.name, value)
+      # If there's no splat, raise the keyword exception immediately. The actual
+      # raising happens in the ensure clause at the end of this function.
+      return if keyword_exception && !callable.splat
+
+      if args.size > callable.args.size && !callable.splat
+        takes = callable.args.size
+        passed = args.size
+        raise Sass::SyntaxError.new(
+          "#{desc} takes #{takes} argument#{'s' unless takes == 1} " +
+          "but #{passed} #{passed == 1 ? 'was' : 'were'} passed.")
+      end
+
+      splat_sep = :comma
+      if splat
+        args += splat.to_a
+        splat_sep = splat.separator
+      end
+
+      keywords = keywords.dup
+      env = Sass::Environment.new(callable.environment)
+      callable.args.zip(args[0...callable.args.length]) do |(var, default), value|
+        if value && keywords.include?(var.underscored_name)
+          raise Sass::SyntaxError.new("#{desc} was passed argument $#{var.name} both by position and by name.")
+        end
+
+        value ||= keywords.delete(var.underscored_name)
+        value ||= default && default.perform(env)
+        raise Sass::SyntaxError.new("#{desc} is missing argument #{var.inspect}.") unless value
+        env.set_local_var(var.name, value)
+      end
+
+      if callable.splat
+        rest = args[callable.args.length..-1] || []
+        arg_list = Sass::Script::Value::ArgList.new(rest, keywords.dup, splat_sep)
+        arg_list.options = env.options
+        env.set_local_var(callable.splat.name, arg_list)
+      end
+
+      yield env
+    rescue Exception => e
+    ensure
+      # If there's a keyword exception, we don't want to throw it immediately,
+      # because the invalid keywords may be part of a glob argument that should be
+      # passed on to another function. So we only raise it if we reach the end of
+      # this function *and* the keywords attached to the argument list glob object
+      # haven't been accessed.
+      #
+      # The keyword exception takes precedence over any Sass errors, but not over
+      # non-Sass exceptions.
+      if keyword_exception &&
+          !(arg_list && arg_list.keywords_accessed) &&
+          (e.nil? || e.is_a?(Sass::SyntaxError))
+        raise keyword_exception
+      elsif e
+        raise e
+      end
     end
 
-    if callable.splat
-      rest = args[callable.args.length..-1]
-      arg_list = Sass::Script::Value::ArgList.new(rest, keywords.dup, splat_sep)
-      arg_list.options = env.options
-      env.set_local_var(callable.splat.name, arg_list)
+    # @api private
+    # @return [Sass::Script::Value::ArgList]
+    def perform_splat(splat, kwarg_splat, environment)
+      return unless splat
+      splat = splat.perform(environment)
+      unless kwarg_splat
+        return splat if splat.is_a?(Sass::Script::Value::ArgList)
+        if splat.is_a?(Sass::Script::Value::Map)
+          args = []
+          kwargs = arg_hash(splat)
+        else
+          args = splat.to_a
+          kwargs = {}
+        end
+        return Sass::Script::Value::ArgList.new(args, kwargs, splat.separator || :comma)
+      end
+
+      kwarg_splat = kwarg_splat.perform(environment)
+      unless kwarg_splat.is_a?(Sass::Script::Value::Map)
+        raise Sass::SyntaxError.new("Variable keyword arguments must be a map (was #{kwarg_splat.inspect}).")
+      end
+
+      if splat.is_a?(Sass::Script::Value::ArgList)
+        return Sass::Script::Value::ArgList.new(
+          splat.value, splat.keywords.merge(arg_hash(kwarg_splat)), splat.separator)
+      else
+        return Sass::Script::Value::ArgList.new(splat.to_a, arg_hash(kwarg_splat), splat.separator)
+      end
     end
 
-    yield env
-  rescue Exception => e
-  ensure
-    # If there's a keyword exception, we don't want to throw it immediately,
-    # because the invalid keywords may be part of a glob argument that should be
-    # passed on to another function. So we only raise it if we reach the end of
-    # this function *and* the keywords attached to the argument list glob object
-    # haven't been accessed.
-    #
-    # The keyword exception takes precedence over any Sass errors, but not over
-    # non-Sass exceptions.
-    if keyword_exception &&
-        !(arg_list && arg_list.keywords_accessed) &&
-        (e.nil? || e.is_a?(Sass::SyntaxError))
-      raise keyword_exception
-    elsif e
-      raise e
+    private
+
+    def arg_hash(map)
+      Sass::Util.map_keys(map.to_h) do |key|
+        next key.value if key.is_a?(Sass::Script::Value::String)
+        raise Sass::SyntaxError.new("Variable keyword argument map must have string keys.\n" +
+          "#{key.inspect} is not a string in #{map.inspect}.");
+      end
     end
   end
 
@@ -91,13 +137,12 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
 
   def initialize(env)
     @environment = env
-    # Stack trace information, including mixin includes and imports.
-    @stack = []
   end
 
   # If an exception is raised, this adds proper metadata to the backtrace.
   def visit(node)
-    super(node.dup)
+    return super(node.dup) unless @environment
+    @environment.stack.with_base(node.filename, node.line) {super(node.dup)}
   rescue Sass::SyntaxError => e
     e.modify_backtrace(:filename => node.filename, :line => node.line)
     raise e
@@ -156,8 +201,14 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
     list = node.list.perform(@environment)
 
     with_environment Sass::Environment.new(@environment) do
-      list.to_a.map do |v|
-        @environment.set_local_var(node.var, v)
+      list.to_a.map do |value|
+        if node.vars.length == 1
+          @environment.set_local_var(node.vars.first, value)
+        else
+          node.vars.zip(value.to_a) do |(var, sub_value)|
+            @environment.set_local_var(var, sub_value || Sass::Script::Value::Null.new)
+          end
+        end
         node.children.map {|c| visit(c)}
       end.flatten
     end
@@ -221,21 +272,22 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
       return resolved_node
     end
     file = node.imported_file
-    handle_import_loop!(node) if @stack.any? {|e| e[:filename] == file.options[:filename]}
+    if @environment.stack.frames.any? {|f| f.is_import? && f.filename == file.options[:filename]}
+      handle_import_loop!(node)
+    end
 
     begin
-      @stack.push(:filename => node.filename, :line => node.line)
-      root = file.to_tree
-      Sass::Tree::Visitors::CheckNesting.visit(root)
-      node.children = root.children.map {|c| visit(c)}.flatten
-      node
+      @environment.stack.with_import(node.filename, node.line) do
+        root = file.to_tree
+        Sass::Tree::Visitors::CheckNesting.visit(root)
+        node.children = root.children.map {|c| visit(c)}.flatten
+        node
+      end
     rescue Sass::SyntaxError => e
       e.modify_backtrace(:filename => node.imported_file.options[:filename])
       e.add_backtrace(:filename => node.filename, :line => node.line)
       raise e
     end
-  ensure
-    @stack.pop unless path
   end
 
   # Loads a mixin into the environment.
@@ -249,27 +301,28 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
   # Runs a mixin.
   def visit_mixin(node)
     include_loop = true
-    handle_include_loop!(node) if @stack.any? {|e| e[:name] == node.name}
+    handle_include_loop!(node) if @environment.stack.frames.any? {|f| f.is_mixin? && f.name == node.name}
     include_loop = false
 
-    @stack.push(:filename => node.filename, :line => node.line, :name => node.name)
-    raise Sass::SyntaxError.new("Undefined mixin '#{node.name}'.") unless mixin = @environment.mixin(node.name)
+    @environment.stack.with_mixin(node.filename, node.line, node.name) do
+      raise Sass::SyntaxError.new("Undefined mixin '#{node.name}'.") unless mixin = @environment.mixin(node.name)
 
-    if node.children.any? && !mixin.has_content
-      raise Sass::SyntaxError.new(%Q{Mixin "#{node.name}" does not accept a content block.})
-    end
+      if node.children.any? && !mixin.has_content
+        raise Sass::SyntaxError.new(%Q{Mixin "#{node.name}" does not accept a content block.})
+      end
 
-    args = node.args.map {|a| a.perform(@environment)}
-    keywords = Sass::Util.map_hash(node.keywords) {|k, v| [k, v.perform(@environment)]}
-    splat = node.splat.perform(@environment) if node.splat
+      args = node.args.map {|a| a.perform(@environment)}
+      keywords = Sass::Util.map_hash(node.keywords) {|k, v| [k, v.perform(@environment)]}
+      splat = self.class.perform_splat(node.splat, node.kwarg_splat, @environment)
 
-    self.class.perform_arguments(mixin, args, keywords, splat) do |env|
-      env.caller = Sass::Environment.new(@environment)
-      env.content = node.children if node.has_children
+      self.class.perform_arguments(mixin, args, keywords, splat) do |env|
+        env.caller = Sass::Environment.new(@environment)
+        env.content = node.children if node.has_children
 
-      trace_node = Sass::Tree::TraceNode.from_node(node.name, node)
-      with_environment(env) {trace_node.children = mixin.tree.map {|c| visit(c)}.flatten}
-      trace_node
+        trace_node = Sass::Tree::TraceNode.from_node(node.name, node)
+        with_environment(env) {trace_node.children = mixin.tree.map {|c| visit(c)}.flatten}
+        trace_node
+      end
     end
   rescue Sass::SyntaxError => e
     unless include_loop
@@ -277,22 +330,19 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
       e.add_backtrace(:line => node.line)
     end
     raise e
-  ensure
-    @stack.pop unless include_loop
   end
 
   def visit_content(node)
     return [] unless content = @environment.content
-    @stack.push(:filename => node.filename, :line => node.line, :name => '@content')
-    trace_node = Sass::Tree::TraceNode.from_node('@content', node)
-    with_environment(@environment.caller) {trace_node.children = content.map {|c| visit(c.dup)}.flatten}
-    trace_node
+    @environment.stack.with_mixin(node.filename, node.line, '@content') do
+      trace_node = Sass::Tree::TraceNode.from_node('@content', node)
+      with_environment(@environment.caller) {trace_node.children = content.map {|c| visit(c.dup)}.flatten}
+      trace_node
+    end
   rescue Sass::SyntaxError => e
     e.modify_backtrace(:mixin => '@content', :line => node.line)
     e.add_backtrace(:line => node.line)
     raise e
-  ensure
-    @stack.pop if content
   end
 
   # Runs any SassScript that may be embedded in a property.
@@ -317,12 +367,12 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
     parser = Sass::SCSS::StaticParser.new(run_interp(node.rule),
       node.filename, node.options[:importer], node.line)
     node.parsed_rules ||= parser.parse_selector
-    if node.options[:trace_selectors]
-      @stack.push(:filename => node.filename, :line => node.line)
-      node.stack_trace = stack_trace
-      @stack.pop
+    node.stack_trace = @environment.stack.to_s if node.options[:trace_selectors]
+    with_environment Sass::Environment.new(@environment, node.options) do
+      @environment.selector = node.parsed_rules
+      node.children = node.children.map {|c| visit(c)}.flatten
     end
-    yield
+    node
   end
 
   # Loads the new variable value into the environment.
@@ -341,15 +391,12 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
 
   # Prints the expression to STDERR with a stylesheet trace.
   def visit_warn(node)
-    @stack.push(:filename => node.filename, :line => node.line)
     res = node.expr.perform(@environment)
     res = res.value if res.is_a?(Sass::Script::Value::String)
     msg = "WARNING: #{res}\n         "
-    msg << stack_trace.join("\n         ") << "\n"
+    msg << @environment.stack.to_s.gsub("\n", "\n         ") << "\n"
     Sass::Util.sass_warn msg
     []
-  ensure
-    @stack.pop
   end
 
   # Runs the child nodes until the continuation expression becomes false.
@@ -391,19 +438,6 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
 
   private
 
-  def stack_trace
-    trace = []
-    stack = @stack.map {|e| e.dup}.reverse
-    stack.each_cons(2) {|(e1, e2)| e1[:caller] = e2[:name]; [e1, e2]}
-    stack.each_with_index do |entry, i|
-      msg = "#{i == 0 ? "on" : "from"} line #{entry[:line]}"
-      msg << " of #{entry[:filename] || "an unknown file"}"
-      msg << ", in `#{entry[:caller]}'" if entry[:caller]
-      trace << msg
-    end
-    trace
-  end
-
   def run_interp_no_strip(text)
     text.map do |r|
       next r if r.is_a?(String)
@@ -421,8 +455,8 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
   def handle_include_loop!(node)
     msg = "An @include loop has been found:"
     content_count = 0
-    mixins = @stack.reverse.map {|s| s[:name]}.compact.select do |s|
-      if s == '@content'
+    mixins = @environment.stack.frames.select {|f| f.is_mixin?}.reverse.map {|f| f.name}.select do |name|
+      if name == '@content'
         content_count += 1
         false
       elsif content_count > 0
@@ -444,7 +478,7 @@ class Sass::Tree::Visitors::Perform < Sass::Tree::Visitors::Base
 
   def handle_import_loop!(node)
     msg = "An @import loop has been found:"
-    files = @stack.map {|s| s[:filename]}.compact
+    files = @environment.stack.frames.select {|f| f.is_import?}.map {|f| f.filename}.compact
     if node.filename == node.imported_file.options[:filename]
       raise Sass::SyntaxError.new("#{msg} #{node.filename} imports itself")
     end

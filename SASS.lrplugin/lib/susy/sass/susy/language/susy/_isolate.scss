@@ -1,7 +1,10 @@
 // Isolation Syntax
 // ================
 
-// Isolation Override
+// Isolate
+// -------
+// Set isolation as an override.
+// - $input   : <span>
 @mixin isolate(
   $input
 ) {
@@ -12,26 +15,30 @@
   $this-columns       : get-span-setting(columns, $input);
   $this-gutters       : get-span-setting(gutters, $input);
   $this-column-width  : get-span-setting(column-width, $input);
-  $this-static        : get-span-setting(static, $input);
+  $this-layout-math   : get-span-setting(layout-math, $input);
   $this-flow          : get-span-setting(flow, $input);
 
-  $push: get-isolation($span, $location, $columns, $gutters, $column-width, $static);
+  $push: get-isolation($span, $location, $columns, $gutters, $column-width, $layout-math);
 
-  @include isolate-output($push,$this-flow);
+  @include isolate-output($push, $this-flow);
 }
 
-// Isolation Helpers
-// -----------------
-
-// Return the isolation position
+// Get Isolation
+// -------------
+// Return the isolation offset width
+// - $span            : <length> | <number>
+// - $location        : <number>
+// - [$columns]       : <number> | <list>
+// - [$gutters]       : <ratio>
+// - [$column-width]  : <length>
+// - [$layout-math]   : fluid | static
 @function get-isolation(
   $span,
   $location,
-  $columns        : $columns,
-  $gutters        : $gutters,
-  $column-width   : $column-width,
-  $static         : $static,
-  $gutter-place   : $gutter-placement
+  $columns            : $columns,
+  $gutters            : $gutters,
+  $column-width       : $column-width,
+  $layout-math        : $layout-math
 ) {
   $context  : column-sum($columns, $gutters);
   $width    : null;
@@ -41,7 +48,7 @@
   } @else {
     $push: get-location-position($span, $location, $columns) - 1;
     @if $push > 0 {
-      $width: get-span-width($push, 1, $columns, $gutters, $column-width, $static, $gutter-place, outer);
+      $width: get-span-width($push, 1, $columns, $gutters, $column-width, $layout-math, $outer: outer);
     } @else {
       $width: null;
     }

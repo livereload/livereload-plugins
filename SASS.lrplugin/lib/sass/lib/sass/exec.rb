@@ -134,9 +134,9 @@ module Sass
         STDOUT.flush
       end
 
-      # Same as \{Kernel.puts}, but doesn't print anything if the `--quiet` option is set.
+      # Same as `Kernel.puts`, but doesn't print anything if the `--quiet` option is set.
       #
-      # @param args [Array] Passed on to \{Kernel.puts}
+      # @param args [Array] Passed on to `Kernel.puts`
       def puts(*args)
         return if @options[:for_engine][:quiet]
         Kernel.puts(*args)
@@ -163,7 +163,7 @@ module Sass
 
       def write_output(text, destination)
         if destination.is_a?(String)
-          File.open(destination, 'w') {|file| file.write(text)}
+          open_file(destination, 'w') {|file| file.write(text)}
         else
           destination.write(text)
         end
@@ -174,7 +174,10 @@ module Sass
       def open_file(filename, flag = 'r')
         return if filename.nil?
         flag = 'wb' if @options[:unix_newlines] && flag == 'w'
-        File.open(filename, flag)
+        file = File.open(filename, flag)
+        return file unless block_given?
+        yield file
+        file.close
       end
 
       def handle_load_error(err)
@@ -197,7 +200,7 @@ MESSAGE
       def initialize(args)
         super
         @options[:for_engine] = {
-          :load_paths => ['.'] + (ENV['SASSPATH'] || '').split(File::PATH_SEPARATOR)
+          :load_paths => default_sass_path
         }
         @default_syntax = :sass
       end
@@ -299,8 +302,16 @@ END
           @options[:sourcemap] = true
         end
 
-        unless ::Sass::Util.ruby1_8?
-          opts.on('-E encoding', 'Specify the default encoding for Sass files.') do |encoding|
+        encoding_desc = if ::Sass::Util.ruby1_8?
+          'Does not work in ruby 1.8.'
+        else
+          'Specify the default encoding for Sass files.'
+        end
+        opts.on('-E encoding', encoding_desc) do |encoding|
+          if ::Sass::Util.ruby1_8?
+            $stderr.puts "Specifying the encoding is not supported in ruby 1.8."
+            exit 1
+          else
             Encoding.default_external = encoding
           end
         end
@@ -433,17 +444,14 @@ MSG
         ::Sass::Plugin.on_updated_stylesheet do |_, css, sourcemap|
           [css, sourcemap].each do |file|
             next unless file
-            if File.exists? file
-              puts_action :overwrite, :yellow, file
-            else
-              puts_action :create, :green, file
-            end
+            puts_action :write, :green, file
           end
         end
 
         had_error = false
         ::Sass::Plugin.on_creating_directory {|dirname| puts_action :directory, :green, dirname}
         ::Sass::Plugin.on_deleting_css {|filename| puts_action :delete, :yellow, filename}
+        ::Sass::Plugin.on_deleting_sourcemap {|filename| puts_action :delete, :yellow, filename}
         ::Sass::Plugin.on_compilation_error do |error, _, _|
           if error.is_a?(SystemCallError) && !@options[:stop_on_error]
             had_error = true
@@ -505,6 +513,16 @@ MSG
         return false if colon_path?(path)
         return ::Sass::Util.glob(File.join(path, "*.s[ca]ss")).empty?
       end
+
+      def default_sass_path
+        if ENV['SASSPATH']
+          # The select here prevents errors when the environment's load paths specified do not exist.
+          ENV['SASSPATH'].split(File::PATH_SEPARATOR).select {|d| File.directory?(d)}
+        else
+          [::Sass::Importers::DeprecatedPath.new(".")]
+        end
+      end
+
     end
 
     class Scss < Sass
@@ -639,7 +657,6 @@ END
         end
         @options[:output] ||= @options[:input]
 
-        from = @options[:from]
         if @options[:to] == @options[:from] && !@options[:in_place]
           fmt = @options[:from]
           raise "Error: converting from #{fmt} to #{fmt} without --in-place"
@@ -713,7 +730,7 @@ END
             end
           end
 
-        output = File.open(input.path, 'w') if @options[:in_place]
+        output = input.path if @options[:in_place]
         write_output(out, output)
       rescue ::Sass::SyntaxError => e
         raise e if @options[:trace]

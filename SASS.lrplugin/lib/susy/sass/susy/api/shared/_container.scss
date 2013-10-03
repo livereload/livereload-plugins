@@ -1,14 +1,18 @@
-// Shared container output
-// =======================
+// Shared Container API
+// ====================
 
-// Output container styles
+// Container Output
+// ----------------
+// - [$width]         : <length>
+// - [$justify]       : left | center | right
+// - [$layout-math]   : fluid | static
 @mixin container-output(
   $width        : $container,
   $justify      : $container-position,
-  $show-grids   : $show-grids
+  $layout-math  : $layout-math
 ) {
   $position   : parse-container-position($justify);
-  $property   : if($static, width, max-width);
+  $property   : if($layout-math == static, width, max-width);
   $left       : nth($position,1);
   $right      : nth($position,2);
 

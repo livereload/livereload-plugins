@@ -1,4 +1,5 @@
 require 'sass/script/functions'
+require 'sass/util/normalized_map'
 
 module Sass::Script::Tree
   # A SassScript parse node representing a function call.
@@ -22,31 +23,45 @@ module Sass::Script::Tree
     # @return [{String => Node}]
     attr_reader :keywords
 
-    # The splat argument for this function, if one exists.
+    # The first splat argument for this function, if one exists.
+    #
+    # This could be a list of positional arguments, a map of keyword
+    # arguments, or an arglist containing both.
     #
     # @return [Node?]
     attr_accessor :splat
 
+    # The second splat argument for this function, if one exists.
+    #
+    # If this exists, it's always a map of keyword arguments, and
+    # \{#splat} is always either a list or an arglist.
+    #
+    # @return [Node?]
+    attr_accessor :kwarg_splat
+
     # @param name [String] See \{#name}
     # @param args [Array<Node>] See \{#args}
+    # @param keywords [Sass::Util::NormalizedMap<Node>] See \{#keywords}
     # @param splat [Node] See \{#splat}
-    # @param keywords [{String => Node}] See \{#keywords}
-    def initialize(name, args, keywords, splat)
+    # @param kwarg_splat [Node] See \{#kwarg_splat}
+    def initialize(name, args, keywords, splat, kwarg_splat)
       @name = name
       @args = args
       @keywords = keywords
       @splat = splat
+      @kwarg_splat = kwarg_splat
       super()
     end
 
     # @return [String] A string representation of the function call
     def inspect
       args = @args.map {|a| a.inspect}.join(', ')
-      keywords = Sass::Util.hash_to_a(@keywords).
+      keywords = Sass::Util.hash_to_a(@keywords.as_stored).
           map {|k, v| "$#{k}: #{v.inspect}"}.join(', ')
       if self.splat
         splat = (args.empty? && keywords.empty?) ? "" : ", "
         splat = "#{splat}#{self.splat.inspect}..."
+        splat = "#{splat}, #{kwarg_splat.inspect}..." if kwarg_splat
       end
       "#{name}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
     end
@@ -60,11 +75,12 @@ module Sass::Script::Tree
       end
 
       args = @args.map(&arg_to_sass).join(', ')
-      keywords = Sass::Util.hash_to_a(@keywords).
+      keywords = Sass::Util.hash_to_a(@keywords.as_stored).
         map {|k, v| "$#{dasherize(k, opts)}: #{arg_to_sass[v]}"}.join(', ')
       if self.splat
         splat = (args.empty? && keywords.empty?) ? "" : ", "
         splat = "#{splat}#{arg_to_sass[self.splat]}..."
+        splat = "#{splat}, #{arg_to_sass[kwarg_splat]}..." if kwarg_splat
       end
       "#{dasherize(name, opts)}(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
     end
@@ -76,6 +92,7 @@ module Sass::Script::Tree
     def children
       res = @args + @keywords.values
       res << @splat if @splat
+      res << @kwarg_splat if @kwarg_splat
       res
     end
 
@@ -83,7 +100,9 @@ module Sass::Script::Tree
     def deep_copy
       node = dup
       node.instance_variable_set('@args', args.map {|a| a.deep_copy})
-      node.instance_variable_set('@keywords', Hash[keywords.map {|k, v| [k, v.deep_copy]}])
+      copied_keywords = Sass::Util::NormalizedMap.new
+      @keywords.as_stored.each {|k,v| copied_keywords[k] = v.deep_copy}
+      node.instance_variable_set('@keywords', copied_keywords)
       node
     end
 
@@ -96,14 +115,14 @@ module Sass::Script::Tree
     # @raise [Sass::SyntaxError] if the function call raises an ArgumentError
     def _perform(environment)
       args = @args.map {|a| a.perform(environment)}
-      splat = @splat.perform(environment) if @splat
+      splat = Sass::Tree::Visitors::Perform.perform_splat(@splat, @kwarg_splat, environment)
+      keywords = Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
       if fn = environment.function(@name)
-        keywords = Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
-        return perform_sass_fn(fn, args, keywords, splat)
+        return perform_sass_fn(fn, args, keywords, splat, environment)
       end
 
       ruby_name = @name.tr('-', '_')
-      args = construct_ruby_args(ruby_name, args, splat, environment)
+      args = construct_ruby_args(ruby_name, args, keywords, splat, environment)
 
       unless Sass::Script::Functions.callable?(ruby_name)
         opts(to_literal(args))
@@ -161,7 +180,7 @@ module Sass::Script::Tree
       raise Sass::SyntaxError.new("#{message} for `#{name}'")
     end
 
-    # Compass historically overrode this before it changed name to {#to\_value}.
+    # Compass historically overrode this before it changed name to {Funcall#to_value}.
     # We should get rid of it in the future.
     def to_literal(args)
       to_value(args)
@@ -176,23 +195,20 @@ module Sass::Script::Tree
 
     private
 
-    def construct_ruby_args(name, args, splat, environment)
+    def construct_ruby_args(name, args, keywords, splat, environment)
       args += splat.to_a if splat
 
       # If variable arguments were passed, there won't be any explicit keywords.
-      if splat.is_a?(Sass::Script::Value::ArgList)
-        kwargs_size = splat.keywords.size
-        splat.keywords_accessed = false
-      else
-        kwargs_size = @keywords.size
+      if splat && !splat.keywords.empty?
+        old_keywords_accessed = splat.keywords_accessed
+        keywords = splat.keywords
+        splat.keywords_accessed = old_keywords_accessed
       end
 
-      unless signature = Sass::Script::Functions.signature(name.to_sym, args.size, kwargs_size)
-        return args if @keywords.empty?
+      unless signature = Sass::Script::Functions.signature(name.to_sym, args.size, keywords.size)
+        return args if keywords.empty?
         raise Sass::SyntaxError.new("Function #{name} doesn't support keyword arguments")
       end
-      keywords = splat.is_a?(Sass::Script::Value::ArgList) ? splat.keywords :
-        Sass::Util.map_hash(@keywords) {|k, v| [k, v.perform(environment)]}
 
       # If the user passes more non-keyword args than the function expects,
       # but it does expect keyword args, Ruby's arg handling won't raise an error.
@@ -205,7 +221,7 @@ module Sass::Script::Tree
         return args 
       end
 
-      args = args + signature.args[args.size..-1].map do |argname|
+      args = args + (signature.args[args.size..-1] || []).map do |argname|
         if keywords.has_key?(argname)
           keywords.delete(argname)
         else
@@ -229,8 +245,10 @@ module Sass::Script::Tree
       args
     end
 
-    def perform_sass_fn(function, args, keywords, splat)
+    def perform_sass_fn(function, args, keywords, splat, environment)
       Sass::Tree::Visitors::Perform.perform_arguments(function, args, keywords, splat) do |env|
+        env.caller = Sass::Environment.new(environment)
+
         val = catch :_sass_return do
           function.tree.each {|c| Sass::Tree::Visitors::Perform.visit(c, env)}
           raise Sass::SyntaxError.new("Function #{@name} finished without @return")

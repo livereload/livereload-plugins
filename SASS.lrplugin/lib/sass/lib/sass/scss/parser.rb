@@ -154,7 +154,7 @@ module Sass
 
       DIRECTIVES = Set[:mixin, :include, :function, :return, :debug, :warn, :for,
         :each, :while, :if, :else, :extend, :import, :media, :charset, :content,
-        :_moz_document]
+        :_moz_document, :at_root]
 
       PREFIXED_DIRECTIVES = Set[:supports]
 
@@ -209,9 +209,9 @@ module Sass
 
       def include_directive(start_pos)
         name = tok! IDENT
-        args, keywords, splat = sass_script(:parse_mixin_include_arglist)
+        args, keywords, splat, kwarg_splat = sass_script(:parse_mixin_include_arglist)
         ss
-        include_node = node(Sass::Tree::MixinNode.new(name, args, keywords, splat), start_pos)
+        include_node = node(Sass::Tree::MixinNode.new(name, args, keywords, splat, kwarg_splat), start_pos)
         if tok?(/\{/)
           include_node.has_children = true
           block(include_node, :directive)
@@ -263,14 +263,20 @@ module Sass
 
       def each_directive(start_pos)
         tok!(/\$/)
-        var = tok! IDENT
+        vars = [tok!(IDENT)]
         ss
+        while tok(/,/)
+          ss
+          tok!(/\$/)
+          vars << tok!(IDENT)
+          ss
+        end
 
         tok!(/in/)
         list = sass_script(:parse)
         ss
 
-        block(node(Sass::Tree::EachNode.new(var, list), start_pos), :directive)
+        block(node(Sass::Tree::EachNode.new(vars, list), start_pos), :directive)
       end
 
       def while_directive(start_pos)
@@ -463,6 +469,13 @@ module Sass
           _interp_string(:domain) || function(!:allow_var) || interpolation
         ss
         val
+      end
+
+      def at_root_directive(start_pos)
+        at_root_node = node(Sass::Tree::AtRootNode.new, start_pos)
+        return block(at_root_node, :stylesheet) unless rule_node = ruleset
+        at_root_node << rule_node
+        return at_root_node
       end
 
       # http://www.w3.org/TR/css3-conditional/
@@ -1091,6 +1104,7 @@ MESSAGE
         :qualified_name => "identifier",
         :expr => "expression (e.g. 1px, bold)",
         :_selector => "selector",
+        :selector_comma_sequence => "selector",
         :simple_selector_sequence => "selector",
         :import_arg => "file to import (string or url())",
         :moz_document_function => "matching function (e.g. url-prefix(), domain())",

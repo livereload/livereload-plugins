@@ -94,7 +94,7 @@ class Sass::Tree::Visitors::Cssize < Sass::Tree::Visitors::Base
   end
 
   # A simple struct wrapping up information about a single `@extend` instance. A
-  # single [ExtendNode] can have multiple Extends if either the parent node or
+  # single {ExtendNode} can have multiple Extends if either the parent node or
   # the extended selector is a comma sequence.
   #
   # @attr extender [Sass::Selector::Sequence]
@@ -126,7 +126,7 @@ class Sass::Tree::Visitors::Cssize < Sass::Tree::Visitors::Base
       sel = sseq.members
       parent.resolved_rules.members.each do |member|
         if !member.members.last.is_a?(Sass::Selector::SimpleSequence)
-          raise Sass::SyntaxError.new("#{seq} can't extend: invalid selector")
+          raise Sass::SyntaxError.new("#{member} can't extend: invalid selector")
         end
 
         @extends[sel] = Extend.new(member, sel, node, @parent_directives.dup, :not_found)
@@ -212,6 +212,10 @@ class Sass::Tree::Visitors::Cssize < Sass::Tree::Visitors::Base
     rules.last.group_end = true unless parent.is_a?(Sass::Tree::RuleNode) || rules.empty?
 
     rules
+  end
+
+  def visit_atroot(node)
+    yield.children
   end
 
   private
