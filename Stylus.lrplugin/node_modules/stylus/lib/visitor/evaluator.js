@@ -63,6 +63,7 @@ var Evaluator = module.exports = function Evaluator(root, options) {
   this.paths = options.paths || [];
   this.filename = options.filename;
   this.includeCSS = options['include css'];
+  this.resolveURL = options['resolve url'];
   this.paths.push(dirname(options.filename || '.'));
   this.stack.push(this.global = new Frame(root));
   this.warnings = options.warn;
@@ -336,7 +337,7 @@ Evaluator.prototype.visitCall = function(call){
     fn = this.lookupFunction(call.name);
   }
 
-  // Undefined function, render literal css
+  // Undefined function? render literal CSS
   if (!fn || fn.nodeName != 'function') {
     debug('%s is undefined', call);
     var ret = this.literalCall(call);
@@ -523,10 +524,8 @@ Evaluator.prototype.visitProperty = function(prop){
 
   // Function of the same name
   if (call && !literal && !prop.literal) {
-    this.calling.push(name);
     var args = nodes.Arguments.fromExpression(utils.unwrap(prop.expr));
     var ret = this.visit(new nodes.Call(name, args));
-    this.calling.pop();
     return ret;
   // Regular property
   } else {
@@ -640,6 +639,7 @@ Evaluator.prototype.visitExtend = function(extend){
   // the selector nodes and cause the values to be different to expected
   var selector = this.interpolate(extend.selector.clone());
   var block = !this.currentBlock.node.extends && this.targetBlock.node.extends ? this.targetBlock : this.currentBlock;
+  if (!block.node.extends && this.extendBlock) block = this.extendBlock;
   block.node.extends.push(selector);
   return nodes.null;
 };
@@ -657,7 +657,8 @@ Evaluator.prototype.visitImport = function(imported){
     , includeCSS = this.includeCSS
     , importStack = this.importStack
     , found
-    , literal;
+    , literal
+    , index;
 
   this.return--;
   debug('import %s', path);
@@ -685,27 +686,32 @@ Evaluator.prototype.visitImport = function(imported){
 
   // Lookup
   found = utils.lookup(path, this.paths, this.filename);
-  found = found || utils.lookup(join(name, 'index.styl'), this.paths, this.filename);
+  if (!found) {
+    found = utils.lookup(join(name, 'index.styl'), this.paths, this.filename);
+    index = true;
+  }
+
+  // Throw if import failed
+  if (!found) throw new Error('failed to locate @import file ' + path);
 
   // Expose imports
   imported.path = found;
   imported.dirname = dirname(found);
+  // Store the modified time
+  fs.stat(found, function(err, stat){
+    if (err) return;
+    imported.mtime = stat.mtime;
+  });
   this.paths.push(imported.dirname);
 
-  // Nested imports
-  if (importStack.length) this.paths.push(dirname(importStack[importStack.length - 1]));
-
   if (this.options._imports) this.options._imports.push(imported);
-
-  // Throw if import failed
-  if (!found) throw new Error('failed to locate @import file ' + path);
 
   // Parse the file
   importStack.push(found);
   nodes.filename = found;
 
   var str = fs.readFileSync(found, 'utf8');
-  if (literal) return new nodes.Literal(str.replace(/\r\n?/g, "\n"));
+  if (literal && !this.resolveURL) return new nodes.Literal(str.replace(/\r\n?/g, "\n"));
 
   // parse
   var block = new nodes.Block
@@ -720,18 +726,12 @@ Evaluator.prototype.visitImport = function(imported){
     throw err;
   }
 
-  // Store the modified time
-  fs.stat(found, function(err, stat){
-    if (err) return;
-    imported.mtime = stat.mtime;
-  });
-
   // Evaluate imported "root"
   block.parent = root;
   block.scope = false;
   var ret = this.visit(block);
-  this.paths.pop();
   importStack.pop();
+  if (importStack.length || index) this.paths.pop();
 
   return ret;
 };
@@ -805,7 +805,7 @@ Evaluator.prototype.invokeFunction = function(fn, args){
   });
 
   // invoke
-  return this.invoke(body, true);
+  return this.invoke(body, true, fn.filename);
 };
 
 /**
@@ -855,9 +855,12 @@ Evaluator.prototype.invokeBuiltin = function(fn, args){
  * @api private
  */
 
-Evaluator.prototype.invoke = function(body, stack){
+Evaluator.prototype.invoke = function(body, stack, filename){
   var self = this
-    , ret;
+    , ret
+    , node;
+
+  if (filename) this.paths.push(dirname(filename));
 
   // Return
   if (this.return) {
@@ -866,12 +869,18 @@ Evaluator.prototype.invoke = function(body, stack){
   // Mixin
   } else {
     var targetFrame = this.stack[this.stack.length - 2];
-    if (targetFrame) this.targetBlock = targetFrame.block;
+    if (targetFrame) {
+      this.targetBlock = targetFrame.block;
+      node = this.targetBlock.node;
+      if (node && node.extends) this.extendBlock = this.targetBlock;
+    }
     body = this.visit(body);
     if (stack) this.stack.pop();
     this.mixin(body.nodes, this.currentBlock);
     ret = nodes.null;
   }
+
+  if (filename) this.paths.pop();
 
   return ret;
 };
@@ -987,6 +996,7 @@ Evaluator.prototype.lookupProperty = function(name){
     , top = i
     , nodes
     , block
+    , len
     , other;
 
   while (i--) {
@@ -1004,10 +1014,11 @@ Evaluator.prototype.lookupProperty = function(name){
           }
         // sequential lookup for non-siblings (for now)
         } else {
-          for (var j = 0, len = nodes.length; j < len; ++j) {
-            if ('property' != nodes[j].nodeName) continue;
-            other = this.interpolate(nodes[j]);
-            if (name == other) return nodes[j].clone();
+          len = nodes.length;
+          while (len--) {
+            if ('property' != nodes[len].nodeName) continue;
+            other = this.interpolate(nodes[len]);
+            if (name == other) return nodes[len].clone();
           }
         }
         break;

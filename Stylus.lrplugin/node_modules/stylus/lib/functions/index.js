@@ -14,6 +14,7 @@ var Compiler = require('../visitor/compiler')
   , utils = require('../utils')
   , Image = require('./image')
   , units = require('../units')
+  , colors = require('../colors')
   , path = require('path')
   , fs = require('fs');
 
@@ -161,7 +162,7 @@ exports['type-of'] = function type(node){
  * Return component `name` for the given `color`.
  *
  * @param {RGBA|HSLA} color
- * @param {String} na,e
+ * @param {String} name
  * @return {Unit}
  * @api public
  */
@@ -402,11 +403,22 @@ exports.rgb = function rgb(red, green, blue){
  *    // => @media screen and (min-width:600px) and (orientation:landscape)
  *       
  * @param {String} path
+ * @param {Boolean} [local]
+ * @param {String} [namePrefix]
  * @api public
 */
 
-exports.json = function(path){
+exports.json = function(path, local, namePrefix){
   utils.assertString(path, 'path');
+
+  if (namePrefix) {
+    utils.assertString(namePrefix, 'namePrefix');
+    namePrefix = namePrefix.val;
+  } else {
+    namePrefix = '';
+  }
+  local = local ? local.toBoolean() : new nodes.Boolean(local);
+  var scope = local.isTrue ? this.currentScope : this.global.scope;
 
   // lookup
   path = path.string;
@@ -427,12 +439,39 @@ exports.json = function(path){
         convert.call(this, val, name);
       } else {
         val = utils.coerce(val);
-        if ('string' == val.nodeName) val = parseUnit(val.string) || new nodes.Literal(val.string);
-        this.global.scope.add({ name: name, val: val });
+        if ('string' == val.nodeName) val = parseUnit(val.string) || parseColor(val.string) || new nodes.Literal(val.string);
+        scope.add({ name: namePrefix + name, val: val });
       }
     }
   }
 };
+
+/**
+*  Use the given `plugin`
+*  
+*  Examples:
+*
+*     use("plugins/add.js")
+*
+*     width add(10, 100)
+*     // => width: 110
+*/
+
+exports.use = function(plugin){
+  utils.assertString(plugin, 'path');
+
+  // lookup
+  plugin = plugin.string;
+  var found = utils.lookup(plugin, this.options.paths, this.options.filename);
+  if (!found) throw new Error('failed to locate plugin file ' + plugin);
+
+  // use
+  var fn = require(path.resolve(found));
+  if ('function' != typeof fn) {
+    throw new Error('plugin ' + path + ' does not export a function');
+  }
+  this.renderer.use(fn(this.options));
+}
 
 /**
  * Unquote the given `str`.
@@ -536,6 +575,77 @@ exports.match = function match(pattern, val){
 };
 
 /**
+ * Returns substring of the given `val`.
+ *
+ * @param {String|Ident} val
+ * @param {Number} start
+ * @param {Number} [length]
+ * @return {String|Ident}
+ * @api public
+ */
+
+(exports.substr = function substr(val, start, length){
+  utils.assertPresent(val, 'string');
+  utils.assertPresent(start, 'start');
+  var valNode = utils.unwrap(val).nodes[0];
+  start = utils.unwrap(start).nodes[0].val;
+  if (length) {
+    length = utils.unwrap(length).nodes[0].val;
+  }
+  var res = valNode.string.substr(start, length);
+  return valNode instanceof nodes.Ident
+      ? new nodes.Ident(res)
+      : new nodes.String(res);
+}).raw = true;
+
+/**
+ * Returns string with all matches of `pattern` replaced by `replacement` in given `val`
+ *
+ * @param {String} pattern
+ * @param {String} replacement
+ * @param {String|Ident} val
+ * @return {String|Ident}
+ * @api public
+ */
+
+(exports.replace = function replace(pattern, replacement, val){
+  utils.assertPresent(pattern, 'pattern');
+  utils.assertPresent(replacement, 'replacement');
+  utils.assertPresent(val, 'val');
+  pattern = new RegExp(utils.unwrap(pattern).nodes[0].string, 'g');
+  replacement = utils.unwrap(replacement).nodes[0].string;
+  var valNode = utils.unwrap(val).nodes[0];
+  var res = valNode.string.replace(pattern, replacement);
+  return valNode instanceof nodes.Ident
+    ? new nodes.Ident(res)
+    : new nodes.String(res);
+}).raw = true;
+
+/**
+ * Splits the given `val` by `delim`
+ *
+ * @param {String} delim
+ * @param {String|Ident} val
+ * @return {Expression}
+ * @api public
+ */
+(exports.split = function split(delim, val){
+  utils.assertPresent(delim, 'delimiter');
+  utils.assertPresent(val, 'val');
+  delim = utils.unwrap(delim).nodes[0].string;
+  var valNode = utils.unwrap(val).nodes[0];
+  var splitted = valNode.string.split(delim);
+  var expr = new nodes.Expression();
+  var ItemNode = valNode instanceof nodes.Ident
+    ? nodes.Ident
+    : nodes.String;
+  for (var i = 0, len = splitted.length; i < len; ++i) {
+    expr.nodes.push(new ItemNode(splitted[i]));
+  }
+  return expr;
+}).raw = true;
+
+/**
  * Return length of the given `expr`.
  *
  * @param {Expression} expr
@@ -616,7 +726,7 @@ exports.trace = function trace(){
 (exports.push = exports.append = function(expr){
   expr = utils.unwrap(expr);
   for (var i = 1, len = arguments.length; i < len; ++i) {
-    expr.nodes.push(utils.unwrap(arguments[i]));
+    expr.nodes.push(utils.unwrap(arguments[i]).clone());
   }
   return expr.nodes.length;
 }).raw = true;
@@ -699,6 +809,30 @@ exports.trace = function trace(){
 }).raw = true;
 
 /**
+ * Return a `Literal` `num` converted to the provided `base`, padded to `width`
+ * with zeroes (default width is 2)
+ *
+ * @param {Number} num
+ * @param {Number} base
+ * @param {Number} width
+ * @return {Literal}
+ * @api public
+ */
+
+(exports['base-convert'] = function(num, base, width) {
+  utils.assertPresent(num, 'number');
+  utils.assertPresent(base, 'base');
+  num = utils.unwrap(num).nodes[0].val;
+  base = utils.unwrap(base).nodes[0].val;
+  width = (width && utils.unwrap(width).nodes[0].val) || 2;
+  var result = Number(num).toString(base);
+  while (result.length < width) {
+    result = "0" + result;
+  }
+  return new nodes.Literal(result);
+}).raw = true;
+
+/**
  * Return the opposites of the given `positions`.
  *
  * Examples:
@@ -742,14 +876,33 @@ exports.trace = function trace(){
  *    image-size('foo.png')[1]
  *    // => 100px
  *
+ * Can be used to test if the image exists,
+ * using an optional argument set to `true`
+ * (without this argument this function throws error
+ * if there is no such image).
+ *
+ * Example:
+ *
+ *    image-size('nosuchimage.png', true)[0]
+ *    // => 0
+ *
  * @param {String} img
+ * @param {Boolean} ignoreErr
  * @return {Expression}
  * @api public
  */
 
-exports['image-size'] = function imageSize(img) {
+exports['image-size'] = function imageSize(img, ignoreErr) {
   utils.assertType(img, 'string', 'img');
-  var img = new Image(this, img.string);
+  try {
+    var img = new Image(this, img.string);
+  } catch (err) {
+    if (ignoreErr) {
+      return [new nodes.Unit(0), new nodes.Unit(0)];
+    } else {
+      throw err;
+    }
+  }
 
   // Read size
   img.open();
@@ -880,4 +1033,31 @@ function parseUnit(str){
   var n = parseInt(m[1], 10);
   var type = m[2];
   return new nodes.Unit(n, type);
+}
+
+/**
+* Attempt to parse color
+* @param {String} str
+* @return {RGBA}
+* @api public
+*/
+
+function parseColor(str){
+  if (str.substr(0,1) === '#'){
+    var m = str.match(/\w{2}/g);
+    if (!m) return;
+    m = m.map(function(s){ return parseInt(s, 16) });
+    return new nodes.RGBA(m[0],m[1],m[2],1);
+  }
+  else if (str.substr(0,3) === 'rgb'){
+    var m = str.match(/(\d\.*\d+)/g);
+    if (!m) return;
+    m = m.map(function(s){return parseFloat(s, 10)});
+    return new nodes.RGBA(m[0], m[1], m[2], m[3] || 1);
+  }
+  else {
+    var rgb = colors[str];
+    if (!rgb) return;
+    return new nodes.RGBA(rgb[0], rgb[1], rgb[2], 1);
+  }
 }
