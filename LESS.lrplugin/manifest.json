@@ -1,4 +1,22 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "less",
+      "name": "LESS",
+
+      "input": "*.less",
+      "output": "*.css",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/less/bin/lessc",
+        "$(additional)",
+        "$(src_path)",
+        "$(dst_path)"
+      ]
+    }
+  ],
   "LRCompilers": [
     {
       "CommandLine": [
