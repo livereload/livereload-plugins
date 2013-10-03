@@ -43,6 +43,12 @@
           "OnArgument": "--firebug"
         },
         {
+          "Id": "compress",
+          "Type": "checkbox",
+          "Title": "Compressed output",
+          "OnArgument": "--compress"
+        },
+        {
           "Id": "use-nib",
           "Type": "checkbox",
           "Title": "Use Nib (--use nib)",
