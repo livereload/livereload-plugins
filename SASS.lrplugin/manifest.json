@@ -54,6 +54,12 @@
       ],
       "Options": [
         {
+          "Id": "sourcemap",
+          "Type": "checkbox",
+          "Title": "Generate sourcemap",
+          "OnArgument": "--sourcemap"
+        },
+        {
           "Id": "debug-info",
           "Type": "checkbox",
           "Title": "Emit debug info for FireSass",
