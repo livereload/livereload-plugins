@@ -98,11 +98,15 @@ compilerOptions = (filename, opts, paths) ->
     filename,
     bare: opts.bare,
     sourceMap: opts.map,
+    literate: isLiterate(filename)
     header: yes,
     sourceRoot: path.relative jsDir, srcDir
     sourceFiles: [path.basename(paths.source)]
     generatedFile: path.basename(paths.destination)
   }
+
+
+isLiterate = (file) -> ///\.( litcoffee | coffee\.md )$///.test(file)
 
 
 mkdir_p = (path, mode, callback, position) ->

@@ -1,4 +1,22 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "coffee",
+      "name": "CoffeeScript",
+
+      "input": "*.coffee",
+      "output": "*.js",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/scripts/compile-coffeescript.js",
+        "$(additional)",
+        "$(src_path)",
+        "$(dst_path)"
+      ]
+    }
+  ],
   "LRCompilers": [
     {
       "CommandLine": [
@@ -14,7 +32,8 @@
         "Error: In ((file)), ((message)) on line ((line))\\n"
       ],
       "Extensions": [
-        "coffee"
+        "coffee",
+        "litcoffee"
       ],
       "Name": "CoffeeScript",
       "ExpectedOutputDirectories": [
