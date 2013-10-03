@@ -1,4 +1,4 @@
-/*----------------- TypeScript ThirdPartyNotices -------------------------------------------------------
+/*!----------------- TypeScript ThirdPartyNotices -------------------------------------------------------
 
 The TypeScript software is based on or incorporates material and code from the projects listed below 
 (collectively "Third Party Code"). Microsoft is not the original author of the 
