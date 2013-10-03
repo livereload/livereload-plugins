@@ -30,6 +30,15 @@ The following user-contributed plugins are available, but NOT bundled with LiveR
 To add your plugin, please fork this repository, commit the plugin into a separate branch and send us a pull request.
 
 
+## Updating plugins in this repo
+
+Use Rake tasks (see `rake -T`).
+
+To install node-canvas for Stylus, you'll need Cairo installed. If you're on OS X, you can use Homebrew, but see [issue 14123](https://github.com/mxcl/homebrew/issues/14123); basically, you want to do something like this before running Rake:
+
+    export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
+
+
 ## Installing a plugin
 
 You need LiveReload 2.0 β7 or later to use plugins.
