@@ -1,70 +1,38 @@
 begin
   require 'bundler'
   Bundler::GemHelper.install_tasks
-rescue Exception
+rescue Exception => e
 end
 
 require 'rake/testtask'
 
-desc 'Run Slim benchmarks! (default parameters slow=false iterations=1000)'
-task :bench, :iterations, :slow do
-  ruby('benchmarks/run-benchmarks.rb')
+desc 'Run Slim benchmarks! (Default :iterations is 1000)'
+task :bench, :iterations, :slow do |t, args|
+  ruby("benchmarks/run.rb #{args[:slow]} #{args[:iterations]}")
 end
 
-task 'test' => %w(test:core_and_plugins)
+Rake::TestTask.new(:test) do |t|
+  t.libs << 'lib' << 'test'
+  t.pattern = 'test/slim/**/test_*.rb'
+  t.verbose = true
+end
 
-namespace 'test' do
-  task 'core_and_plugins' => %w(core literate logic_less translator)
+Rake::TestTask.new(:integration) do |t|
+  t.libs << 'lib' << 'test'
+  t.pattern = 'test/integration/**/test_*.rb'
+  t.verbose = true
+end
 
-  Rake::TestTask.new('core') do |t|
-    t.libs << 'lib' << 'test/core'
-    t.test_files = FileList['test/core/test_*.rb']
-    t.verbose = true
-    #t.ruby_opts << '-w' << '-v'
-  end
-
-  Rake::TestTask.new('literate') do |t|
-    t.libs << 'lib' << 'test/literate'
-    t.test_files = FileList['test/literate/run.rb']
-    t.verbose = true
-  end
-
-  Rake::TestTask.new('logic_less') do |t|
-    t.libs << 'lib' << 'test/core'
-    t.test_files = FileList['test/logic_less/test_*.rb']
+begin
+  require 'rcov/rcovtask'
+  Rcov::RcovTask.new do |t|
+    t.libs << 'lib' << 'test'
+    t.pattern = 'test/**/test_*.rb'
     t.verbose = true
   end
-
-  Rake::TestTask.new('translator') do |t|
-    t.libs << 'lib' << 'test/core'
-    t.test_files = FileList['test/translator/test_*.rb']
-    t.verbose = true
-  end
-
-  Rake::TestTask.new('rails') do |t|
-    t.libs << 'lib'
-    t.test_files = FileList['test/rails/test/test_*.rb']
-    t.verbose = true
-  end
-
-  begin
-    require 'sinatra'
-    spec = Gem::Specification.find_by_name('sinatra')
-    Rake::TestTask.new('sinatra') do |t|
-      # FIXME: Rename deprecated attribute
-      file = "#{spec.gem_dir}/test/slim_test.rb"
-      code = File.read(file)
-      code.gsub!('attr_wrapper', 'attr_quote')
-      File.open(file, 'w') {|out| out.write(code) }
-
-      # Run Slim integration test in Sinatra
-      t.test_files = FileList[file]
-      t.verbose = true
-    end
-  rescue LoadError
-    task :sinatra do
-      abort 'Sinatra is not available'
-    end
+rescue LoadError
+  task :rcov do
+    abort "RCov is not available. In order to run rcov, you must: gem install rcov"
   end
 end
 
@@ -75,7 +43,7 @@ begin
   end
 rescue LoadError
   task :yard do
-    abort 'YARD is not available. In order to run yard, you must: gem install yard'
+    abort "YARD is not available. In order to run yard, you must: gem install yard"
   end
 end
 

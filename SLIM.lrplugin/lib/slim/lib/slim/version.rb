@@ -1,5 +1,3 @@
 module Slim
-  # Slim version string
-  # @api public
-  VERSION = '2.0.0'
+  VERSION = '0.9.1.alpha.2'
 end

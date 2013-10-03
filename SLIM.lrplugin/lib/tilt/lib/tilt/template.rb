@@ -1,5 +1,11 @@
+require 'tilt'
+require 'thread'
+
 module Tilt
+  # @private
   TOPOBJECT = Object.superclass || Object
+  # @private
+  LOCK = Mutex.new
 
   # Base class for template implementations. Subclasses must implement
   # the #prepare method and one of the #evaluate or #precompiled_template
@@ -19,14 +25,22 @@ module Tilt
     # interface.
     attr_reader :options
 
-    # Used to determine if this class's initialize_engine method has
-    # been called yet.
-    @engine_initialized = false
     class << self
-      attr_accessor :engine_initialized
-      alias engine_initialized? engine_initialized
+      # An empty Hash that the template engine can populate with various
+      # metadata.
+      def metadata
+        @metadata ||= {}
+      end
 
-      attr_accessor :default_mime_type
+      # @deprecated Use `.metadata[:mime_type]` instead.
+      def default_mime_type
+        metadata[:mime_type]
+      end
+
+      # @deprecated Use `.metadata[:mime_type] = val` instead.
+      def default_mime_type=(value)
+        metadata[:mime_type] = value
+      end
     end
 
     # Create a new template with the file, line, and options specified. By
@@ -50,13 +64,6 @@ module Tilt
 
       raise ArgumentError, "file or block required" if (@file || block).nil?
 
-      # call the initialize_engine method if this is the very first time
-      # an instance of this class has been created.
-      if !self.class.engine_initialized?
-        initialize_engine
-        self.class.engine_initialized = true
-      end
-
       # used to hold compiled template methods
       @compiled_method = {}
 
@@ -79,28 +86,15 @@ module Tilt
       prepare
     end
 
-    # The encoding of the source data. Defaults to the
-    # default_encoding-option if present. You may override this method
-    # in your template class if you have a better hint of the data's
-    # encoding.
-    def default_encoding
-      @default_encoding
-    end
-
-    def read_template_file
-      data = File.open(file, 'rb') { |io| io.read }
-      if data.respond_to?(:force_encoding)
-        # Set it to the default external (without verifying)
-        data.force_encoding(Encoding.default_external) if Encoding.default_external
-      end
-      data
-    end
-
     # Render the template in the given scope with the locals specified. If a
     # block is given, it is typically available within the template via
     # +yield+.
     def render(scope=Object.new, locals={}, &block)
-      evaluate scope, locals || {}, &block
+      current_template = Thread.current[:tilt_current_template]
+      Thread.current[:tilt_current_template] = self
+      evaluate(scope, locals || {}, &block)
+    ensure
+      Thread.current[:tilt_current_template] = current_template
     end
 
     # The basename of the template file.
@@ -118,30 +112,26 @@ module Tilt
       file || '(__TEMPLATE__)'
     end
 
-    # Whether or not this template engine allows executing Ruby script
-    # within the template. If this is false, +scope+ and +locals+ will
-    # generally not be used, nor will the provided block be avaiable 
-    # via +yield+.
-    # This should be overridden by template subclasses.
-    def allows_script?
-      true
-    end
-
-  protected
-    # Called once and only once for each template subclass the first time
-    # the template class is initialized. This should be used to require the
-    # underlying template library and perform any initial setup.
-    def initialize_engine
-    end
-
-    # Like Kernel#require but issues a warning urging a manual require when
-    # running under a threaded environment.
-    def require_template_library(name)
-      if Thread.list.size > 1
-        warn "WARN: tilt autoloading '#{name}' in a non thread-safe way; " +
-             "explicit require '#{name}' suggested."
+    # An empty Hash that the template engine can populate with various
+    # metadata.
+    def metadata
+      if respond_to?(:allows_script?)
+        self.class.metadata.merge(:allows_script => allows_script?)
+      else
+        self.class.metadata
       end
-      require name
+    end
+
+    protected
+
+    # @!group For template implementations
+
+    # The encoding of the source data. Defaults to the
+    # default_encoding-option if present. You may override this method
+    # in your template class if you have a better hint of the data's
+    # encoding.
+    def default_encoding
+      @default_encoding
     end
 
     # Do whatever preparation is necessary to setup the underlying template
@@ -150,13 +140,7 @@ module Tilt
     #
     # Subclasses must provide an implementation of this method.
     def prepare
-      if respond_to?(:compile!)
-        # backward compat with tilt < 0.6; just in case
-        warn 'Tilt::Template#compile! is deprecated; implement #prepare instead.'
-        compile!
-      else
-        raise NotImplementedError
-      end
+      raise NotImplementedError
     end
 
     # Execute the compiled template and return the result string. Template
@@ -179,10 +163,10 @@ module Tilt
     # control over source generation or want to adjust the default line
     # offset. In most cases, overriding the #precompiled_template method is
     # easier and more appropriate.
-    def precompiled(locals)
-      preamble = precompiled_preamble(locals)
-      template = precompiled_template(locals)
-      postamble = precompiled_postamble(locals)
+    def precompiled(local_keys)
+      preamble = precompiled_preamble(local_keys)
+      template = precompiled_template(local_keys)
+      postamble = precompiled_postamble(local_keys)
       source = ''
 
       # Ensure that our generated source code has the same encoding as the
@@ -194,10 +178,7 @@ module Tilt
         template.force_encoding(template_encoding)
       end
 
-      # https://github.com/rtomayko/tilt/issues/193
-      warn "precompiled_preamble should return String (not Array)" if preamble.is_a?(Array)
-      warn "precompiled_postamble should return String (not Array)" if postamble.is_a?(Array)
-      source << [preamble, template, postamble].join("\n")
+      source << preamble << "\n" << template << "\n" << postamble
 
       [source, preamble.count("\n")+1]
     end
@@ -208,17 +189,40 @@ module Tilt
     # the base Template guarantees correct file/line handling, locals
     # support, custom scopes, proper encoding, and support for template
     # compilation.
-    def precompiled_template(locals)
+    def precompiled_template(local_keys)
       raise NotImplementedError
     end
 
-    # Generates preamble code for initializing template state, and performing
-    # locals assignment. The default implementation performs locals
-    # assignment only. Lines included in the preamble are subtracted from the
-    # source line offset, so adding code to the preamble does not effect line
-    # reporting in Kernel::caller and backtraces.
-    def precompiled_preamble(locals)
-      locals.map do |k,v|
+    def precompiled_preamble(local_keys)
+      ''
+    end
+
+    def precompiled_postamble(local_keys)
+      ''
+    end
+
+    # !@endgroup
+
+    private
+
+    def read_template_file
+      data = File.open(file, 'rb') { |io| io.read }
+      if data.respond_to?(:force_encoding)
+        # Set it to the default external (without verifying)
+        data.force_encoding(Encoding.default_external) if Encoding.default_external
+      end
+      data
+    end
+
+    # The compiled method for the locals keys provided.
+    def compiled_method(locals_keys)
+      LOCK.synchronize do
+        @compiled_method[locals_keys] ||= compile_template_method(locals_keys)
+      end
+    end
+
+    def local_extraction(local_keys)
+      local_keys.map do |k|
         if k.to_s =~ /\A[a-z_][a-zA-Z_0-9]*\z/
           "#{k} = locals[#{k.inspect}]"
         else
@@ -227,22 +231,10 @@ module Tilt
       end.join("\n")
     end
 
-    # Generates postamble code for the precompiled template source. The
-    # string returned from this method is appended to the precompiled
-    # template source.
-    def precompiled_postamble(locals)
-      ''
-    end
+    def compile_template_method(local_keys)
+      source, offset = precompiled(local_keys)
+      local_code = local_extraction(local_keys)
 
-    # The compiled method for the locals keys provided.
-    def compiled_method(locals_keys)
-      @compiled_method[locals_keys] ||=
-        compile_template_method(locals_keys)
-    end
-
-  private
-    def compile_template_method(locals)
-      source, offset = precompiled(locals)
       method_name = "__tilt_#{Thread.current.object_id.abs}"
       method_source = ""
 
@@ -257,11 +249,12 @@ module Tilt
             class << self
               this, locals = Thread.current[:tilt_vars]
               this.instance_eval do
+                #{local_code}
       RUBY
       offset += method_source.count("\n")
       method_source << source
       method_source << "\nend;end;end;end"
-      Object.class_eval method_source, eval_file, line - offset
+      Object.class_eval(method_source, eval_file, line - offset)
       unbind_compiled_method(method_name)
     end
 
@@ -276,7 +269,7 @@ module Tilt
     end
 
     def extract_magic_comment(script)
-      binary script do
+      binary(script) do
         script[/\A[ \t]*\#.*coding\s*[=:]\s*([[:alnum:]\-_]+).*$/n, 1]
       end
     end

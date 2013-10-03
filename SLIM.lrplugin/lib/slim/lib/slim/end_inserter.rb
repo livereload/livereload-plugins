@@ -10,12 +10,10 @@ module Slim
   #
   # @api private
   class EndInserter < Filter
-    BLOCK_REGEX = /\A(else|elsif|when|rescue|ensure)\b/
-    END_REGEX = /\Aend\b/
+    ELSE_REGEX = /^else|elsif|when\b/
+    END_REGEX = /^end\b/
 
     # Handle multi expression `[:multi, *exps]`
-    #
-    # @return [Array] Corrected Temple expression with ends inserted
     def on_multi(*exps)
       result = [:multi]
       # This variable is true if the previous line was
@@ -24,11 +22,11 @@ module Slim
 
       exps.each do |exp|
         if control?(exp)
-          raise(Temple::FilterError, 'Explicit end statements are forbidden') if exp[2] =~ END_REGEX
+          raise 'Explicit end statements are forbidden' if exp[2] =~ END_REGEX
 
           # Two control code in a row. If this one is *not*
           # an else block, we should close the previous one.
-          append_end(result) if prev_indent && exp[2] !~ BLOCK_REGEX
+          append_end(result) if prev_indent && exp[2] !~ ELSE_REGEX
 
           # Indent if the control code contains something.
           prev_indent = !empty_exp?(exp[3])
@@ -39,7 +37,7 @@ module Slim
           prev_indent = false
         end
 
-        result << compile(exp)
+        result << compile!(exp)
       end
 
       # The last line can be a control code too.
@@ -48,12 +46,12 @@ module Slim
 
     private
 
-    # Appends an end
+    # Appends an end.
     def append_end(result)
-      result << [:code, 'end']
+      result << [:block, 'end']
     end
 
-    # Checks if an expression is a Slim control code
+    # Checks if an expression is a Slim control code.
     def control?(exp)
       exp[0] == :slim && exp[1] == :control
     end
