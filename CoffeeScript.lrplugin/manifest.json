@@ -14,6 +14,12 @@
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"
+      ],
+
+      "errors": [
+        { "pattern": "SyntaxError: ((message))\\n", "message": "Syntax error: ***" },
+        { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
+        { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
       ]
     }
   ],

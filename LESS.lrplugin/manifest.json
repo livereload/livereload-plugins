@@ -14,6 +14,22 @@
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"
+      ],
+
+      "errors": [
+        { "pattern": "<ESC>((message))<ESC> in <ESC>((file))<ESC> on line ((line)), column ((column))" },
+        { "pattern": "<ESC>((message)) on line ((line))<ESC> in <ESC>((file))(?:<ESC>|\\n)" },
+        { "pattern": "<ESC>((message))<ESC> in <ESC>((file))<ESC>:((line))" },
+        { "pattern": "(Missing ((message))$)" },
+        { "pattern": "((message:Syntax Error)) on line ((line))" },
+        { "pattern": "((message:color functions take numbers as parameters))" },
+        { "pattern": "((message:variable .*? is undefined))" },
+        { "pattern": "((message:FATAL ERROR: ***))\\n" },
+        { "pattern": "((file)):((line))\\n[^\\n]*\\n\\s*\\^\\nError: ((message))\\n" },
+        { "pattern": "^Error: EBADF, ((message)) '((file))'" },
+        { "pattern": "<ESC>((message)) in ((file))" },
+        { "pattern": "^TypeError: ", "message": "Internal LESS compiler error" },
+        { "pattern": "^((message:file '.*?' wasn't found.))" }
       ]
     }
   ],
