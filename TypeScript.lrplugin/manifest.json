@@ -1,4 +1,79 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "typescript",
+      "name": "TypeScript",
+
+      "input": "*.ts",
+      "output": "*.css",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/typescript/bin/tsc.js",
+        "$(additional)",
+        "--out",
+        "$(dst_path)",
+        "$(src_path)"
+      ],
+
+      "errors": [
+        { "pattern": "((file))\\(((line)),\\d+\\): error TS\\d+: ((message))\n" }
+      ],
+
+      "options": [
+        {
+          "type": "checkbox",
+          "id": "comments",
+          "label": "Emit comments to output",
+          "args": "--comments"
+        },
+        {
+          "type": "checkbox",
+          "id": "source-map",
+          "label": "Generate source map",
+          "args": "--sourcemap"
+        },
+        {
+          "type": "checkbox",
+          "id": "declaration",
+          "label": "Generate a corresponding .d.ts file",
+          "args": "--declaration"
+        },
+        {
+          "type": "popup",
+          "id": "module-system",
+          "label": "Module system:",
+          "items": [
+            { "id": "commonjs", "label": "CommonJS/Node.js", "args": "--module commonjs" },
+            { "id": "amd", "label": "Async Module Def (AMD)", "args": "--module amd" }
+          ]
+        },
+        {
+          "type": "popup",
+          "id": "target",
+          "label": "Target language:",
+          "items": [
+            { "id": "es3", "label": "ECMAScript 3 (default)", "args": "--target ES3" },
+            { "id": "es5", "label": "ECMAScript 5", "args": "--target ES5" }
+          ]
+        },
+        {
+          "type": "checkbox",
+          "id": "disallow-bool",
+          "label": "Throw error for use of deprecated ‘bool’ type",
+          "args": "--disallowbool"
+        },
+        {
+          "type": "checkbox",
+          "id": "disallow-import-module",
+          "label": "Throw error for use of deprecated ‘module’ kw",
+          "args": "--disallowimportmodule"
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "CommandLine": [

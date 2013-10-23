@@ -1,4 +1,74 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "haml",
+      "name": "HAML",
+
+      "input": "*.haml",
+      "output": "*.html",
+
+      "cmdline": [
+        "$(ruby)",
+        "-I$(plugin)/lib/tilt/lib",
+        "$(plugin)/lib/haml/bin/haml",
+        "$(additional)",
+        "$(src_path)",
+        "$(dst_path)"
+      ],
+
+      "errors": [
+        { "pattern": "..." },
+        { "pattern": "Syntax error on line ((line)): ((message))\\n" },
+        { "pattern": "Exception on line ((line)): ((message))\\n" },
+        { "pattern": "Haml error on line ((line)): ((message))\\n" }
+      ],
+
+      "options": [
+        {
+          "type": "checkbox",
+          "id": "escape-html",
+          "label": "Escape HTML characters like & and < >",
+          "args": "--escape-html"
+        },
+        {
+          "type": "checkbox",
+          "id": "no-escape-attrs",
+          "label": "Don't escape HTML characters in attributes",
+          "args": "--no-escape-attrs"
+        },
+        {
+          "type": "popup",
+          "id": "quotes-type",
+          "label": "Attribute quoting style:",
+          "items": [
+            { "id": "single", "label": "Single quotes" },
+            { "id": "double", "label": "Double quotes", "args": "--double-quote-attributes" }
+          ]
+        },
+        {
+          "type": "popup",
+          "id": "output-style",
+          "label": "Output style:",
+          "items": [
+            { "id": "indented", "label": "Indented" },
+            { "id": "ugly", "label": "Ugly", "args": "--style ugly" }
+          ]
+        },
+        {
+          "type": "popup",
+          "id": "output-format",
+          "label": "Output format:",
+          "items": [
+            { "id": "xhtml", "label": "XHTML" },
+            { "id": "html4", "label": "HTML4", "args": "--format html4" },
+            { "id": "html5", "label": "HTML5", "args": "--format html5" }
+          ]
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "Optional": true,

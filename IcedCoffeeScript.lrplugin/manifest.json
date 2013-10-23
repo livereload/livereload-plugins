@@ -1,4 +1,49 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "iced-coffee-script",
+      "name": "IcedCoffeeScript",
+
+      "input": "*.iced",
+      "output": "*.js",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/iced-coffee-script/bin/coffee",
+        "$(additional)",
+        "-o",
+        "$(dst_dir)",
+        "$(src_path)"
+      ],
+
+      "errors": [
+        { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
+        { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
+      ],
+
+      "options": [
+        {
+          "id": "no-wrapper",
+          "type": "checkbox",
+          "label": "No wrapper",
+          "args": "--bare"
+        },
+        {
+          "type": "popup",
+          "id": "runtime-mode",
+          "label": "Iced runtime mode:",
+          "items": [
+            { "id": "inline", "label": "Include inline", "args": "--runtime inline" },
+            { "id": "window", "label": "Include globally", "args": "--runtime window" },
+            { "id": "node", "label": "Include via require", "args": "--runtime node" },
+            { "id": "none", "label": "Don't include", "args": "--runtime none" }
+          ]
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "Name": "IcedCoffeeScript",

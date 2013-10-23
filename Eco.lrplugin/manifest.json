@@ -1,4 +1,40 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "eco",
+      "name": "Eco",
+
+      "input": "*.eco",
+      "output": "*.js",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/eco/bin/eco",
+        "$(additional)",
+        "-o",
+        "$(dst_dir)",
+        "$(src_file)"
+      ],
+
+      "errors": [
+        { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
+        { "pattern": "\\w+Error: ((message))\\n" }
+      ],
+
+      "options": [
+        {
+          "type": "text-field",
+          "id": "identifier",
+          "label": "Eco object identifier:",
+          "placeholder": "ecoTemplates",
+          "args": "--identifier $(value)",
+          "skip-if-empty": true
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "CommandLine": [

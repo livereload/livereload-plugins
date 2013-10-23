@@ -1,4 +1,40 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "jade",
+      "name": "Jade",
+
+      "input": "*.jade",
+      "output": "*.html",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/jade_compiler.js",
+        "$(additional)",
+        "$(src_file)",
+        "$(dst_path)"
+      ],
+
+      "errors": [
+        { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
+        { "pattern": "\\w+Error: ((message))\\n" }
+      ],
+
+      "options": [
+        {
+          "type": "popup",
+          "id": "output-style",
+          "label": "Output style:",
+          "items": [
+            { "id": "minified", "label": "Minified" },
+            { "id": "pretty", "label": "Pretty", "args": ["-o", "{ pretty: true }"] }
+          ]
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "CommandLine": [

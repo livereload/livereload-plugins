@@ -26,29 +26,14 @@
         {
           "type": "checkbox",
           "id": "no-wrapper",
-          "label": "No wrapper (--bare)",
+          "label": "No wrapper",
           "args": "--bare"
         },
         {
           "type": "checkbox",
           "id": "source-map",
-          "label": "Generate source map (--map)",
+          "label": "Generate source map",
           "args": "--map"
-        },
-        {
-          "type": "text-field",
-          "id": "foo-boz",
-          "label": "Foo bar:",
-          "args": "--foo-text $(value)"
-        },
-        {
-          "type": "popup",
-          "id": "fubar",
-          "label": "Fubar:",
-          "items": [
-            { "id": "abc", "label": "Ab C", "args": "" },
-            { "id": "def", "label": "D.E.F.", "args": "--fubar def" }
-          ]
         }
       ]
     }

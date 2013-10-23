@@ -1,4 +1,62 @@
 {
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "stylus",
+      "name": "Stylus",
+
+      "input": "*.styl",
+      "output": "*.css",
+
+      "cmdline": [
+        "$(node)",
+        "$(plugin)/node_modules/stylus/bin/stylus",
+        "$(additional)",
+        "-o",
+        "$(dst_dir)",
+        "$(src_path)"
+      ],
+
+      "errors": [
+        { "pattern": "Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
+        { "pattern": "\\w+Error: ((message))\\n" }
+      ],
+
+      "options": [
+        {
+          "id": "debug-info",
+          "type": "checkbox",
+          "label": "Emit debug info for FireStylus",
+          "args": "--firebug"
+        },
+        {
+          "id": "compress",
+          "type": "checkbox",
+          "label": "Compressed output",
+          "args": "--compress"
+        },
+        {
+          "id": "use-nib",
+          "type": "checkbox",
+          "label": "Use Nib",
+          "args": "--use nib"
+        },
+        {
+          "id": "line-numbers",
+          "type": "checkbox",
+          "label": "Emit line numbers debug info",
+          "args": "--line-numbers"
+        },
+        {
+          "id": "include-css",
+          "type": "checkbox",
+          "label": "Include regular css on @import",
+          "args": "--include-css"
+        }
+      ]
+    }
+  ],
+
   "LRCompilers": [
     {
       "CommandLine": [
