@@ -41,8 +41,8 @@ var usage = ''
 var arg
   , infile
   , outfile;
-while (args.length) {
-  arg = args.shift();
+for(var i=0; i<args.length; i++) {
+  arg = args[i];
   switch (arg) {
     case '-h':
     case '--help':
@@ -54,7 +54,7 @@ while (args.length) {
       process.exit(1);
     case '-o':
     case '--options':
-      var str = args.shift();
+      var str = args[++i];
       if (str) {
         extend(options, eval('(' + str + ')'));
       } else {
@@ -63,7 +63,7 @@ while (args.length) {
       }
       break;
     case '--options-file':
-      var str = args.shift();
+      var str = args[++i];
       if (str) {
         str = str.trim();
         if (!fs.existsSync(str)) {
@@ -79,15 +79,14 @@ while (args.length) {
       }
       break;
     default:
-      args.unshift(arg);
+      if (i > (args.length-2)) {
+        console.error('exactly 2 file names must be specified');
+        process.exit(1);
+      }
+      infile = args[i];
+      outfile = args[++i];
       break;
   }
-  if (args.length != 2) {
-    console.error('exactly 2 file names must be specified');
-    process.exit(1);
-  }
-  infile = args.shift();
-  outfile = args.shift();
 }
 
 renderJade(infile, outfile);
