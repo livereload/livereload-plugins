@@ -12,7 +12,7 @@
         "$(node)",
         "$(plugin)/jade_compiler.js",
         "$(additional)",
-        "$(src_file)",
+        "$(src_path)",
         "$(dst_path)"
       ],
 
@@ -30,6 +30,20 @@
             { "id": "minified", "label": "Minified" },
             { "id": "pretty", "label": "Pretty", "args": ["-o", "{ pretty: true }"] }
           ]
+        },
+        {
+          "type": "text-field",
+          "id": "custom-options",
+          "label": "Custom options:",
+          "placeholder": "{ \"pretty\": true }",
+          "args": "-o $(value)"
+        },
+        {
+          "type": "text-field",
+          "id": "custom-options-file",
+          "label": "Custom options file:",
+          "placeholder": "jade-options.json",
+          "args": "--options-file $(value)"
         }
       ]
     }
@@ -82,6 +96,22 @@
               "Argument": ["-o", "{ pretty: true }"]
             }
           ]
+        },
+        {
+          "Id": "custom-options",
+          "Type": "edit",
+          "Label": "Custom options:",
+          "Placeholder": "{ \"pretty\": true }",
+          "Argument": "-o $(value)",
+          "SkipIfEmpty": true
+        },
+        {
+          "Id": "custom-options-file",
+          "Type": "edit",
+          "Label": "Custom options file:",
+          "Placeholder": "jade-options.json",
+          "Argument": "--options-file $(value)",
+          "SkipIfEmpty": true
         }
       ]
     }

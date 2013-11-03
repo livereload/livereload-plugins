@@ -56,9 +56,25 @@ while (args.length) {
     case '--options':
       var str = args.shift();
       if (str) {
-        options = eval('(' + str + ')');
+        extend(options, eval('(' + str + ')'));
       } else {
         console.error('-o, --options requires a string.');
+        process.exit(1);
+      }
+      break;
+    case '--options-file':
+      var str = args.shift();
+      if (str) {
+        str = str.trim();
+        if (!fs.existsSync(str)) {
+          console.error('--options-file requires an existing JSON file.');
+          process.exit(1);
+        }
+        var data = fs.readFileSync(str, 'utf8');
+        // eval instead of JSON.parse to support unquoted keys, comments and other JS stuff
+        extend(options, eval('(' + data + ')'));
+      } else {
+        console.error('--options-file requires a string.');
         process.exit(1);
       }
       break;
@@ -87,3 +103,9 @@ function renderJade(inFile, outFile) {
   });
 }
 
+
+function extend(dst, src) {
+  for (var k in src) if (src.hasOwnProperty(k)) {
+    dst[k] = src[k];
+  }
+}
