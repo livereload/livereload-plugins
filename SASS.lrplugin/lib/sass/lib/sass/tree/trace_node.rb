@@ -7,7 +7,6 @@ module Sass::Tree
   # @see Sass::Tree
   class TraceNode < Node
     # The name of the trace entry to add.
-    #
     # @return [String]
     attr_reader :name
 
@@ -20,7 +19,7 @@ module Sass::Tree
 
     # Initializes this node from an existing node.
     # @param name [String] The name of the trace entry to add.
-    # @param node [Node] The node to copy information from.
+    # @param mixin [Node] The node to copy information from.
     # @return [TraceNode]
     def self.from_node(name, node)
       trace = new(name)

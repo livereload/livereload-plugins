@@ -4,7 +4,7 @@ module Sass::Supports
   class Condition
     # Runs the SassScript in the supports condition.
     #
-    # @param environment [Sass::Environment] The environment in which to run the script.
+    # @param env [Sass::Environment] The environment in which to run the script.
     def perform(environment); Sass::Util.abstract(self); end
 
     # Returns the CSS for this condition.
@@ -133,19 +133,20 @@ module Sass::Supports
 
   # A declaration condition (e.g. `(feature: value)`).
   class Declaration < Condition
-    # @return [Sass::Script::Tree::Node] The feature name.
+    # The feature name.
+    #
+    # @param [Sass::Script::Node]
     attr_accessor :name
 
-    # @!attribute resolved_name
-    #   The name of the feature after any SassScript has been resolved.
-    #   Only set once \{Tree::Visitors::Perform} has been run.
+    # The name of the feature after any SassScript has been resolved.
+    # Only set once \{Tree::Visitors::Perform} has been run.
     #
-    #   @return [String]
+    # @return [String]
     attr_accessor :resolved_name
 
     # The feature value.
     #
-    # @return [Sass::Script::Tree::Node]
+    # @param [Sass::Script::Node]
     attr_accessor :value
 
     # The value of the feature after any SassScript has been resolved.
@@ -189,7 +190,7 @@ module Sass::Supports
   class Interpolation < Condition
     # The SassScript expression in the interpolation.
     #
-    # @return [Sass::Script::Tree::Node]
+    # @param [Sass::Script::Node]
     attr_accessor :value
 
     # The value of the expression after it's been resolved.
@@ -204,7 +205,7 @@ module Sass::Supports
 
     def perform(env)
       val = value.perform(env)
-      @resolved_value = val.is_a?(Sass::Script::Value::String) ? val.value : val.to_s
+      @resolved_value = val.is_a?(Sass::Script::String) ? val.value : val.to_s
     end
 
     def to_css

@@ -12,17 +12,17 @@ module Sass
       # containing the variable for argument and the parse tree for
       # the default value of the argument
       #
-      # @return [Array<Script::Tree::Node>]
+      # @return [Array<Script::Node>]
       attr_accessor :args
 
       # The splat argument for this function, if one exists.
       #
-      # @return [Script::Tree::Node?]
+      # @return [Script::Node?]
       attr_accessor :splat
 
       # @param name [String] The function name
-      # @param args [Array<(Script::Tree::Node, Script::Tree::Node)>] The arguments for the function.
-      # @param splat [Script::Tree::Node] See \{#splat}
+      # @param args [Array<(Script::Node, Script::Node)>] The arguments for the function.
+      # @param splat [Script::Node] See \{#splat}
       def initialize(name, args, splat)
         @name = name
         @args = args

@@ -21,6 +21,8 @@ module Sass
     # The base used for calculating selector specificity. The spec says this
     # should be "sufficiently high"; it's extremely unlikely that any single
     # selector sequence will contain 1,000 simple selectors.
+    #
+    # @type [Fixnum]
     SPECIFICITY_BASE = 1_000
 
     # A parent-referencing selector (`&` in Sass).
@@ -45,10 +47,10 @@ module Sass
     class Class < Simple
       # The class name.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
-      # @param name [Array<String, Sass::Script::Tree::Node>] The class name
+      # @param name [Array<String, Sass::Script::Node>] The class name
       def initialize(name)
         @name = name
       end
@@ -68,10 +70,10 @@ module Sass
     class Id < Simple
       # The id name.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
-      # @param name [Array<String, Sass::Script::Tree::Node>] The id name
+      # @param name [Array<String, Sass::Script::Node>] The id name
       def initialize(name)
         @name = name
       end
@@ -103,10 +105,10 @@ module Sass
     class Placeholder < Simple
       # The placeholder name.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
-      # @param name [Array<String, Sass::Script::Tree::Node>] The placeholder name
+      # @param name [Array<String, Sass::Script::Node>] The placeholder name
       def initialize(name)
         @name = name
       end
@@ -118,7 +120,7 @@ module Sass
 
       # @see AbstractSequence#specificity
       def specificity
-        0
+        SPECIFICITY_BASE
       end
     end
 
@@ -129,10 +131,10 @@ module Sass
       # `[""]` means no namespace,
       # `["*"]` means any namespace.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>, nil]
+      # @return [Array<String, Sass::Script::Node>, nil]
       attr_reader :namespace
 
-      # @param namespace [Array<String, Sass::Script::Tree::Node>, nil] See \{#namespace}
+      # @param namespace [Array<String, Sass::Script::Node>, nil] See \{#namespace}
       def initialize(namespace)
         @namespace = namespace
       end
@@ -193,7 +195,7 @@ module Sass
     class Element < Simple
       # The element name.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
       # The selector namespace.
@@ -201,11 +203,11 @@ module Sass
       # `[""]` means no namespace,
       # `["*"]` means any namespace.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>, nil]
+      # @return [Array<String, Sass::Script::Node>, nil]
       attr_reader :namespace
 
-      # @param name [Array<String, Sass::Script::Tree::Node>] The element name
-      # @param namespace [Array<String, Sass::Script::Tree::Node>, nil] See \{#namespace}
+      # @param name [Array<String, Sass::Script::Node>] The element name
+      # @param namespace [Array<String, Sass::Script::Node>, nil] See \{#namespace}
       def initialize(name, namespace)
         @name = name
         @namespace = namespace
@@ -260,10 +262,10 @@ module Sass
     class Interpolation < Simple
       # The script to run.
       #
-      # @return [Sass::Script::Tree::Node]
+      # @return [Sass::Script::Node]
       attr_reader :script
 
-      # @param script [Sass::Script::Tree::Node] The script to run
+      # @param script [Sass::Script::Node] The script to run
       def initialize(script)
         @script = script
       end
@@ -286,7 +288,7 @@ module Sass
     class Attribute < Simple
       # The attribute name.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
       # The attribute namespace.
@@ -294,7 +296,7 @@ module Sass
       # `[""]` means no namespace,
       # `["*"]` means any namespace.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>, nil]
+      # @return [Array<String, Sass::Script::Node>, nil]
       attr_reader :namespace
 
       # The matching operator, e.g. `"="` or `"^="`.
@@ -304,19 +306,19 @@ module Sass
 
       # The right-hand side of the operator.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :value
 
       # Flags for the attribute selector (e.g. `i`).
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :flags
 
-      # @param name [Array<String, Sass::Script::Tree::Node>] The attribute name
-      # @param namespace [Array<String, Sass::Script::Tree::Node>, nil] See \{#namespace}
+      # @param name [Array<String, Sass::Script::Node>] The attribute name
+      # @param namespace [Array<String, Sass::Script::Node>, nil] See \{#namespace}
       # @param operator [String] The matching operator, e.g. `"="` or `"^="`
-      # @param value [Array<String, Sass::Script::Tree::Node>] See \{#value}
-      # @param flags [Array<String, Sass::Script::Tree::Node>] See \{#flags}
+      # @param value [Array<String, Sass::Script::Node>] See \{#value}
+      # @param value [Array<String, Sass::Script::Node>] See \{#flags}
       def initialize(name, namespace, operator, value, flags)
         @name = name
         @namespace = namespace
@@ -360,7 +362,7 @@ module Sass
 
       # The name of the selector.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>]
+      # @return [Array<String, Sass::Script::Node>]
       attr_reader :name
 
       # The argument to the selector,
@@ -370,12 +372,12 @@ module Sass
       # Note that this should not include SassScript nodes
       # after resolution has taken place.
       #
-      # @return [Array<String, Sass::Script::Tree::Node>, nil]
+      # @return [Array<String, Sass::Script::Node>, nil]
       attr_reader :arg
 
       # @param type [Symbol] See \{#type}
-      # @param name [Array<String, Sass::Script::Tree::Node>] The name of the selector
-      # @param arg [nil, Array<String, Sass::Script::Tree::Node>] The argument to the selector,
+      # @param name [Array<String, Sass::Script::Node>] The name of the selector
+      # @param arg [nil, Array<String, Sass::Script::Node>] The argument to the selector,
       #   or nil if no argument was given
       def initialize(type, name, arg)
         @syntactic_type = type
@@ -429,8 +431,8 @@ module Sass
       # @return [Selector::Sequence]
       attr_reader :selector
 
-      # @param name [String] The name of the pseudoclass
-      # @param selector [Selector::CommaSequence] The selector argument
+      # @param [String] The name of the pseudoclass
+      # @param [Selector::CommaSequence] The selector argument
       def initialize(name, selector)
         @name = name
         @selector = selector

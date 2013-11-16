@@ -12,40 +12,27 @@ module Sass::Tree
     attr_reader :name
 
     # The arguments to the mixin.
-    # @return [Array<Script::Tree::Node>]
+    # @return [Array<Script::Node>]
     attr_accessor :args
 
     # A hash from keyword argument names to values.
-    # @return [{String => Script::Tree::Node}]
+    # @return [{String => Script::Node}]
     attr_accessor :keywords
 
-    # The first splat argument for this mixin, if one exists.
+    # The splat argument for this mixin, if one exists.
     #
-    # This could be a list of positional arguments, a map of keyword
-    # arguments, or an arglist containing both.
-    #
-    # @return [Node?]
+    # @return [Script::Node?]
     attr_accessor :splat
 
-    # The second splat argument for this mixin, if one exists.
-    #
-    # If this exists, it's always a map of keyword arguments, and
-    # \{#splat} is always either a list or an arglist.
-    #
-    # @return [Node?]
-    attr_accessor :kwarg_splat
-
     # @param name [String] The name of the mixin
-    # @param args [Array<Script::Tree::Node>] See \{#args}
-    # @param splat [Script::Tree::Node] See \{#splat}
-    # @param kwarg_splat [Script::Tree::Node] See \{#kwarg_splat}
-    # @param keywords [{String => Script::Tree::Node}] See \{#keywords}
-    def initialize(name, args, keywords, splat, kwarg_splat)
+    # @param args [Array<Script::Node>] See \{#args}
+    # @param splat [Script::Node] See \{#splat}
+    # @param keywords [{String => Script::Node}] See \{#keywords}
+    def initialize(name, args, keywords, splat)
       @name = name
       @args = args
       @keywords = keywords
       @splat = splat
-      @kwarg_splat = kwarg_splat
       super()
     end
   end

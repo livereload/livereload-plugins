@@ -68,7 +68,7 @@ module Sass
       end
 
       def options_for_importer
-        @options.merge(:_from_import_node => true)
+        @options.merge(:_line => line)
       end
     end
   end

@@ -76,7 +76,7 @@ module Sass
     #
     # @return [Tree::Node] The root node of the parsed tree
     def build_tree
-      root = Sass::SCSS::CssParser.new(@template, @options[:filename], nil).parse
+      root = Sass::SCSS::CssParser.new(@template, @options[:filename]).parse
       parse_selectors    root
       expand_commas      root
       nest_seqs          root
@@ -96,7 +96,7 @@ module Sass
       root.children.each do |child|
         next parse_selectors(child) if child.is_a?(Tree::DirectiveNode)
         next unless child.is_a?(Tree::RuleNode)
-        parser = Sass::SCSS::CssParser.new(child.rule.first, child.filename, nil, child.line)
+        parser = Sass::SCSS::CssParser.new(child.rule.first, child.filename, child.line)
         child.parsed_rules = parser.parse_selector
       end
     end
@@ -317,7 +317,7 @@ module Sass
     #       bar, baz
     #         color: blue
     #
-    # @param root [Tree::Node] The parent node
+    # @param rule [Tree::RuleNode] The candidate for flattening
     def fold_commas(root)
       prev_rule = nil
       root.children.map! do |child|
@@ -326,7 +326,7 @@ module Sass
           next child
         end
 
-        if prev_rule && prev_rule.children.map {|c| c.to_sass} == child.children.map {|c| c.to_sass}
+        if prev_rule && prev_rule.children == child.children
           prev_rule.parsed_rules.members << first_seq(child)
           next nil
         end

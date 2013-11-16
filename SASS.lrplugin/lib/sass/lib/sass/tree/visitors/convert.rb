@@ -104,8 +104,7 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
   end
 
   def visit_each(node)
-    vars = node.vars.map {|var| "$#{dasherize(var)}"}.join(", ")
-    "#{tab_str}@each #{vars} in #{node.list.to_sass(@options)}#{yield}"
+    "#{tab_str}@each $#{dasherize(node.var)} in #{node.list.to_sass(@options)}#{yield}"
   end
 
   def visit_extend(node)
@@ -160,7 +159,7 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
   end
 
   def visit_cssimport(node)
-    if node.uri.is_a?(Sass::Script::Tree::Node)
+    if node.uri.is_a?(Sass::Script::Node)
       str = "#{tab_str}@import #{node.uri.to_sass(@options)}"
     else
       str = "#{tab_str}@import #{node.uri}"
@@ -197,7 +196,7 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
   def visit_mixin(node)
     arg_to_sass = lambda do |arg|
       sass = arg.to_sass(@options)
-      sass = "(#{sass})" if arg.is_a?(Sass::Script::Tree::ListLiteral) && arg.separator == :comma
+      sass = "(#{sass})" if arg.is_a?(Sass::Script::List) && arg.separator == :comma
       sass
     end
 
@@ -208,7 +207,6 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
       if node.splat
         splat = (args.empty? && keywords.empty?) ? "" : ", "
         splat = "#{splat}#{arg_to_sass[node.splat]}..."
-        splat = "#{splat}, #{node.kwarg_splat.inspect}..." if node.kwarg_splat
       end
       arglist = "(#{args}#{', ' unless args.empty? || keywords.empty?}#{keywords}#{splat})"
     end
@@ -255,15 +253,6 @@ class Sass::Tree::Visitors::Convert < Sass::Tree::Visitors::Base
 
   def visit_while(node)
     "#{tab_str}@while #{node.expr.to_sass(@options)}#{yield}"
-  end
-
-  def visit_atroot(node)
-    if node.children.length == 1 && node.children.first.is_a?(Sass::Tree::RuleNode)
-      rule = node.children.first
-      "#{tab_str}@at-root #{selector_to_src(rule.rule)}#{visit_children(rule)}"
-    else
-      "#{tab_str}@at-root#{yield}"
-    end
   end
 
   private
