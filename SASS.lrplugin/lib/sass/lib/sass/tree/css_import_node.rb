@@ -6,31 +6,31 @@ module Sass::Tree
     # The URI being imported, either as a plain string or an interpolated
     # script string.
     #
-    # @return [String, Sass::Script::Tree::Node]
+    # @return [String, Sass::Script::Node]
     attr_accessor :uri
 
     # The text of the URI being imported after any interpolated SassScript has
-    # been resolved. Only set once {Tree::Visitors::Perform} has been run.
+    # been resolved. Only set once \{Tree::Visitors::Perform} has been run.
     #
     # @return [String]
     attr_accessor :resolved_uri
 
-    # The media query for this rule, interspersed with
-    # {Sass::Script::Tree::Node}s representing `#{}`-interpolation. Any adjacent
-    # strings will be merged together.
+    # The media query for this rule, interspersed with {Sass::Script::Node}s
+    # representing `#{}`-interpolation. Any adjacent strings will be merged
+    # together.
     #
-    # @return [Array<String, Sass::Script::Tree::Node>]
+    # @return [Array<String, Sass::Script::Node>]
     attr_accessor :query
 
-    # The media query for this rule, without any unresolved interpolation.
-    # It's only set once {Tree::Visitors::Perform} has been run.
+    # The media query for this rule, without any unresolved interpolation. It's
+    # only set once {Tree::Node#perform} has been called.
     #
     # @return [Sass::Media::QueryList]
     attr_accessor :resolved_query
 
-    # @param uri [String, Sass::Script::Tree::Node] See \{#uri}
-    # @param query [Array<String, Sass::Script::Tree::Node>] See \{#query}
-    def initialize(uri, query = [])
+    # @param uri [String, Sass::Script::Node] See \{#uri}
+    # @param query [Array<String, Sass::Script::Node>] See \{#query}
+    def initialize(uri, query = nil)
       @uri = uri
       @query = query
       super('')

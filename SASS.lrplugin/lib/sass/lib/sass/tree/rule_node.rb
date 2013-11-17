@@ -1,4 +1,5 @@
 require 'pathname'
+require 'uri'
 
 module Sass::Tree
   # A static node reprenting a CSS rule.
@@ -9,18 +10,17 @@ module Sass::Tree
     PARENT = '&'
 
     # The CSS selector for this rule,
-    # interspersed with {Sass::Script::Tree::Node}s
+    # interspersed with {Sass::Script::Node}s
     # representing `#{}`-interpolation.
     # Any adjacent strings will be merged together.
     #
-    # @return [Array<String, Sass::Script::Tree::Node>]
+    # @return [Array<String, Sass::Script::Node>]
     attr_accessor :rule
 
     # The CSS selector for this rule,
     # without any unresolved interpolation
     # but with parent references still intact.
-    # It's only set once {Tree::Visitors::Perform} has been run.
-    #
+    # It's only set once {Tree::Node#perform} has been called.
     #
     # @return [Selector::CommaSequence]
     attr_accessor :parsed_rules
@@ -44,10 +44,6 @@ module Sass::Tree
     # @return [Fixnum]
     attr_accessor :tabs
 
-    # The entire selector source range for this rule.
-    # @return [Sass::Source::Range]
-    attr_accessor :selector_source_range
-
     # Whether or not this rule is the last rule in a nested group.
     # This is only set in a CSS tree.
     #
@@ -58,16 +54,14 @@ module Sass::Tree
     # This is only readable in a CSS tree as it is written during the perform step
     # and only when the :trace_selectors option is set.
     #
-    # @return [String]
+    # @return [Array<String>]
     attr_accessor :stack_trace
 
-    # @param rule [Array<String, Sass::Script::Tree::Node>]
-    # @param selector_source_range [Sass::Source::Range]
+    # @param rule [Array<String, Sass::Script::Node>]
     #   The CSS rule. See \{#rule}
-    def initialize(rule, selector_source_range = nil)
+    def initialize(rule)
       merged = Sass::Util.merge_adjacent_strings(rule)
       @rule = Sass::Util.strip_string_array(merged)
-      @selector_source_range = selector_source_range
       @tabs = 0
       try_to_parse_non_interpolated_rules
       super()
@@ -115,7 +109,7 @@ module Sass::Tree
     #
     # @return [{#to_s => #to_s}]
     def debug_info
-      {:filename => filename && ("file://" + Sass::Util.escape_uri(File.expand_path(filename))),
+      {:filename => filename && ("file://" + URI.escape(File.expand_path(filename))),
        :line => self.line}
     end
 
@@ -130,7 +124,7 @@ module Sass::Tree
       if @rule.all? {|t| t.kind_of?(String)}
         # We don't use real filename/line info because we don't have it yet.
         # When we get it, we'll set it on the parsed rules if possible.
-        parser = Sass::SCSS::StaticParser.new(@rule.join.strip, '', nil, 1)
+        parser = Sass::SCSS::StaticParser.new(@rule.join.strip, '', 1)
         @parsed_rules = parser.parse_selector rescue nil
       end
     end

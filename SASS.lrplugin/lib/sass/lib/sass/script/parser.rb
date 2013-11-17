@@ -3,7 +3,7 @@ require 'sass/script/lexer'
 module Sass
   module Script
     # The parser for SassScript.
-    # It parses a string of code into a tree of {Script::Tree::Node}s.
+    # It parses a string of code into a tree of {Script::Node}s.
     class Parser
       # The line number of the parser's current position.
       #
@@ -12,18 +12,11 @@ module Sass
         @lexer.line
       end
 
-      # The column number of the parser's current position.
-      #
-      # @return [Fixnum]
-      def offset
-        @lexer.offset
-      end
-
       # @param str [String, StringScanner] The source text to parse
       # @param line [Fixnum] The line on which the SassScript appears.
-      #   Used for error reporting and sourcemap building
-      # @param offset [Fixnum] The character (not byte) offset in the line on which the SassScript appears.
-      #   Used for error reporting and sourcemap building
+      #   Used for error reporting
+      # @param offset [Fixnum] The number of characters in on which the SassScript appears.
+      #   Used for error reporting
       # @param options [{Symbol => Object}] An options hash;
       #   see {file:SASS_REFERENCE.md#sass_options the Sass options documentation}
       def initialize(str, line, offset, options = {})
@@ -36,7 +29,7 @@ module Sass
       # which signals the end of an interpolated segment,
       # it returns rather than throwing an error.
       #
-      # @return [Script::Tree::Node] The root node of the parse tree
+      # @return [Script::Node] The root node of the parse tree
       # @raise [Sass::SyntaxError] if the expression isn't valid SassScript
       def parse_interpolated
         expr = assert_expr :expr
@@ -50,7 +43,7 @@ module Sass
 
       # Parses a SassScript expression.
       #
-      # @return [Script::Tree::Node] The root node of the parse tree
+      # @return [Script::Node] The root node of the parse tree
       # @raise [Sass::SyntaxError] if the expression isn't valid SassScript
       def parse
         expr = assert_expr :expr
@@ -65,8 +58,8 @@ module Sass
       # Parses a SassScript expression,
       # ending it when it encounters one of the given identifier tokens.
       #
-      # @param tokens [#include?(String)] A set of strings that delimit the expression.
-      # @return [Script::Tree::Node] The root node of the parse tree
+      # @param [#include?(String)] A set of strings that delimit the expression.
+      # @return [Script::Node] The root node of the parse tree
       # @raise [Sass::SyntaxError] if the expression isn't valid SassScript
       def parse_until(tokens)
         @stop_at = tokens
@@ -81,14 +74,14 @@ module Sass
 
       # Parses the argument list for a mixin include.
       #
-      # @return [(Array<Script::Tree::Node>, {String => Script::Tree::Node}, Script::Tree::Node, Script::Tree::Node)]
+      # @return [(Array<Script::Node>, {String => Script::Node}, Script::Node)]
       #   The root nodes of the positional arguments, keyword arguments, and
-      #   splat argument(s). Keyword arguments are in a hash from names to values.
+      #   splat argument. Keyword arguments are in a hash from names to values.
       # @raise [Sass::SyntaxError] if the argument list isn't valid SassScript
       def parse_mixin_include_arglist
         args, keywords = [], {}
         if try_tok(:lparen)
-          args, keywords, splat, kwarg_splat = mixin_arglist
+          args, keywords, splat = mixin_arglist || [[], {}]
           assert_tok(:rparen)
         end
         assert_done
@@ -96,8 +89,7 @@ module Sass
         args.each {|a| a.options = @options}
         keywords.each {|k, v| v.options = @options}
         splat.options = @options if splat
-        kwarg_splat.options = @options if kwarg_splat
-        return args, keywords, splat, kwarg_splat
+        return args, keywords, splat
       rescue Sass::SyntaxError => e
         e.modify_backtrace :line => @lexer.line, :filename => @options[:filename]
         raise e
@@ -105,7 +97,7 @@ module Sass
 
       # Parses the argument list for a mixin definition.
       #
-      # @return [(Array<Script::Tree::Node>, Script::Tree::Node)]
+      # @return [(Array<Script::Node>, Script::Node)]
       #   The root nodes of the arguments, and the splat argument.
       # @raise [Sass::SyntaxError] if the argument list isn't valid SassScript
       def parse_mixin_definition_arglist
@@ -125,7 +117,7 @@ module Sass
 
       # Parses the argument list for a function definition.
       #
-      # @return [(Array<Script::Tree::Node>, Script::Tree::Node)]
+      # @return [(Array<Script::Node>, Script::Node)]
       #   The root nodes of the arguments, and the splat argument.
       # @raise [Sass::SyntaxError] if the argument list isn't valid SassScript
       def parse_function_definition_arglist
@@ -146,7 +138,7 @@ module Sass
       # Parse a single string value, possibly containing interpolation.
       # Doesn't assert that the scanner is finished after parsing.
       #
-      # @return [Script::Tree::Node] The root node of the parse tree.
+      # @return [Script::Node] The root node of the parse tree.
       # @raise [Sass::SyntaxError] if the string isn't valid SassScript
       def parse_string
         unless (peek = @lexer.peek) &&
@@ -167,7 +159,7 @@ module Sass
       # Parses a SassScript expression.
       #
       # @overload parse(str, line, offset, filename = nil)
-      # @return [Script::Tree::Node] The root node of the parse tree
+      # @return [Script::Node] The root node of the parse tree
       # @see Parser#initialize
       # @see Parser#parse
       def self.parse(*args)
@@ -221,8 +213,9 @@ module Sass
                   return other_interp
                 end
 
-                start_pos = source_position
-                e = node(Tree::Operation.new(e, assert_expr(#{sub.inspect}), tok.type), start_pos)
+                line = @lexer.line
+                e = Operation.new(e, assert_expr(#{sub.inspect}), tok.type)
+                e.line = line
               end
               e
             end
@@ -234,8 +227,10 @@ RUBY
             def unary_#{op}
               return #{sub} unless tok = try_tok(:#{op})
               interp = try_op_before_interp(tok) and return interp
-              start_pos = source_position
-              node(Tree::UnaryOperation.new(assert_expr(:unary_#{op}), :#{op}), start_pos)
+              line = @lexer.line 
+              op = UnaryOperation.new(assert_expr(:unary_#{op}), :#{op})
+              op.line = line
+              op
             end
 RUBY
         end
@@ -243,53 +238,21 @@ RUBY
 
       private
 
-      def source_position
-        Sass::Source::Position.new(line, offset)
-      end
-
-      def range(start_pos, end_pos=source_position)
-        Sass::Source::Range.new(start_pos, end_pos, @options[:filename], @options[:importer])
-      end
-
       # @private
       def lexer_class; Lexer; end
 
-      def map
-        start_pos = source_position
-        return unless e = interpolation
-        return list e, start_pos unless @lexer.peek && @lexer.peek.type == :colon
-
-        key, value = map_pair(e)
-        map = node(Sass::Script::Tree::MapLiteral.new([[key, value]]), start_pos)
-        while tok = try_tok(:comma)
-          key, value = assert_expr(:map_pair)
-          map.pairs << [key, value]
-        end
-        map
-      end
-
-      def map_pair(key=nil)
-        return unless key ||= interpolation
-        assert_tok :colon
-        return key, assert_expr(:interpolation)
-      end
-
       def expr
-        start_pos = source_position
+        line = @lexer.line
         return unless e = interpolation
-        list e, start_pos
-      end
-
-      def list(first, start_pos)
-        list = node(Sass::Script::Tree::ListLiteral.new([first], :comma), start_pos)
+        list = node(List.new([e], :comma), line)
         while tok = try_tok(:comma)
           if interp = try_op_before_interp(tok, list)
             return interp unless other_interp = try_ops_after_interp([:comma], :expr, interp)
             return other_interp
           end
-          list.elements << assert_expr(:interpolation)
+          list.value << assert_expr(:interpolation)
         end
-        list.elements.size == 1 ? list.elements.first : list
+        list.value.size == 1 ? list.value.first : list
       end
 
       production :equals, :interpolation, :single_eq
@@ -297,10 +260,10 @@ RUBY
       def try_op_before_interp(op, prev = nil)
         return unless @lexer.peek && @lexer.peek.type == :begin_interpolation
         wb = @lexer.whitespace?(op)
-        str = literal_node(Script::Value::String.new(Lexer::OPERATORS_REVERSE[op.type]), op.source_range)
-        interp = node(
-          Script::Tree::Interpolation.new(prev, str, nil, wb, !:wa, :originally_text),
-          (prev || str).source_range.start_pos)
+        str = Script::String.new(Lexer::OPERATORS_REVERSE[op.type])
+        str.line = @lexer.line
+        interp = Script::Interpolation.new(prev, str, nil, wb, !:wa, :originally_text)
+        interp.line = @lexer.line
         interpolation(interp)
       end
 
@@ -310,11 +273,10 @@ RUBY
         interp = try_op_before_interp(op, prev) and return interp
 
         wa = @lexer.whitespace?
-        str = literal_node(Script::Value::String.new(Lexer::OPERATORS_REVERSE[op.type]), op.source_range)
+        str = Script::String.new(Lexer::OPERATORS_REVERSE[op.type])
         str.line = @lexer.line
-        interp = node(
-          Script::Tree::Interpolation.new(prev, str, assert_expr(name), !:wb, wa, :originally_text),
-          (prev || str).source_range.start_pos)
+        interp = Script::Interpolation.new(prev, str, assert_expr(name), !:wb, wa, :originally_text)
+        interp.line = @lexer.line
         return interp
       end
 
@@ -325,21 +287,20 @@ RUBY
           line = @lexer.line
           mid = parse_interpolated
           wa = @lexer.whitespace?
-          e = node(
-            Script::Tree::Interpolation.new(e, mid, space, wb, wa),
-            (e || mid).source_range.start_pos)
+          e = Script::Interpolation.new(e, mid, space, wb, wa)
+          e.line = line
         end
         e
       end
 
       def space
-        start_pos = source_position
+        line = @lexer.line
         return unless e = or_expr
         arr = [e]
         while e = or_expr
           arr << e
         end
-        arr.size == 1 ? arr.first : node(Sass::Script::Tree::ListLiteral.new(arr, :space), start_pos)
+        arr.size == 1 ? arr.first : node(List.new(arr, :space), line)
       end
 
       production :or_expr, :and_expr, :or
@@ -359,18 +320,17 @@ RUBY
         return if @stop_at && @stop_at.include?(@lexer.peek.value)
 
         name = @lexer.next
-        if color = Sass::Script::Value::Color::COLOR_NAMES[name.value.downcase]
-          return literal_node(Sass::Script::Value::Color.new(color), name.source_range)
+        if color = Color::COLOR_NAMES[name.value.downcase]
+          return node(Color.new(color))
         end
-        literal_node(Script::Value::String.new(name.value, :identifier), name.source_range)
+        node(Script::String.new(name.value, :identifier))
       end
 
       def funcall
         return raw unless tok = try_tok(:funcall)
-        args, keywords, splat, kwarg_splat = fn_arglist
+        args, keywords, splat = fn_arglist || [[], {}]
         assert_tok(:rparen)
-        node(Script::Tree::Funcall.new(tok.value, args, keywords, splat, kwarg_splat),
-          tok.source_range.start_pos, source_position)
+        node(Script::Funcall.new(tok.value, args, keywords, splat))
       end
 
       def defn_arglist!(must_have_parens)
@@ -386,7 +346,7 @@ RUBY
         must_have_default = false
         loop do
           c = assert_tok(:const)
-          var = node(Script::Tree::Variable.new(c.value), c.source_range)
+          var = Script::Variable.new(c.value)
           if try_tok(:colon)
             val = assert_expr(:space)
             must_have_default = true
@@ -412,35 +372,28 @@ RUBY
       end
 
       def arglist(subexpr, description)
+        return unless e = send(subexpr)
+
         args = []
-        keywords = Sass::Util::NormalizedMap.new
-
-        return [args, keywords] unless e = send(subexpr)
-
+        keywords = {}
         loop do
           if @lexer.peek && @lexer.peek.type == :colon
             name = e
-            @lexer.expected!("comma") unless name.is_a?(Tree::Variable)
+            @lexer.expected!("comma") unless name.is_a?(Variable)
             assert_tok(:colon)
             value = assert_expr(subexpr, description)
 
-            if keywords[name.name]
+            if keywords[name.underscored_name]
               raise SyntaxError.new("Keyword argument \"#{name.to_sass}\" passed more than once")
             end
 
-            keywords[name.name] = value
+            keywords[name.underscored_name] = value
           else
             if !keywords.empty?
               raise SyntaxError.new("Positional arguments must come before keyword arguments.")
             end
 
-            if try_tok(:splat)
-              splat = e
-              return args, keywords, splat unless try_tok(:comma)
-              kwarg_splat = assert_expr(subexpr, description)
-              assert_tok(:splat)
-              return args, keywords, splat, kwarg_splat
-            end
+            return args, keywords, e if try_tok(:splat)
             args << e
           end
 
@@ -451,24 +404,16 @@ RUBY
 
       def raw
         return special_fun unless tok = try_tok(:raw)
-        literal_node(Script::Value::String.new(tok.value), tok.source_range)
+        node(Script::String.new(tok.value))
       end
 
       def special_fun
-        start_pos = source_position
         return paren unless tok = try_tok(:special_fun)
-        first = literal_node(Script::Value::String.new(tok.value.first),
-          start_pos, start_pos.after(tok.value.first))
+        first = node(Script::String.new(tok.value.first))
         Sass::Util.enum_slice(tok.value[1..-1], 2).inject(first) do |l, (i, r)|
-          end_pos = i.source_range.end_pos
-          end_pos = end_pos.after(r) if r
-          node(
-            Script::Tree::Interpolation.new(
-              l, i,
-              r && literal_node(Script::Value::String.new(r),
-                i.source_range.end_pos, end_pos),
-              false, false),
-            start_pos, end_pos)
+          Script::Interpolation.new(
+            l, i, r && node(Script::String.new(r)),
+            false, false)
         end
       end
 
@@ -476,44 +421,39 @@ RUBY
         return variable unless try_tok(:lparen)
         was_in_parens = @in_parens
         @in_parens = true
-        start_pos = source_position
-        e = map
-        end_pos = source_position
+        line = @lexer.line
+        e = expr
         assert_tok(:rparen)
-        return e || node(Sass::Script::Tree::ListLiteral.new([], nil), start_pos, end_pos)
+        return e || node(List.new([], :space), line)
       ensure
         @in_parens = was_in_parens
       end
 
       def variable
-        start_pos = source_position
         return string unless c = try_tok(:const)
-        node(Tree::Variable.new(*c.value), start_pos)
+        node(Variable.new(*c.value))
       end
 
       def string
         return number unless first = try_tok(:string)
-        str = literal_node(first.value, first.source_range)
-        return str unless try_tok(:begin_interpolation)
+        return first.value unless try_tok(:begin_interpolation)
+        line = @lexer.line
         mid = parse_interpolated
         last = assert_expr(:string)
-        node(Tree::StringInterpolation.new(str, mid, last), first.source_range.start_pos)
+        interp = StringInterpolation.new(first.value, mid, last)
+        interp.line = line
+        interp
       end
 
       def number
-        return selector unless tok = try_tok(:number)
+        return literal unless tok = try_tok(:number)
         num = tok.value
         num.original = num.to_s unless @in_parens
-        literal_node(num, tok.source_range.start_pos)
-      end
-
-      def selector
-        return literal unless tok = try_tok(:selector)
-        node(tok.value, tok.source_range.start_pos)
+        num
       end
 
       def literal
-        (t = try_tok(:color, :bool, :null)) && (return literal_node(t.value, t.source_range))
+        (t = try_tok(:color, :bool, :null)) && (return t.value)
       end
 
       # It would be possible to have unified #assert and #try methods,
@@ -524,7 +464,6 @@ RUBY
         :default => "expression (e.g. 1px, bold)",
         :mixin_arglist => "mixin argument",
         :fn_arglist => "function argument",
-        :splat => "...",
       }
 
       def assert_expr(name, expected = nil)
@@ -538,7 +477,7 @@ RUBY
       end
 
       def try_tok(*names)
-        peeked = @lexer.peek
+        peeked =  @lexer.peek
         peeked && names.include?(peeked.type) && @lexer.next
       end
 
@@ -547,35 +486,8 @@ RUBY
         @lexer.expected!(EXPR_NAMES[:default])
       end
 
-      # @overload node(value, source_range)
-      #   @param value [Sass::Script::Value::Base]
-      #   @param source_range [Sass::Source::Range]
-      # @overload node(value, start_pos, end_pos = source_position)
-      #   @param value [Sass::Script::Value::Base]
-      #   @param start_pos [Sass::Source::Position]
-      #   @param end_pos [Sass::Source::Position]
-      def literal_node(value, source_range_or_start_pos, end_pos = source_position)
-        node(Sass::Script::Tree::Literal.new(value), source_range_or_start_pos, end_pos)
-      end
-
-      # @overload node(node, source_range)
-      #   @param node [Sass::Script::Tree::Node]
-      #   @param source_range [Sass::Source::Range]
-      # @overload node(node, start_pos, end_pos = source_position)
-      #   @param node [Sass::Script::Tree::Node]
-      #   @param start_pos [Sass::Source::Position]
-      #   @param end_pos [Sass::Source::Position]
-      def node(node, source_range_or_start_pos, end_pos = source_position)
-        source_range =
-          if source_range_or_start_pos.is_a?(Sass::Source::Range)
-            source_range_or_start_pos
-          else
-            range(source_range_or_start_pos, end_pos)
-          end
-
-        node.line = source_range.start_pos.line
-        node.source_range = source_range
-        node.filename = @options[:filename]
+      def node(node, line = @lexer.line)
+        node.line = line
         node
       end
     end

@@ -142,7 +142,7 @@ module Compass
 
       def watch(glob, &block)
         @watches ||= []
-        @watches << Watcher::Watch.new(glob, &block)
+        @watches << [glob, block]
       end
       
       def watches

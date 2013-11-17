@@ -8,10 +8,9 @@ module Compass
         PARENT = %r{(.+)[-_](.+)$}
 
         REPEAT_X = 'repeat-x'
-        REPEAT_Y = 'repeat-y'
         NO_REPEAT = 'no-repeat'
 
-        VALID_REPEATS = [REPEAT_Y, REPEAT_X, NO_REPEAT]
+        VALID_REPEATS = [REPEAT_X, NO_REPEAT]
         
         attr_reader :relative_file, :options, :base
         attr_accessor :top, :left
@@ -51,7 +50,7 @@ module Compass
         
         # Basename of the image
         def name
-          @name ||= File.basename(relative_file, '.png')
+          File.basename(relative_file, '.png')
         end
 
         def get_var_file(var)
@@ -72,10 +71,6 @@ module Compass
 
         def repeat_x?
           repeat == REPEAT_X
-        end
-
-        def repeat_y?
-          repeat == REPEAT_Y
         end
 
         def no_repeat?

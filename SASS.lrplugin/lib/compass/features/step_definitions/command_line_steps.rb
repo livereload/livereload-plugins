@@ -256,12 +256,11 @@ end
 
 Then /^the image ([^ ]+) has a size of (\d+)x(\d+)$/ do |file, width, height| 
   # see http://snippets.dzone.com/posts/show/805
-  size = File.open(file, "rb") {|io| io.read}[0x10..0x18].unpack('NN')
-  size.should == [width.to_i, height.to_i]
+  open(file, "rb").read[0x10..0x18].unpack('NN').should == [width.to_i, height.to_i]
 end
 
 Then /^I should see the following lines of output:$/ do |table|
-  table.diff!([['compass']])
+  table.diff!([['blueprint'],['compass']])
 end
 
 Then /^I should see the following output: (.+)$/ do |expected|

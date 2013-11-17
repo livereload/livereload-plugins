@@ -21,15 +21,10 @@ module Sass
       # and the generated selector `c.foo.bar.baz` has `{b.bar, c.baz}` as its
       # `sources` set.
       #
-      # This is populated during the {Sequence#do_extend} process.
+      # This is populated during the {#do_extend} process.
       #
       # @return {Set<Sequence>}
       attr_accessor :sources
-
-      # This sequence source range.
-      #
-      # @return [Sass::Source::Range]
-      attr_accessor :source_range
 
       # @see \{#subject?}
       attr_writer :subject
@@ -65,12 +60,11 @@ module Sass
 
       # @param selectors [Array<Simple>] See \{#members}
       # @param subject [Boolean] See \{#subject?}
-      # @param source_range [Sass::Source::Range]
-      def initialize(selectors, subject, source_range = nil)
+      # @param sources [Set<Sequence>]
+      def initialize(selectors, subject, sources = Set.new)
         @members = selectors
         @subject = subject
-        @sources = Set.new
-        @source_range = source_range
+        @sources = sources
       end
 
       # Resolves the {Parent} selectors within this selector
@@ -116,7 +110,7 @@ module Sass
           group.each {|e, _| e.result = :failed_to_unify unless e.result == :succeeded}
           next unless unified = seq.members.last.unify(self_without_sel, subject?)
           group.each {|e, _| e.result = :succeeded}
-          group.each {|e, _| check_directives_match!(e, parent_directives)}
+          next if group.map {|e, _| check_directives_match!(e, parent_directives)}.none?
           new_seq = Sequence.new(seq.members[0...-1] + [unified])
           new_seq.add_sources!(sources + [seq])
           [sels, new_seq]
@@ -130,7 +124,7 @@ module Sass
       # that matches both this selector and the input selector.
       #
       # @param sels [Array<Simple>] A {SimpleSequence}'s {SimpleSequence#members members array}
-      # @param other_subject [Boolean] Whether the other {SimpleSequence} being merged is a subject.
+      # @param subject [Boolean] Whether the {SimpleSequence} being merged is a subject.
       # @return [SimpleSequence, nil] A {SimpleSequence} matching both `sels` and this selector,
       #   or `nil` if this is impossible (e.g. unifying `#foo` and `#bar`)
       # @raise [Sass::SyntaxError] If this selector cannot be unified.
@@ -177,7 +171,7 @@ module Sass
       end
 
       # Return a copy of this simple sequence with `sources` merged into the
-      # {SimpleSequence#sources} set.
+      # {#sources} set.
       #
       # @param sources [Set<Sequence>]
       # @return [SimpleSequence]
@@ -193,15 +187,16 @@ module Sass
       def check_directives_match!(extend, parent_directives)
         dirs1 = extend.directives.map {|d| d.resolved_value}
         dirs2 = parent_directives.map {|d| d.resolved_value}
-        return if Sass::Util.subsequence?(dirs1, dirs2)
+        return true if Sass::Util.subsequence?(dirs1, dirs2)
 
-        # TODO(nweiz): this should use the Sass stack trace of the extend node,
-        # not the selector.
-        raise Sass::SyntaxError.new(<<MESSAGE)
-You may not @extend an outer selector from within #{extend.directives.last.name}.
-You may only @extend selectors within the same directive.
-From "@extend #{extend.target.join(', ')}" on line #{extend.node.line}#{" of #{extend.node.filename}" if extend.node.filename}.
-MESSAGE
+        Sass::Util.sass_warn <<WARNING
+DEPRECATION WARNING on line #{extend.node.line}#{" of #{extend.node.filename}" if extend.node.filename}:
+  @extending an outer selector from within #{extend.directives.last.name} is deprecated.
+  You may only @extend selectors within the same directive.
+  This will be an error in Sass 3.3.
+  It can only work once @extend is supported natively in the browser.
+WARNING
+        return false
       end
 
       def _hash
