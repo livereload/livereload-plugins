@@ -43,6 +43,3 @@ Just drop the plugin (Something.lrplugin) into one of the Library folders and re
       ]
     }
 
-## Publishing plugins
-
-Currently, the recommended way to publish plugins is to contribute them into this repository. You are of course free to publish your plugin in any other way.
