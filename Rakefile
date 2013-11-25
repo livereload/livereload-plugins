@@ -195,7 +195,7 @@ class PluginTask
 
             File.open(@versions_json, 'w') { |f| f.puts JSON.pretty_generate(dep_versions) }
 
-            sh "find . -name example -or -name examples -or -name test -or -name tests -or -name spec -or -name docs | xargs rm -rf"
+            sh "find . -name example -or -name examples -or -name test -or -name tests -or -name spec -or -name docs -or -name tmp -or -name .idea -or -name dist | xargs rm -rf"
 
             puts "Committing #{@name}..."
             Dir.chdir @plugin_dir do
@@ -203,6 +203,16 @@ class PluginTask
                 sh "git commit . -m 'Update #{@name} to #{overall_name}' && git log -1" rescue nil
             end
         end
+    end
+
+end
+
+
+class NewPluginTask
+
+    include Rake::DSL
+
+    def initialize name, options={}
     end
 
 end
@@ -233,6 +243,8 @@ PluginTask.new 'autoprefixer', :npm => %w(autoprefixer)
 PluginTask.new 'HAML',       :gems => %w(haml tilt)
 PluginTask.new 'SLIM',       :gems => %w(slim temple tilt)
 PluginTask.new 'SASS',       :gems => %w(sass compass chunky_png html5-boilerplate compass-h5bp compass-960-plugin susy zurb-foundation compass-colors fancy-buttons compass-slickmap grid-coordinates compass-rgbapng compass-baseline compass-vgrid-plugin compass-less-plugin sassy-buttons compass-thesquaregrid compass-fancybox-plugin font-stack compass-squaregrid-plugin compass_formalize compass-lucid-grid stitch), :important => %w(sass compass)
+
+NewPluginTask.new 'SASS'
 
 task :default do
     puts ENV['INSTALL']
