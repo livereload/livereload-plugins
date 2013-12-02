@@ -44,23 +44,17 @@
             { "pattern": "<ESC>((message)) in ((file))" },
             { "pattern": "^TypeError: ", "message": "Internal LESS compiler error" },
             { "pattern": "^((message:file '.*?' wasn't found.))" }
+          ],
+
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "source-map",
+              "label": "Generate sourcemap",
+              "args": "--source-map"
+            }
           ]
         },
-      ],
-
-      "xxversions": [
-        {
-          "version": "1.4.2", "streams": ["1.x", "1.4.x"], "channel": "stable",
-          "requires": {
-            "npm": { "less": "1.4.2" }
-          }
-        },
-        {
-          "version": "1.5.0", "streams": ["1.x", "1.5.x"], "channel": "stable",
-          "requires": {
-            "npm": { "less": "1.5.0" }
-          }
-        }
       ]
     }
   ],

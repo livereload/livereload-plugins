@@ -8,46 +8,61 @@
       "input": "*.slim",
       "output": "*.html",
 
-      "cmdline": [
-        "$(ruby)",
-        "-I$(plugin)/lib/temple/lib",
-        "-I$(plugin)/lib/tilt/lib",
-        "$(plugin)/lib/slim/bin/slimrb",
-        "$(additional)",
-        "$(src_path)",
-        "$(dst_path)"
-      ],
-
-      "errors": [
-      ],
-
-      "options": [
+      "packageConfigurations": [
         {
-          "type": "popup",
-          "id": "output-style",
-          "label": "Output style:",
-          "items": [
-            { "id": "minified", "label": "Minified" },
-            { "id": "pretty", "label": "Pretty", "args": "--pretty" }
+          "packages": [
+            { "type": "gem", "name": "slim", "version": "*" }
           ]
-        },
+        }
+      ],
+
+      "defaults": [
         {
-          "type": "checkbox",
-          "id": "sections",
-          "label": "Logic-less sections mode",
-          "args": "--sections"
-        },
-        {
-          "type": "checkbox",
-          "id": "sections",
-          "label": "Generate Rails-compatible code",
-          "args": "--rails"
-        },
-        {
-          "type": "checkbox",
-          "id": "sections",
-          "label": "Compile only but do not run",
-          "args": "--compile"
+          "requirements": [
+            { "type": "gem", "name": "slim", "versions": "*" }
+          ],
+
+          "cmdline": [
+            "$(ruby)",
+            "$(plugin)/gem/bin/slimrb",
+            "_$(gem_slim_ver)_",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
+
+          "errors": [
+          ],
+
+          "options": [
+            {
+              "type": "popup",
+              "id": "output-style",
+              "label": "Output style:",
+              "items": [
+                { "id": "minified", "label": "Minified" },
+                { "id": "pretty", "label": "Pretty", "args": "--pretty" }
+              ]
+            },
+            {
+              "type": "checkbox",
+              "id": "sections",
+              "label": "Logic-less sections mode",
+              "args": "--sections"
+            },
+            {
+              "type": "checkbox",
+              "id": "sections",
+              "label": "Generate Rails-compatible code",
+              "args": "--rails"
+            },
+            {
+              "type": "checkbox",
+              "id": "sections",
+              "label": "Compile only but do not run",
+              "args": "--compile"
+            }
+          ]
         }
       ]
     }
