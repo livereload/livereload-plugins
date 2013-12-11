@@ -8,47 +8,65 @@
       "input": "*.sass *.scss",
       "output": "*.css",
 
-      "cmdline": [
-        "$(ruby)",
-        "-rubygems",
-        "$(plugin)/lib/sass/bin/sass",
-        "$(additional)",
-        "$(src_path)",
-        "$(dst_path)"
-      ],
+      "defaults": [
+        {
+          "versions": "*",
 
-      "errors": [
-        { "pattern": "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n" },
-        { "pattern": "Exception on line ((line)): ((message))\\n" },
-        { "pattern": "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n" },
-        { "pattern": "Errno::ENOENT: ((message)) - ((file))" },
-        { "pattern": "ZeroDivisionError: ((message))" }
-      ],
+          "cmdline": [
+            "$(ruby)",
+            "-rubygems",
+            "$(plugin)/lib/sass/bin/sass",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
 
-      "options": [
-        {
-          "type": "checkbox",
-          "id": "sourcemap",
-          "label": "Generate sourcemap",
-          "args": "--sourcemap"
-        },
-        {
-          "type": "checkbox",
-          "id": "debug-info",
-          "label": "Emit debug info for FireSass",
-          "args": "--debug-info"
-        },
-        {
-          "id": "output-style",
-          "type": "select",
-          "label": "Output style:",
-          "items": [
-            { "id": "nested", "label": "Nested" },
-            { "id": "compact", "label": "Compact", "args": "--style compact" },
-            { "id": "compressed", "label": "Compressed", "args": "--style compressed" },
-            { "id": "expanded", "label": "Expanded", "args": "--style expanded" }
+          "errors": [
+            { "pattern": "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n" },
+            { "pattern": "Exception on line ((line)): ((message))\\n" },
+            { "pattern": "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n" },
+            { "pattern": "Errno::ENOENT: ((message)) - ((file))" },
+            { "pattern": "ZeroDivisionError: ((message))" }
+          ],
+
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "sourcemap",
+              "label": "Generate sourcemap",
+              "args": "--sourcemap"
+            },
+            {
+              "type": "checkbox",
+              "id": "debug-info",
+              "label": "Emit debug info for FireSass",
+              "args": "--debug-info"
+            },
+            {
+              "id": "output-style",
+              "type": "select",
+              "label": "Output style:",
+              "items": [
+                { "id": "nested", "label": "Nested" },
+                { "id": "compact", "label": "Compact", "args": "--style compact" },
+                { "id": "compressed", "label": "Compressed", "args": "--style compressed" },
+                { "id": "expanded", "label": "Expanded", "args": "--style expanded" }
+              ]
+            }
           ]
         }
+      ],
+
+      "versions": [
+        {
+          "version": "3.2.12", "streams": ["3.x", "3.2.x"], "channel": "stable",
+          "requires": {
+            "gem": { "sass": "3.2.12" }
+          }
+        }
+      ],
+
+      "libraries": [
       ]
     }
   ],

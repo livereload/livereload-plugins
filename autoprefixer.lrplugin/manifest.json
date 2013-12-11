@@ -7,21 +7,27 @@
       "name": "autoprefixer",
       "input": "*.css",
 
-      "cmdline": [
-        "$(node)",
-        "$(plugin)/node_modules/.bin/autoprefixer",
-        "$(additional)",
-        "$(src_path)"
-      ],
+      "packages": [["npm:autoprefixer:*"]],
 
-      "options": [
+      "info": [
         {
-          "type": "text-field",
-          "id": "browsers",
-          "label": "Browser spec:",
-          "placeholder": "> 1%, last 2 versions, ff 17, opera 12.1",
-          "args": "--browsers $(value)",
-          "skip-if-empty": true
+          "cmdline": [
+            "$(node)",
+            "$(npm_autoprefixer)/bin/autoprefixer",
+            "$(additional)",
+            "$(src_path)"
+          ],
+
+          "options": [
+            {
+              "type": "text-field",
+              "id": "browsers",
+              "label": "Browser spec:",
+              "placeholder": "> 1%, last 2 versions, ff 17, opera 12.1",
+              "args": "--browsers $(value)",
+              "skip-if-empty": true
+            }
+          ]
         }
       ]
     },

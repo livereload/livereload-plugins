@@ -8,28 +8,34 @@
       "input": "*.eco",
       "output": "*.js",
 
-      "cmdline": [
-        "$(node)",
-        "$(plugin)/node_modules/eco/bin/eco",
-        "$(additional)",
-        "-o",
-        "$(dst_dir)",
-        "$(src_file)"
-      ],
+      "packages": [["npm:eco:*"]],
 
-      "errors": [
-        { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
-        { "pattern": "\\w+Error: ((message))\\n" }
-      ],
-
-      "options": [
+      "info": [
         {
-          "type": "text-field",
-          "id": "identifier",
-          "label": "Eco object identifier:",
-          "placeholder": "ecoTemplates",
-          "args": "--identifier $(value)",
-          "skip-if-empty": true
+          "cmdline": [
+            "$(node)",
+            "$(npm:eco)/bin/eco",
+            "$(additional)",
+            "-o",
+            "$(dst_dir)",
+            "$(src_file)"
+          ],
+
+          "errors": [
+            { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
+            { "pattern": "\\w+Error: ((message))\\n" }
+          ],
+
+          "options": [
+            {
+              "type": "text-field",
+              "id": "identifier",
+              "label": "Global template object name:",
+              "placeholder": "ecoTemplates",
+              "args": "--identifier $(value)",
+              "skip-if-empty": true
+            }
+          ]
         }
       ]
     }
@@ -39,7 +45,7 @@
     {
       "CommandLine": [
         "$(node)",
-        "$(plugin)/node_modules/eco/bin/eco",
+        "$(plugin)/npm/eco-1.0.3/bin/eco",
         "$(additional)",
         "-o",
         "$(dst_dir)",

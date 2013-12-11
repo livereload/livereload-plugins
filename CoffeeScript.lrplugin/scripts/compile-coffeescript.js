@@ -48,7 +48,7 @@
 
   path = require('path');
 
-  CoffeeScript = require('coffee-script');
+  CoffeeScript = null;
 
   exists = fs.exists || path.exists;
 
@@ -65,7 +65,7 @@
     return process.exit(0);
   };
 
-  OPTIONS = ["Usage: node compile-coffee.js [options] source.coffee destination.js", "Files:", "  source.coffee      Path to the source file #required #var(source)", "  destination.js     Path to the destination file #required #var(destination)", "Compilation options:", "  -b, --bare         Compile without a top-level function wrapper", "  --map              Generate source map and save as .map files", "General options:", "  -v, --version      Display the version number", printVersion];
+  OPTIONS = ["Usage: node compile-coffee.js [options] cspath source.coffee destination.js", "Files:", "  cspath             Path to the desired version of CoffeeScript package #required #var(cspath)", "  source.coffee      Path to the source file #required #var(source)", "  destination.js     Path to the destination file #required #var(destination)", "Compilation options:", "  -b, --bare         Compile without a top-level function wrapper", "  --map              Generate source map and save as .map files", "General options:", "  -v, --version      Display the version number", printVersion];
 
   EXIT_E_CMD_LINE = 3;
 
@@ -84,6 +84,7 @@
     if (opts.version) {
       return version();
     }
+    CoffeeScript = require(opts.cspath);
     return compilePath(opts.source, opts.destination, opts);
   };
 
@@ -105,7 +106,7 @@
             return coffee = arguments[1];
           };
         })(),
-        lineno: 47
+        lineno: 50
       }));
       __iced_deferrals._fulfill();
     })(function() {
@@ -148,7 +149,7 @@
                 return itExists = arguments[0];
               };
             })(),
-            lineno: 70
+            lineno: 73
           }));
           __iced_deferrals._fulfill();
         })(function() {
@@ -161,7 +162,7 @@
                   funcname: "compilePath"
                 });
                 mkdir_p(path.dirname(destination), 0777, __iced_deferrals.defer({
-                  lineno: 72
+                  lineno: 75
                 }));
                 __iced_deferrals._fulfill();
               })(__iced_k);
@@ -181,7 +182,7 @@
                     return err = arguments[0];
                   };
                 })(),
-                lineno: 74
+                lineno: 77
               }));
               __iced_deferrals._fulfill();
             })(function() {
@@ -202,7 +203,7 @@
                         return err = arguments[0];
                       };
                     })(),
-                    lineno: 80
+                    lineno: 83
                   }));
                   __iced_deferrals._fulfill();
                 })(function() {

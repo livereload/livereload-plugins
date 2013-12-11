@@ -8,17 +8,11 @@
       "input": "*.less",
       "output": "*.css",
 
-      "packageConfigurations": [
-        {
-          "packages": [
-            { "type": "npm", "name": "less", "version": "*" }
-          ]
-        }
-      ],
+      "packages": [["npm:less:*"]],
 
-      "defaults": [
+      "info": [
         {
-          "requirements": [
+          "applies_to": [
             { "type": "npm", "name": "less", "versions": "*" }
           ],
 

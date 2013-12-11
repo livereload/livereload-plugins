@@ -1,0 +1,18 @@
+#!/bin/bash
+
+prerelease=""
+package_name="$1"
+package_version="$2"
+
+die() { echo "$@"; exit 1; }
+run() { echo "$@"; "$@" || die "** $1 failed. Stop."; }
+
+rm -f versions.json
+
+if test -n "$package_version"; then
+    mkdir -p gem
+    run gem install -i ./gem --conservative $package_name -v $package_version
+else
+    # npm --json info $package_name | read_json /dev/stdin 'JSON.stringify({versions: versions.map(function(v) { return v + " - " + time[v]; }), tags: this["dist-tags"]}, null, 2)'
+    run gem list --all --remote --prerelease \^$package_name\$
+fi

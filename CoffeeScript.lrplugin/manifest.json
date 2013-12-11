@@ -8,34 +8,56 @@
       "input": "*.coffee",
       "output": "*.js",
 
-      "cmdline": [
-        "$(node)",
-        "$(plugin)/scripts/compile-coffeescript.js",
-        "$(additional)",
-        "$(src_path)",
-        "$(dst_path)"
-      ],
+      "packages": [["npm:coffee-script:*"]],
 
-      "errors": [
-        { "pattern": "SyntaxError: ((message))\\n", "message": "Syntax error: ***" },
-        { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
-        { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
-      ],
+      "info": [
+        {
+          "cmdline": [
+            "$(node)",
+            "$(plugin)/scripts/compile-coffeescript.js",
+            "$(additional)",
+            "$(npm:coffee-script)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
 
-      "options": [
-        {
-          "type": "checkbox",
-          "id": "no-wrapper",
-          "label": "No wrapper",
-          "args": "--bare"
-        },
-        {
-          "type": "checkbox",
-          "id": "source-map",
-          "label": "Generate source map",
-          "args": "--map"
+          "errors": [
+            { "pattern": "SyntaxError: ((message))\\n", "message": "Syntax error: ***" },
+            { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
+            { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
+          ],
+
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "no-wrapper",
+              "label": "No wrapper",
+              "args": "--bare"
+            },
+            {
+              "type": "checkbox",
+              "id": "source-map",
+              "label": "Generate source map",
+              "args": "--map"
+            }
+          ]
         }
-      ]
+      ],
+
+      "versionInfo": {
+        "npm:coffee-script:1.6.1": {
+          "changeLogSummary": "source maps"
+        },
+        "npm:coffee-script:1.5.0": {
+          "changeLogSummary": "literate CoffeeScript; “for item in list by -1”"
+        },
+        "npm:coffee-script:1.3.3": {
+          "changeLogSummary": "loop variable scoping"
+        },
+        "npm:coffee-script:1.3.1": {
+          "changeLogSummary": "strict mode; better “do”; slice endpoints optional"
+        }
+      }
     }
   ],
   "LRCompilers": [
@@ -43,6 +65,7 @@
       "CommandLine": [
         "$(node)",
         "$(plugin)/scripts/compile-coffeescript.js",
+        "$(plugin)/npm/coffee-script-1.6.3",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"

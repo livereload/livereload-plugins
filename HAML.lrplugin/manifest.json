@@ -8,64 +8,85 @@
       "input": "*.haml",
       "output": "*.html",
 
-      "cmdline": [
-        "$(ruby)",
-        "-I$(plugin)/lib/tilt/lib",
-        "$(plugin)/lib/haml/bin/haml",
-        "$(additional)",
-        "$(src_path)",
-        "$(dst_path)"
-      ],
+      "packages": [["gem:haml:*"]],
 
-      "errors": [
-        { "pattern": "..." },
-        { "pattern": "Syntax error on line ((line)): ((message))\\n" },
-        { "pattern": "Exception on line ((line)): ((message))\\n" },
-        { "pattern": "Haml error on line ((line)): ((message))\\n" }
-      ],
+      "info": [
+        {
+          "cmdline": [
+            "$(ruby)",
+            "-rubygems",
+            "$(gem:haml)/bin/haml",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
 
-      "options": [
-        {
-          "type": "checkbox",
-          "id": "escape-html",
-          "label": "Escape HTML characters like & and < >",
-          "args": "--escape-html"
-        },
-        {
-          "type": "checkbox",
-          "id": "no-escape-attrs",
-          "label": "Don't escape HTML characters in attributes",
-          "args": "--no-escape-attrs"
-        },
-        {
-          "type": "popup",
-          "id": "quotes-type",
-          "label": "Attribute quoting style:",
-          "items": [
-            { "id": "single", "label": "Single quotes" },
-            { "id": "double", "label": "Double quotes", "args": "--double-quote-attributes" }
-          ]
-        },
-        {
-          "type": "popup",
-          "id": "output-style",
-          "label": "Output style:",
-          "items": [
-            { "id": "indented", "label": "Indented" },
-            { "id": "ugly", "label": "Ugly", "args": "--style ugly" }
-          ]
-        },
-        {
-          "type": "popup",
-          "id": "output-format",
-          "label": "Output format:",
-          "items": [
-            { "id": "xhtml", "label": "XHTML" },
-            { "id": "html4", "label": "HTML4", "args": "--format html4" },
-            { "id": "html5", "label": "HTML5", "args": "--format html5" }
+          "errors": [
+            { "pattern": "..." },
+            { "pattern": "Syntax error on line ((line)): ((message))\\n" },
+            { "pattern": "Exception on line ((line)): ((message))\\n" },
+            { "pattern": "Haml error on line ((line)): ((message))\\n" }
+          ],
+
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "escape-html",
+              "label": "Escape HTML characters like & and < >",
+              "args": "--escape-html"
+            },
+            {
+              "type": "checkbox",
+              "id": "no-escape-attrs",
+              "label": "Don't escape HTML characters in attributes",
+              "args": "--no-escape-attrs"
+            },
+            {
+              "type": "checkbox",
+              "id": "unix-newlines",
+              "label": "Use Unix-style newlines in written files.",
+              "args": "--unix-newlines",
+              "if": "windows"
+            },
+            {
+              "type": "popup",
+              "id": "quotes-type",
+              "label": "Attribute quoting style:",
+              "items": [
+                { "id": "double", "label": "Double quotes", "args": "--double-quote-attributes" },
+                { "id": "single", "label": "Single quotes" }
+              ]
+            },
+            {
+              "type": "popup",
+              "id": "output-style",
+              "label": "Output style:",
+              "items": [
+                { "id": "indented", "label": "Indented" },
+                { "id": "ugly", "label": "Ugly", "args": "--style ugly" }
+              ]
+            },
+            {
+              "type": "popup",
+              "id": "output-format",
+              "label": "Output format:",
+              "items": [
+                { "id": "html5", "label": "HTML5", "args": "--format html5" },
+                { "id": "html4", "label": "HTML4", "args": "--format html4" },
+                { "id": "xhtml", "label": "XHTML", "args": "--format xhtml" }
+              ]
+            }
           ]
         }
-      ]
+      ],
+
+      "versionInfo": {
+        "__url__": "https://github.com/haml/haml/blob/master/CHANGELOG.md",
+
+        "gem:haml:4.1.0.alpha.2": {
+          "changeLogSummary": "bug fixes"
+        }
+      }
     }
   ],
 
@@ -74,8 +95,8 @@
       "Optional": true,
       "CommandLine": [
         "$(ruby)",
-        "-I$(plugin)/lib/tilt/lib",
-        "$(plugin)/lib/haml/bin/haml",
+        "-I$(plugin)/gem/gems/tilt-2.0.0/lib",
+        "$(plugin)/gem/gems/haml-4.0.4/bin/haml",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"

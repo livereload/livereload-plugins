@@ -1,0 +1,24 @@
+#!/bin/bash
+package_name="$1"
+package_version="$2"
+
+die() { echo "$@"; exit 1; }
+run() { echo "$@"; "$@" || die "** $1 failed. Stop."; }
+read_json() { node -p 'require("vm").runInNewContext(process.argv[2], JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")))' -- "$1" "$2"; }
+
+rm -f versions.json
+
+if test -n "$package_version"; then
+    rm -rf node_modules
+    mkdir -p node_modules
+    run npm install $package_name@$package_version
+
+    actual_version="$(read_json node_modules/$package_name/package.json 'version')"
+    test "$actual_version" = "$package_version" || die "** Version mismatch, $actual_version != $package_version. Stop."
+
+    mkdir -p npm
+    run mv node_modules/$package_name npm/$package_name-$package_version
+    rm -rf node_modules
+else
+    npm --json info $package_name | read_json /dev/stdin 'JSON.stringify({versions: versions.map(function(v) { return v + " - " + time[v]; }), tags: this["dist-tags"]}, null, 2)'
+fi
