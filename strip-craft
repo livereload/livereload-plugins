@@ -1,0 +1,2 @@
+#!/bin/bash
+find . -name example -or -name examples -or -name test -or -name tests -or -name spec -or -name docs -or -name tmp -or -name .idea -or -name dist | xargs rm -rf
