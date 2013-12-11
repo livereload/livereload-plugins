@@ -1,0 +1,61 @@
+{
+  "required-livereload-ver": "3.0.0",
+
+  "type": "compile-file",
+  "name": "Sass",
+
+  "input": "*.sass *.scss",
+  "output": "*.css",
+
+  "cmdline": [
+    "$(ruby)",
+    "-rubygems",
+    "$(plugin)/lib/sass/bin/sass",
+    "$(additional)",
+    "$(src_path)",
+    "$(dst_path)"
+  ],
+
+  "errors": [
+    { "pattern": "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n" },
+    { "pattern": "Exception on line ((line)): ((message))\\n" },
+    { "pattern": "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n" },
+    { "pattern": "Errno::ENOENT: ((message)) - ((file))" },
+    { "pattern": "ZeroDivisionError: ((message))" }
+  ],
+
+  "options": [
+    {
+      "type": "checkbox",
+      "id": "sourcemap",
+      "label": "Generate sourcemap",
+      "args": "--sourcemap"
+    },
+    {
+      "type": "checkbox",
+      "id": "debug-info",
+      "label": "Emit debug info for FireSass",
+      "args": "--debug-info"
+    },
+    {
+      "id": "output-style",
+      "type": "select",
+      "label": "Output style:",
+      "items": [
+        { "id": "nested", "label": "Nested" },
+        { "id": "compact", "label": "Compact", "args": "--style compact" },
+        { "id": "compressed", "label": "Compressed", "args": "--style compressed" },
+        { "id": "expanded", "label": "Expanded", "args": "--style expanded" }
+      ]
+    }
+  ],
+
+  "requires": {
+    "gem": { "sass": "*" }
+  },
+
+  "versions": [
+    { "sass": "3.2.x", "channel": "stable" },
+    { "sass": "3.3.x", "channel": "alpha" }
+  ]
+}

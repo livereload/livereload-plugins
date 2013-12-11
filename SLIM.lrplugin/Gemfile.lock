@@ -1,0 +1,14 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    slim (2.0.2)
+      temple (~> 0.6.6)
+      tilt (>= 1.3.3, < 2.1)
+    temple (0.6.7)
+    tilt (2.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  slim

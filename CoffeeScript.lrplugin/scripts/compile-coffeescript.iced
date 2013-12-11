@@ -1,6 +1,6 @@
 fs             = require 'fs'
 path           = require 'path'
-CoffeeScript   = require 'coffee-script'
+CoffeeScript   = null
 
 exists         = fs.exists or path.exists
 
@@ -14,9 +14,10 @@ printVersion = ->
 
 
 OPTIONS = [
-  "Usage: node compile-coffee.js [options] source.coffee destination.js"
+  "Usage: node compile-coffee.js [options] cspath source.coffee destination.js"
 
   "Files:"
+  "  cspath             Path to the desired version of CoffeeScript package #required #var(cspath)"
   "  source.coffee      Path to the source file #required #var(source)"
   "  destination.js     Path to the destination file #required #var(destination)"
 
@@ -40,6 +41,8 @@ run = ->
 
   return usage()                         if opts.help
   return version()                       if opts.version
+
+  CoffeeScript = require(opts.cspath)
 
   compilePath opts.source, opts.destination, opts
 
