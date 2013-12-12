@@ -8,14 +8,16 @@
       "input": "*.sass *.scss",
       "output": "*.css",
 
-      "defaults": [
+      "packages": [["gem:sass:*"]],
+
+      "info": [
         {
           "versions": "*",
 
           "cmdline": [
             "$(ruby)",
             "-rubygems",
-            "$(plugin)/lib/sass/bin/sass",
+            "$(gem:sass)/bin/sass",
             "$(additional)",
             "$(src_path)",
             "$(dst_path)"
@@ -55,18 +57,6 @@
             }
           ]
         }
-      ],
-
-      "versions": [
-        {
-          "version": "3.2.12", "streams": ["3.x", "3.2.x"], "channel": "stable",
-          "requires": {
-            "gem": { "sass": "3.2.12" }
-          }
-        }
-      ],
-
-      "libraries": [
       ]
     }
   ],
@@ -76,7 +66,7 @@
       "CommandLine": [
         "$(ruby)",
         "-rubygems",
-        "$(plugin)/lib/sass/bin/sass",
+        "$(plugin)/gem/gems/sass-3.3.0.rc.2/bin/sass",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"

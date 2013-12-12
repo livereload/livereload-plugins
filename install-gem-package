@@ -7,11 +7,19 @@ package_version="$2"
 die() { echo "$@"; exit 1; }
 run() { echo "$@"; "$@" || die "** $1 failed. Stop."; }
 
+export GEM_PATH=
+export GEM_HOME=$(pwd)/gem
+
 rm -f versions.json
+
+if test -z "$package_name"; then
+    gem list --local
+    exit
+fi
 
 if test -n "$package_version"; then
     mkdir -p gem
-    run gem install -i ./gem --conservative $package_name -v $package_version
+    run gem install -V -V -V -i ./gem --conservative $package_name -v $package_version
 else
     # npm --json info $package_name | read_json /dev/stdin 'JSON.stringify({versions: versions.map(function(v) { return v + " - " + time[v]; }), tags: this["dist-tags"]}, null, 2)'
     run gem list --all --remote --prerelease \^$package_name\$
