@@ -1,9 +1,0 @@
-// Grid margin function
-@function grid-margin() {
-  @return $grid-gutter-width / 2;
-}
-
-// Core grid-width logic function
-@function grid-width($grid-columns) {
-  @return $grid-columns * $grid-width + $grid-columns * $grid-gutter-width;
-}
