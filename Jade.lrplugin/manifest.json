@@ -8,42 +8,49 @@
       "input": "*.jade",
       "output": "*.html",
 
-      "cmdline": [
-        "$(node)",
-        "$(plugin)/jade_compiler.js",
-        "$(additional)",
-        "$(src_path)",
-        "$(dst_path)"
-      ],
+      "packages": [["npm:jade:*"]],
 
-      "errors": [
-        { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
-        { "pattern": "\\w+Error: ((message))\\n" }
-      ],
-
-      "options": [
+      "info": [
         {
-          "type": "popup",
-          "id": "output-style",
-          "label": "Output style:",
-          "items": [
-            { "id": "minified", "label": "Minified" },
-            { "id": "pretty", "label": "Pretty", "args": ["-o", "{ pretty: true }"] }
+          "cmdline": [
+            "$(node)",
+            "$(plugin)/jade_compiler.js",
+            "$(npm:jade)",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
+
+          "errors": [
+            { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
+            { "pattern": "\\w+Error: ((message))\\n" }
+          ],
+
+          "options": [
+            {
+              "type": "popup",
+              "id": "output-style",
+              "label": "Output style:",
+              "items": [
+                { "id": "minified", "label": "Minified" },
+                { "id": "pretty", "label": "Pretty", "args": ["-o", "{ pretty: true }"] }
+              ]
+            },
+            {
+              "type": "text-field",
+              "id": "custom-options",
+              "label": "Custom options:",
+              "placeholder": "{ \"pretty\": true }",
+              "args": "-o $(value)"
+            },
+            {
+              "type": "text-field",
+              "id": "custom-options-file",
+              "label": "Custom options file:",
+              "placeholder": "jade-options.json",
+              "args": "--options-file $(value)"
+            }
           ]
-        },
-        {
-          "type": "text-field",
-          "id": "custom-options",
-          "label": "Custom options:",
-          "placeholder": "{ \"pretty\": true }",
-          "args": "-o $(value)"
-        },
-        {
-          "type": "text-field",
-          "id": "custom-options-file",
-          "label": "Custom options file:",
-          "placeholder": "jade-options.json",
-          "args": "--options-file $(value)"
         }
       ]
     }
@@ -54,6 +61,7 @@
       "CommandLine": [
         "$(node)",
         "$(plugin)/jade_compiler.js",
+        "$(plugin)/npm/jade-0.35.0",
         "$(additional)",
         "$(src_file)",
         "$(dst_path)"

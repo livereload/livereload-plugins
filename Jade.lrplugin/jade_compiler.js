@@ -7,8 +7,6 @@ var fs = require('fs')
   , dirname = path.dirname
   , jade;
 
-jade = require('jade');
-
 /**
  * Arguments.
  */
@@ -28,7 +26,7 @@ var options = {};
 var usage = ''
   + '\n'
   + '  Usage: jade [options]\n'
-  + '              in.jade out.html'
+  + '              /path/to/jade_package in.jade out.html'
   + '  \n'
   + '  Options:\n'
   + '    -o, --options <str>  JavaScript options object passed\n'
@@ -39,6 +37,7 @@ var usage = ''
 // Parse arguments
 
 var arg
+  , packagePath
   , infile
   , outfile;
 while (args.length) {
@@ -47,10 +46,6 @@ while (args.length) {
     case '-h':
     case '--help':
       console.log(usage);
-      process.exit(1);
-    case '-v':
-    case '--version':
-      console.log(jade.version);
       process.exit(1);
     case '-o':
     case '--options':
@@ -82,14 +77,16 @@ while (args.length) {
       args.unshift(arg);
       break;
   }
-  if (args.length != 2) {
-    console.error('exactly 2 file names must be specified');
+  if (args.length != 3) {
+    console.error('exactly 3 paths must be specified');
     process.exit(1);
   }
+  packagePath = args.shift();
   infile = args.shift();
   outfile = args.shift();
 }
 
+jade = require(packagePath);
 renderJade(infile, outfile);
 
 
