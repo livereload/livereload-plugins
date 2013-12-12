@@ -8,24 +8,14 @@
       "input": "*.slim",
       "output": "*.html",
 
-      "packageConfigurations": [
-        {
-          "packages": [
-            { "type": "gem", "name": "slim", "version": "*" }
-          ]
-        }
-      ],
+      "packages": [["gem:slim:*"]],
 
-      "defaults": [
+      "info": [
         {
-          "requirements": [
-            { "type": "gem", "name": "slim", "versions": "*" }
-          ],
-
           "cmdline": [
             "$(ruby)",
             "$(plugin)/gem/bin/slimrb",
-            "_$(gem_slim_ver)_",
+            "_$(gem:slim.ver)_",
             "$(additional)",
             "$(src_path)",
             "$(dst_path)"
@@ -76,9 +66,9 @@
       "Optional": true,
       "CommandLine": [
         "$(ruby)",
-        "-I$(plugin)/lib/temple/lib",
-        "-I$(plugin)/lib/tilt/lib",
-        "$(plugin)/lib/slim/bin/slimrb",
+        "-I$(plugin)/gem/gems/temple-0.6.7/lib",
+        "-I$(plugin)/gem/gems/tilt-2.0.0/lib",
+        "$(plugin)/gem/gems/slim-2.0.2/bin/slimrb",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"

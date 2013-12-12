@@ -20,6 +20,7 @@ fi
 if test -n "$package_version"; then
     mkdir -p gem
     run gem install -V -V -V -i ./gem --conservative $package_name -v $package_version
+    run $(dirname $0)/strip-craft
 else
     # npm --json info $package_name | read_json /dev/stdin 'JSON.stringify({versions: versions.map(function(v) { return v + " - " + time[v]; }), tags: this["dist-tags"]}, null, 2)'
     run gem list --all --remote --prerelease \^$package_name\$

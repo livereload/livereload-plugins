@@ -18,6 +18,8 @@ if test -n "$package_version"; then
     mkdir -p npm
     run mv node_modules/$package_name npm/$package_name-$package_version
     rmdir node_modules 2>/dev/null
+
+    run $(dirname $0)/strip-craft
 else
     npm --json info $package_name | read_json /dev/stdin 'JSON.stringify({versions: versions.map(function(v) { return v + " - " + time[v]; }), tags: this["dist-tags"]}, null, 2)'
 fi
