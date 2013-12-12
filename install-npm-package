@@ -9,6 +9,9 @@ read_json() { node -p 'require("vm").runInNewContext(process.argv[2], JSON.parse
 rm -f versions.json
 
 if test -n "$package_version"; then
+    # for Cairo (required by Stylus)
+    export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
+
     mkdir -p node_modules
     run npm install $package_name@$package_version
 
