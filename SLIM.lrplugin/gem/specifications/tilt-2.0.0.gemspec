@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# stub: tilt 2.0.0 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "tilt"
@@ -15,6 +16,6 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT"]
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Tilt", "--main", "Tilt"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "2.0.3"
+  s.rubygems_version = "2.1.11"
   s.summary = "Generic interface to multiple Ruby template engines"
 end

@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# stub: temple 0.6.7 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "temple"
@@ -11,7 +12,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/judofyr/temple"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "2.0.3"
+  s.rubygems_version = "2.1.11"
   s.summary = "Template compilation framework in Ruby"
 
   if s.respond_to? :specification_version then

@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# stub: slim 2.0.2 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "slim"
@@ -15,7 +16,7 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubyforge_project = "slim"
-  s.rubygems_version = "2.0.3"
+  s.rubygems_version = "2.1.11"
   s.summary = "Slim is a template language."
 
   if s.respond_to? :specification_version then
