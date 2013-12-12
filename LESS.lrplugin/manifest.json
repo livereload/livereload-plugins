@@ -18,7 +18,7 @@
 
           "cmdline": [
             "$(node)",
-            "$(npm_less)/bin/lessc",
+            "$(npm:less)/bin/lessc",
             "$(additional)",
             "$(src_path)",
             "$(dst_path)"

@@ -5,39 +5,51 @@
       "id": "iced-coffee-script",
       "name": "IcedCoffeeScript",
 
-      "input": "*.iced",
+      "input": "*.iced *.coffee *.litcoffee *.coffee.md",
       "output": "*.js",
 
-      "cmdline": [
-        "$(node)",
-        "$(plugin)/node_modules/iced-coffee-script/bin/coffee",
-        "$(additional)",
-        "-o",
-        "$(dst_dir)",
-        "$(src_path)"
-      ],
+      "packages": [["npm:iced-coffee-script:*"]],
 
-      "errors": [
-        { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
-        { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
-      ],
+      "info": [
+        {
+          "cmdline": [
+            "$(node)",
+            "$(npm:iced-coffee-script)/bin/coffee",
+            "$(additional)",
+            "-o",
+            "$(dst_dir)",
+            "$(src_path)"
+          ],
 
-      "options": [
-        {
-          "id": "no-wrapper",
-          "type": "checkbox",
-          "label": "No wrapper",
-          "args": "--bare"
-        },
-        {
-          "type": "popup",
-          "id": "runtime-mode",
-          "label": "Iced runtime mode:",
-          "items": [
-            { "id": "inline", "label": "Include inline", "args": "--runtime inline" },
-            { "id": "window", "label": "Include globally", "args": "--runtime window" },
-            { "id": "node", "label": "Include via require", "args": "--runtime node" },
-            { "id": "none", "label": "Don't include", "args": "--runtime none" }
+          "errors": [
+            { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
+            { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
+          ],
+
+          "options": [
+            {
+              "id": "no-wrapper",
+              "type": "checkbox",
+              "label": "No wrapper",
+              "args": "--bare"
+            },
+            {
+              "type": "popup",
+              "id": "runtime-mode",
+              "label": "Iced runtime mode:",
+              "items": [
+                { "id": "inline", "label": "Include inline", "args": "--runtime inline" },
+                { "id": "window", "label": "Include globally", "args": "--runtime window" },
+                { "id": "node", "label": "Include via require", "args": "--runtime node" },
+                { "id": "none", "label": "Don't include", "args": "--runtime none" }
+              ]
+            },
+            {
+              "type": "checkbox",
+              "id": "source-map",
+              "label": "Generate source map",
+              "args": "--map"
+            }
           ]
         }
       ]
@@ -51,7 +63,7 @@
       "DestinationExtension": "js",
       "CommandLine": [
         "$(node)",
-        "$(plugin)/node_modules/iced-coffee-script/bin/coffee",
+        "$(plugin)/npm/iced-coffee-script-1.6.3-g/bin/coffee",
         "$(additional)",
         "-o",
         "$(dst_dir)",
