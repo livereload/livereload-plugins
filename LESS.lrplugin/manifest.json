@@ -88,8 +88,10 @@
       ],
       "ImportRegExps": [
         "@import\\s*\"([^\"]+)\"",
-        "@import\\s*'([^']+)'",
-        "@import\\s+([\\w./-]+)"
+        "@import\\s+\\(\\s*reference\\s*\\)\\s*\"([^\"]+)\"",
+        "@import\\s+\\(\\s*inline\\s*\\)\\s*\"([^\"]+)\"",
+        "@import\\stylesheets*'([^']+)'",
+        "@import\\s+([\\w./-]+)",
       ],
       "DefaultImportedExts": [
         "less"
