@@ -45,7 +45,7 @@
     {
       "CommandLine": [
         "$(node)",
-        "$(plugin)/npm/eco-1.0.3/bin/eco",
+        "$(plugin)/npm/eco-1.1.0-rc-3/bin/eco",
         "$(additional)",
         "-o",
         "$(dst_dir)",

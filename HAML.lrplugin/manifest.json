@@ -134,13 +134,13 @@
           "Type": "select",
           "Items": [
             {
-              "Id": "single",
-              "Title": "Use single quotes for attributes"
-            },
-            {
               "Id": "double",
               "Title": "Use double quotes for attributes",
               "Argument": "--double-quote-attributes"
+            },
+            {
+              "Id": "single",
+              "Title": "Use single quotes for attributes"
             }
           ]
         },

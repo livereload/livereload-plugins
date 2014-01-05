@@ -84,7 +84,7 @@
     {
       "CommandLine": [
         "$(node)",
-        "$(plugin)/node_modules/typescript/bin/tsc.js",
+        "$(plugin)/npm/typescript-0.9.5/bin/tsc.js",
         "$(additional)",
         "--out",
         "$(dst_path)",
