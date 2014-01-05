@@ -4,12 +4,5 @@
   "name": "ZURB Foundation",
   "url": "",
 
-  "requires": {
-    "gem": ["zurb-foundation"]
-  },
-
-  "versions": [
-    { "version": "3.2.x" },
-    { "version": "3.3.x", "channel": "prerelease" }
-  ]
+  "packages": [["gem:zurb-foundation:*"]]
 }
