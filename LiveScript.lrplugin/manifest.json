@@ -1,0 +1,98 @@
+{
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "livescript",
+      "name": "LiveScript",
+
+      "input": "*.ls",
+      "output": "*.js",
+
+      "packages": [["npm:LiveScript:*"]],
+
+      "info": [
+        {
+          "cmdline": [
+	          "$(node)",
+	          "$(plugin)/script/compile-file.js",
+	          "$(plugin)/npm/LiveScript-1.2.0",
+	          "--compile",
+	          "--print",
+	          "$(additional)",
+	          "$(src_path)",
+	          "$(dst_path)"
+          ],
+
+          "errors": [
+            { "pattern": "SyntaxError: ((message))\\n", "message": "Syntax error: ***" },
+            { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
+            { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
+          ],
+
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "no-wrapper",
+              "label": "No wrapper",
+              "args": "--bare"
+            },
+            {
+              "type": "checkbox",
+              "id": "const",
+              "label": "Compile all variables as constants (--const)",
+              "args": "--const"
+            }
+          ]
+        }
+      ],
+
+      "versionInfo": {
+        "npm:live-script:1.2.0": {
+          "changeLogSummary": "Happy New Year"
+        }
+      }
+    }
+  ],
+  "LRCompilers": [
+    {
+      "CommandLine": [
+	      "$(node)",
+	      "$(plugin)/script/compile-file.js",
+	      "$(plugin)/npm/LiveScript-1.2.0",
+	      "--compile",
+	      "--print",
+	      "$(additional)",
+	      "$(src_path)",
+	      "$(dst_path)"
+      ],
+      "DestinationExtension": "js",
+      "Errors": [
+        "Error: In ((file)), Parse error on line ((line)): ((message))\\n",
+        "Error: In ((file)), ((message)) on line ((line))\\n"
+      ],
+      "Extensions": [
+	      "ls"
+      ],
+      "Name": "LiveScript",
+      "ExpectedOutputDirectories": [
+        "js",
+        "javascript",
+        "javascripts"
+      ],
+      "Options": [
+        {
+          "Id": "no-wrapper",
+          "Type": "checkbox",
+          "Title": "No wrapper (--bare)",
+          "OnArgument": "--bare"
+        },
+        {
+          "Id": "const",
+          "Type": "checkbox",
+          "Title": "Compile all variables as constants (--const)",
+          "OnArgument": "--const"
+        }
+      ]
+    }
+  ]
+}
