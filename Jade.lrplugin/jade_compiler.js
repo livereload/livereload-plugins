@@ -78,7 +78,7 @@ while (args.length) {
       break;
   }
   if (args.length != 3) {
-    console.error('exactly 3 paths must be specified');
+    console.error('exactly 3 paths must be specified, got: ' + JSON.stringify(args, null, 2));
     process.exit(1);
   }
   packagePath = args.shift();

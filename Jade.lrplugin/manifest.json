@@ -17,8 +17,8 @@
           "cmdline": [
             "$(node)",
             "$(plugin)/jade_compiler.js",
-            "$(npm:jade)",
             "$(additional)",
+            "$(npm:jade)",
             "$(src_path)",
             "$(dst_path)"
           ],
@@ -63,9 +63,9 @@
       "CommandLine": [
         "$(node)",
         "$(plugin)/jade_compiler.js",
-        "$(plugin)/npm/jade-1.3.1",
         "$(additional)",
-        "$(src_file)",
+        "$(plugin)/npm/jade-1.3.1",
+        "$(src_path)",
         "$(dst_path)"
       ],
       "RunIn": "$(src_dir)",
