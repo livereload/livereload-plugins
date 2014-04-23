@@ -48,7 +48,7 @@
               "args": "--source-map"
             }
           ]
-        },
+        }
       ]
     }
   ],
@@ -91,7 +91,7 @@
         "@import\\s+\\(\\s*reference\\s*\\)\\s*\"([^\"]+)\"",
         "@import\\s+\\(\\s*inline\\s*\\)\\s*\"([^\"]+)\"",
         "@import\\stylesheets*'([^']+)'",
-        "@import\\s+([\\w./-]+)",
+        "@import\\s+([\\w./-]+)"
       ],
       "DefaultImportedExts": [
         "less"
