@@ -13,7 +13,7 @@
         {
           "cmdline": [
             "$(node)",
-            "$(npm_autoprefixer)/bin/autoprefixer",
+            "$(npm:autoprefixer)/bin/autoprefixer",
             "$(additional)",
             "$(src_path)"
           ],

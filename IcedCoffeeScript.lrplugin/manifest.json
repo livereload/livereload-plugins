@@ -63,7 +63,7 @@
       "DestinationExtension": "js",
       "CommandLine": [
         "$(node)",
-        "$(plugin)/npm/iced-coffee-script-1.6.3-g/bin/coffee",
+        "$(plugin)/npm/iced-coffee-script-1.7.1-b/bin/coffee",
         "$(additional)",
         "-o",
         "$(dst_dir)",

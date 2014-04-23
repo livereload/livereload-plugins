@@ -1,0 +1,61 @@
+{
+  "name": "es6-transpiler",
+  "version": "0.7.12",
+  "description": "es6 -> es5",
+  "main": "./build/es5/es6-transpiler.js",
+  "bin": {
+    "es6-transpiler": "./build/es5/es6toes5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/termi/es6-transpiler.git"
+  },
+  "dependencies": {
+    "es5-shim": "2.3.0",
+    "es6-shim": "latest",
+    "simple-fmt": "~0.1.0",
+    "simple-is": "~0.2.0",
+    "stringmap": "~0.2.0",
+    "stringset": "~0.2.0",
+    "ansidiff": "~1.0.0",
+    "astquery": "latest",
+    "regenerate": "latest",
+    "jsesc": "latest",
+    "string-alter": "latest"
+  },
+  "devDependencies": {
+    "nodeunit": "latest"
+  },
+  "keywords": [
+    "es6-transpiler",
+    "scope",
+    "blockscope",
+    "block-scope",
+    "let",
+    "const",
+    "var",
+    "es6",
+    "transpile",
+    "transpiler"
+  ],
+  "scripts": {
+    "test": "node --harmony run-tests"
+  },
+  "author": {
+    "name": "Egor Khalimonenko",
+    "email": "1+es6transpiler@h123.ru"
+  },
+  "license": "MIT",
+  "readme": "# es6-transpiler.js\r\nes6 -> es5\r\n\r\n## status\r\n\r\nBeta\r\n\r\n## Goal\r\n\r\n * different output than [traceur-compiler](https://github.com/google/traceur-compiler):\r\n     1. no runtime library\r\n     1. no try/catch for block binding\r\n     1. no `.bind` using for arrow functions\r\n     1. `.concat` for spread emulation\r\n     1. and others\r\n * output should support [Closure Compiler](https://code.google.com/p/closure-compiler/)\r\n * line-to-line input/output mapping\r\n\r\n## Supported\r\n\r\n * classes\r\n * destructuring\r\n * block binding (let / const)\r\n   * loops: fresh lexical environment per iteration\r\n * default parameters\r\n * arrow functions\r\n * spread (with iterator protocol)\r\n * for-of (with iterator protocol)\r\n * array comprehensions (with iterator protocol)\r\n * string templates\r\n * object literals\r\n * binary/octal numericLiteral\r\n * unicode code point escapes\r\n * RegExp:\r\n   * 'y' flag support\r\n   * 'u' flag support (partial runtime support: 1. \\D, \\W, '.' etc unsupported, 2. unicode ranges with negative characterClass unsupported)\r\n\r\nStatic scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).\r\n\r\n## Supported iterator protocol\r\n\r\nImportant note: This based on the current [FireFox 27 implementation](https://developer.mozilla.org/en-US/Firefox/Releases/27/Site_Compatibility#sect9).\r\nIn future it has to be [updated to Symbol.iterator](https://bugzilla.mozilla.org/show_bug.cgi?id=907077#c14)\r\n\r\n```javascript\r\nvar obj = {a: 1, b: 2, c: 3};\r\nobj[\"@@iterator\"] = function() {\r\n\tvar iterableObject = this;\r\n\tvar keys = [\"a\", \"b\", \"c\"];\r\n\r\n\treturn {\r\n\t\tnext: function() {\r\n\t\t\tvar currentKey = keys.shift();\r\n\r\n\t\t\treturn {\r\n\t\t\t\tvalue: currentKey ? iterableObject[currentKey] : void 0\r\n\t\t\t\t, done: !currentKey\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n}\r\n```\r\n\r\n## Installation\r\n\r\nInstall using npm\r\n\r\n\tnpm install es6-transpiler\r\n\r\nOr just using [Grunt task](https://github.com/termi/grunt-es6-transpiler) (see below).\r\n\r\n## Usage\r\n\r\nFor the output code works you need an implementation of Object.create in the target browser.\r\nYou can get it here: [es5-shim](https://github.com/kriskowal/es5-shim/) or copy and past this code:\r\n```\r\nif(!Object.create)Object.create = function(_prototype) {//[Warning!!!]This is PURE and UNSAFE implementation of Object.create\r\n\tvar Type = function () {};\r\n\tType.prototype = _prototype;\r\n\tvar _object = new Type();\r\n\t_object.__proto__ = _prototype;\r\n\r\n\treturn _object;\r\n};\r\n```\r\n\r\n### Grunt task\r\n\r\n[Grunt](http://gruntjs.com/) task can be fount here: https://github.com/termi/grunt-es6-transpiler\r\n\r\nInstall:\r\n`npm install grunt-es6-transpiler`\r\n\r\nUsage:\r\n```javascript\r\ngrunt.loadNpmTasks('grunt-es6-transpiler');\r\n\r\ngrunt.initConfig({\r\n  \"es6-transpiler\": {\r\n    test: {\r\n        src: 'test.js'\r\n        , dest: 'test.es5.js'\r\n    }\r\n  },\r\n})\r\n```\r\n\r\n### Gulp task\r\n\r\n[Gulp](http://gulpjs.com/) task can be fount here: https://github.com/sindresorhus/gulp-es6-transpiler\r\n\r\nInstall:\r\n`npm install --save-dev gulp-es6-transpiler`\r\n\r\nUsage:\r\n```javascript\r\nvar gulp = require('gulp');\r\nvar es6transpiler = require('gulp-es6-transpiler');\r\n\r\ngulp.task('default', function () {\r\n    gulp.src('src/app.js')\r\n        .pipe(es6transpiler())\r\n        .pipe(gulp.dest('dist'));\r\n});\r\n```\r\n\r\n### In console\r\n\r\nRun it as `es6toes5 <input file>`. Or `node --harmony es6toes5 <input file>`. Also you can run a compiled es5 version `node build/es5/es6toes5 <input file>`.\r\nThe errors (if any) will go to stderr, the transpiled source to `stdout`, so redirect it like `es6toes5 file.js > output.js`.\r\n\r\n### Node.js / Using as a library\r\n\r\nrequire(\"es6-transpiler\").run(\\<Options\\>)\r\n\r\nOptions is:\r\n\r\n\t{\r\n\t\tfilename: string // input file\r\n\t\tsrc: string // input source if not filename\r\n\t\toutputToConsole: boolean // if true -> result would be outputted to console\r\n\t\toutputFilename: string // if specific -> result would be written to file\r\n\t}\r\nOther options below in \"Options\" section.\r\n\r\n```javascript\r\nvar es6tr = require(\"./es6-transpiler\");\r\nvar result = es6tr.run({filename: \"test.js\"});\r\nconsole.log(result.src);//result\r\n```\r\nresult object is:\r\n\r\n    {\r\n        src: string or \"\" // on success\r\n        errors: array of error messages or [] // on errors\r\n        stats: statistics object\r\n        ast: transformed ast // ast tree from esprima\r\n        getNeedfulList: <function: Array.<string>> // list of necessary polyfills\r\n        getNeedfulLib: <function: string> // text of necessary polyfills\r\n        getFullLib: <function: string> // text of all available polyfills\r\n    }\r\n\r\n## Options\r\n\r\nExample of `options` object:\r\n\r\n    {\r\n    \t//described above:\r\n    \t//\"filename\" or \"scr\": \"string\"\r\n    \t//outputToConsole: false\r\n    \t//outputFilename: true\r\n\r\n        \"environments\": [\"node\", \"browser\"],\r\n\r\n        \"globals\": {\r\n            \"my\": false,\r\n            \"hat\": true\r\n        },\r\n        \"disallowVars\": false,\r\n        \"disallowDuplicated\": true,\r\n        \"disallowUnknownReferences\": true,\r\n        \"includePolyfills\": <boolean> | <\"full\">,\r\n        \"polyfillsSeparator\": <string>\r\n    }\r\n\r\n`globals` lets you list your program's globals, and indicate whether they are\r\nwritable (`true`) or read-only (`false`), just like `jshint`.\r\n\r\n`environments` lets you import a set of pre-defined globals, here `node` and\r\n`browser`. These default environments are borrowed from `jshint` (see\r\n[jshint_globals/vars.js](https://github.com/olov/defs/blob/master/jshint_globals/vars.js)).\r\n\r\n`disallowVars` (defaults to `false`) can be enabled to make\r\nusage of `var` an error.\r\n\r\n`disallowDuplicated` (defaults to `true`) errors on duplicated\r\n`var` definitions in the same function scope.\r\n\r\n`disallowUnknownReferences` (defaults to `true`) errors on references to\r\nunknown global variables.\r\n\r\n`includePolyfills` (defaults to `false`) insert polyfills in the output file.\r\n`true` - insert only the necessary polyfills. `\"full\"` -  insert all available polyfills.\r\n\r\n`polyfillsSeparator` (default - empty string) any string that should be inserted before polyfills library.\r\n\r\n## License\r\n`MIT`, see [LICENSE](LICENSE) file.\r\n\r\n\r\n## Example\r\n\r\nSee tests\r\n\r\n\r\n## Compatibility\r\n`es6-transpiler.js` strives to transpile your program as true to the ES6 block scope semantics as\r\npossible, while being as maximally non-intrusive as possible. The only textual\r\ndifferences you'll find between your original and transpiled program is that the latter\r\nuses `var` and occasional variable renames.\r\n\r\n\r\n### Referenced (inside closure) before declaration\r\n`es6-transpiler.js` detects the vast majority of cases where a variable is referenced prior to\r\nits declaration. The one case it cannot detect is the following:\r\n\r\n```javascript\r\nfunction printx() { console.log(x); }\r\nprintx(); // illegal\r\nlet x = 1;\r\nprintx(); // legal\r\n```\r\n\r\nThe first call to `printx` is not legal because `x` hasn't been initialized at that point\r\nof *time*, which is impossible to catch reliably with statical analysis.\r\n`v8 --harmony` will detect and error on this via run-time checking. `es6-transpiler.js` will\r\nhappily transpile this example (`let` => `var` and that's it), and the transpiled code\r\nwill print `undefined` on the first call to `printx`. This difference should be a very\r\nminor problem in practice.\r\n\r\n## TODO\r\n 1. Generators support\r\n 1. Modules support\r\n 1. 'pre-es6-node10', 'pre-es6-chrome20' and 'pre-es6-ff24' output modes\r\n 1. /N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N/u -> /N(?:[^\\s1-9]|\\uD800[\\uDCAB-\\uDFFF]|[\\uD801-\\uDBFF][\\uDC00-\\uDFFF])N/\r\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/termi/es6-transpiler/issues"
+  },
+  "homepage": "https://github.com/termi/es6-transpiler",
+  "_id": "es6-transpiler@0.7.12",
+  "dist": {
+    "shasum": "cb8f1c26334061f8f9579e5a09373a197b553009"
+  },
+  "_from": "es6-transpiler@0.7.12",
+  "_resolved": "https://registry.npmjs.org/es6-transpiler/-/es6-transpiler-0.7.12.tgz"
+}

@@ -10,6 +10,8 @@
 
       "packages": [["npm:jade:*"]],
 
+      "changelog": "https://github.com/visionmedia/jade/blob/master/History.md",
+
       "info": [
         {
           "cmdline": [
@@ -61,7 +63,7 @@
       "CommandLine": [
         "$(node)",
         "$(plugin)/jade_compiler.js",
-        "$(plugin)/npm/jade-0.35.0",
+        "$(plugin)/npm/jade-1.3.1",
         "$(additional)",
         "$(src_file)",
         "$(dst_path)"

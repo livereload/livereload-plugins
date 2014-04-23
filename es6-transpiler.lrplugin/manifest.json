@@ -1,0 +1,36 @@
+{
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "es6-transpiler",
+      "name": "es6-transpiler",
+
+      "input": "*.js",
+      "output": "*.js",
+
+      "packages": [["npm:es6-transpiler:*"]],
+
+      "info": [
+        {
+          "cmdline": [
+            "$(node)",
+            "$(npm:es6-transpiler)/build/es5/es6toes5",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
+
+          "errors": [
+            { "pattern": "Error: Line ((line)): ((message))\n" }
+          ],
+
+          "options": [
+          ]
+        }
+      ],
+
+      "versionInfo": {
+      }
+    }
+  ]
+}

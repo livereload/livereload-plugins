@@ -66,7 +66,7 @@
       "CommandLine": [
         "$(ruby)",
         "-rubygems",
-        "$(plugin)/gem/gems/sass-3.3.0.rc.2/bin/sass",
+        "$(plugin)/gem/gems/sass-3.3.5/bin/sass",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"

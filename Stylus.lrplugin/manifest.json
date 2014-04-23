@@ -67,7 +67,7 @@
     {
       "CommandLine": [
         "$(node)",
-        "$(plugin)/npm/stylus-0.41.2/bin/stylus",
+        "$(plugin)/npm/stylus-0.43.1/bin/stylus",
         "$(additional)",
         "-o",
         "$(dst_dir)",

@@ -45,6 +45,9 @@
       ],
 
       "versionInfo": {
+        "npm:coffee-script:1.7.0": {
+          "changeLogSummary": "**, // and %% operators; leading dot; multiline strings"
+        },
         "npm:coffee-script:1.6.1": {
           "changeLogSummary": "source maps"
         },
@@ -65,7 +68,7 @@
       "CommandLine": [
         "$(node)",
         "$(plugin)/scripts/compile-coffeescript.js",
-        "$(plugin)/npm/coffee-script-1.6.3",
+        "$(plugin)/npm/coffee-script-1.7.1",
         "$(additional)",
         "$(src_path)",
         "$(dst_path)"
