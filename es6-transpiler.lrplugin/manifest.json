@@ -14,17 +14,42 @@
         {
           "cmdline": [
             "$(node)",
-            "$(npm:es6-transpiler)/build/es5/es6toes5",
+            "$(plugin)/scripts/es6-transpiler-wrapper.js",
+            "$(npm:es6-transpiler)",
             "$(additional)",
             "$(src_path)",
             "$(dst_path)"
           ],
 
           "errors": [
-            { "pattern": "Error: Line ((line)): ((message))\n" }
+            { "pattern": "line ((line)): ((message))\n" }
           ],
 
           "options": [
+            {
+              "type": "text-field",
+              "id": "globals",
+              "label": "Additional global variables:",
+              "placeholder": "foo,bar!,boz",
+              "args": "--global $(value)",
+              "skip-if-empty": true
+            },
+            {
+              "type": "checkbox",
+              "id": "allow-unknown",
+              "label": "Allow references to unknown global variables",
+              "args": "--allow-unknown"
+            },
+            {
+              "type": "popup",
+              "id": "polyfill-inclusion",
+              "label": "Include ES5 polyfills:",
+              "items": [
+                { "id": "never", "label": "Never", "args": "--polyfills never" },
+                { "id": "required", "label": "Only necessary ones", "args": "--polyfills required" },
+                { "id": "all", "label": "All", "args": "--polyfills all" }
+              ]
+            },
           ]
         }
       ],
