@@ -1,6 +1,7 @@
 #!/bin/bash
 find_offenders() {
-    find . -name example -or -name examples -or -name test -or -name tests -or -name spec -or -name docs -or -name tmp -or -name .idea -or -name dist -or -name cache
+    # .bin is stripped because Mac App Store has problems with symlinks there
+    find . -name example -or -name examples -or -name test -or -name tests -or -name spec -or -name docs -or -name tmp -or -name .idea -or -name dist -or -name cache -or -name .bin
 }
 find_offenders
 find_offenders | xargs rm -rf
