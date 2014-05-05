@@ -20,6 +20,10 @@
             "--reporter", "json-stream"
           ],
 
+          "errors": [
+            { "pattern": "((file)):((line))\\n[^\\n]*\\n\\s*\\^\\n((message:\\w*Error: ***))\\n" }
+          ],
+
           "options": [
             {
               "type": "popup",
