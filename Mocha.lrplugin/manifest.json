@@ -1,0 +1,46 @@
+{
+  "manifest_version": 2,
+  "actions": [
+    {
+      "type": "run-tests",
+      "id": "mocha",
+      "name": "Mocha",
+      "input": "*.js",
+
+      "packages": [["npm:mocha:*"]],
+
+      "info": [
+        {
+          "cmdline": [
+            "$(node)",
+            "$(npm:mocha)/bin/mocha",
+            "$(additional)",
+            "--bail",
+            "--no-colors",
+            "--reporter", "json-stream"
+          ],
+
+          "options": [
+            {
+              "type": "popup",
+              "id": "testing-api",
+              "label": "Testing API:",
+              "items": [
+                { "id": "bdd", "label": "BDD (describe, it, before)", "args": "--ui bdd" },
+                { "id": "tdd", "label": "TDD (suite, test, setup)", "args": "--ui tdd" },
+                { "id": "exports", "label": "Exports (module.exports = {...})", "args": "--ui exports" },
+                { "id": "qunit", "label": "QUnit (flat suite, test)", "args": "--ui qunit" }
+              ]
+            },
+            {
+              "type": "checkbox",
+              "id": "async-only",
+              "label": "Force all tests to take a callback (async)",
+              "args": "--async-only"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
