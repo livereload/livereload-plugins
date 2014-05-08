@@ -15,9 +15,8 @@
             "$(node)",
             "$(npm:mocha)/bin/mocha",
             "$(additional)",
-            "--bail",
             "--no-colors",
-            "--reporter", "json-stream"
+            "--reporter", "tap"
           ],
 
           "errors": [
