@@ -1,0 +1,1 @@
+../install-gem-package compass 1.0.0.alpha.19
