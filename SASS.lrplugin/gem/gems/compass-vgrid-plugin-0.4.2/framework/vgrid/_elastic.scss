@@ -1,0 +1,6 @@
+@mixin container {
+  margin-left: 4%; margin-right: 4%; min-width: $vgrid_width; width: 92%;
+}
+
+@import "vgrid/shared/elastic_fluid";
+@import "vgrid/shared/grid_system";
