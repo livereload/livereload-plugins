@@ -1,25 +1,22 @@
-sass
 compass
-html5-boilerplate
-compass-h5bp
 compass-960-plugin
+compass-colors
+# compass-fancybox-plugin
+compass-h5bp
+compass-less-plugin
+compass-lucid-grid
+compass-rgbapng
+# compass-slickmap
+# compass-squaregrid-plugin
+compass-thesquaregrid
+compass-vgrid-plugin
+compass_formalize
+fancy-buttons
+# font-stack
+html5-boilerplate
+sass
+sassy-buttons
+# stitch
 susy
 zurb-foundation
-compass-colors
-fancy-buttons
-compass-slickmap
-compass-rgbapng
-compass-vgrid-plugin
-compass-less-plugin
-sassy-buttons
-compass-thesquaregrid
-compass-fancybox-plugin
-font-stack
-compass-squaregrid-plugin
-compass_formalize
-compass-lucid-grid
-stitch
-
-# don't work with Sass 3.2 yet
-compass-baseline
-grid-coordinates
+# compass-baseline
