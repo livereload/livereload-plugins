@@ -1,0 +1,56 @@
+@import "compass/utilities/general/clearfix";
+
+$vgrid_width: 960px !default;
+$vgrid_columns: 12 !default;
+$vgrid_gutter: 20px !default;
+
+@mixin alpha {margin-left: 0;}
+@mixin omega {margin-right: 0;}
+
+@mixin grid_children {
+  .alpha {@include alpha;}
+  .omega {@include omega;}
+}
+
+@mixin grid_prefixes($cols: $vgrid_columns) {
+  @for $n from 1 through $cols - 1 {
+    .container_#{$cols} .prefix_#{$n} {@include prefix($n, $cols);}
+  }
+}
+
+@mixin grid_suffixes($cols: $vgrid_columns) {
+  @for $n from 1 through $cols - 1 {
+    .container_#{$cols} .suffix_#{$n} {@include suffix($n, $cols);}
+  }
+}
+
+@mixin grid_pushes($cols: $vgrid_columns) {
+  @for $n from 1 through $cols - 1 {
+    .container_#{$cols} .push_#{$n} {@include push($n, $cols);}
+  }
+}
+
+@mixin grid_pulls($cols: $vgrid_columns) {
+  @for $n from 1 through $cols - 1 {
+    .container_#{$cols} .pull_#{$n} {@include pull($n, $cols);}
+  }
+}
+
+@mixin grid_system($cols: $vgrid_columns) {
+  /* Container */
+  .container_#{$cols} {@include container;}
+  /* Grid */
+  @include grids($cols);
+  /* Grid >> Children (Alpha ~ First, Omega ~ Last) */
+  @include grid_children;
+  /* Prefix Extra Space */
+  @include grid_prefixes($cols);
+  /* Suffix Extra Space */
+  @include grid_suffixes($cols);
+  /* Push Space */
+  @include grid_pushes($cols);
+  /* Pull Space */
+  @include grid_pulls($cols);
+  /* Clear Floated Elements */
+  .clearfix {@include clearfix;}
+}

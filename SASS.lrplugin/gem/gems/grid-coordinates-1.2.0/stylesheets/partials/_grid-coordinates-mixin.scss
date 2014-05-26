@@ -1,0 +1,55 @@
+@mixin grid-coordinates {
+
+  // Main clearfix class to use to @extend elements that require cleafix
+  .#{$clearfix-prefix}clearfix { @include bulletproof-clearfix; }
+  
+  // In place to support legacy clearfix options
+  // Should be deprecated at some point in the future
+  @if $support-legacy-grid-clearfix {
+    .grid-clearfix,
+    .grid-pie-clearfix {
+      @extend .#{$clearfix-prefix}clearfix;
+    }
+  }
+  
+  // All generated grid elements that require clearfix
+  .grid-container,
+  .nested-grid-container,
+  .grid-block,
+  .grid-full {
+    @extend .#{$clearfix-prefix}clearfix;
+  }
+  
+  // Core grid classes and mixin consumption
+  .grid-container {
+    @include grid-container-base;
+  }
+  .nested-grid-container {
+    @include nested-grid-container-base;
+  }
+  .grid-block {
+    @include grid-block-base;
+  }
+  .grid-full {
+    @include grid-base($grid-columns); @extend .grid-block;
+  }
+
+  // Loops to enumerate the classes
+  // Yep, this saves us tons of typing (if this were CSS)
+  @for $i from 1 through $grid-columns {
+    .grid-#{$i} { @include grid-base($i); @extend .grid-block; }
+  }
+  @for $i from 1 to $grid-columns {
+    .grid-prefix-#{$i} { @include grid-prefix($i); }
+  }
+  @for $i from 1 to $grid-columns {
+    .grid-suffix-#{$i} { @include grid-suffix($i); }
+  }
+  @for $i from 1 to $grid-columns {
+    .grid-push-#{$i} { @include grid-push($i); }
+  }
+  @for $i from 1 to $grid-columns {
+    .grid-pull-#{$i} { @include grid-pull($i); }
+  }
+
+}
