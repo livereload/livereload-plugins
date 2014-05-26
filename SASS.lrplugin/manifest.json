@@ -177,7 +177,7 @@
         "-I$(plugin)/gem/gems/compass-thesquaregrid-0.0.6/lib",
         "-I$(plugin)/gem/gems/compass_formalize-0.0.5/lib",
         "-I$(plugin)/gem/gems/compass-lucid-grid-0.5.1/lib",
-        "$(plugin)/gem/gems/compass/bin/compass",
+        "$(plugin)/gem/gems/compass-0.12.6/bin/compass",
         "compile",
         "-q",
         "$(additional)",
