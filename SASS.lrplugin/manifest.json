@@ -187,6 +187,7 @@
       "DestinationExtension": "css",
       "NeedsOutputDirectory": false,
       "Errors": [
+        "(Line ((line)) of ((file)): ((message)))",
         "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n",
         "Exception on line ((line)): ((message))\\n",
         "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n",
