@@ -1,0 +1,23 @@
+// Compass requirements
+@import "compass/utilities";
+@import "compass/css3";
+
+// Grid Coordinates configuration
+$grid-columns: 12 !default;
+$grid-width: 60px !default;
+$grid-gutter-width: 20px !default;
+
+// Clearfix prefix string
+// Helps to avoid conflicts with other .clearfix's
+$clearfix-prefix: "" !default;
+
+// Support for deprecated clearfix options
+$support-legacy-grid-clearfix: false !default;
+
+// Modules
+@import "modules/bulletproof-clearfix";
+
+// Partials
+@import "partials/grid-functions";
+@import "partials/grid-coordinates-mixin";
+@import "partials/grid-coordinates-mixins";
