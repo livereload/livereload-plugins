@@ -63,6 +63,7 @@
       ],
       "DestinationExtension": "css",
       "Errors": [
+        "<ESC>((message))<ESC> in <ESC>((file))<ESC> on line ((line)), column ((column))",
         "<ESC>((message)) on line ((line))<ESC> in <ESC>((file))(?:<ESC>|\\n)",
         "<ESC>((message))<ESC> in <ESC>((file))<ESC>:((line))",
         "(Missing ((message))$)",
