@@ -22,6 +22,7 @@
           ],
 
           "errors": [
+            { "pattern": "((message:NameError: undefined local variable or method .*))\n" }
           ],
 
           "options": [

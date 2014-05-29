@@ -22,6 +22,7 @@
           ],
 
           "errors": [
+            { "pattern": "Parse error on line ((line)): ((message))\n" },
             { "pattern": "\\w+Error: ((file)):((line))\\n(?:\\s[^\\n]*\\n)*\\s*\\n((message))\\n" },
             { "pattern": "\\w+Error: ((message))\\n" }
           ],
