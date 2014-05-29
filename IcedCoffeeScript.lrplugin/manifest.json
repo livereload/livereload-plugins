@@ -22,6 +22,7 @@
           ],
 
           "errors": [
+            { "pattern": "((file)):((line)):((column)): error: ((message))\\n" },
             { "pattern": "Error: In ((file)), Parse error on line ((line)): ((message))\\n" },
             { "pattern": "Error: In ((file)), ((message)) on line ((line))\\n" }
           ],
@@ -70,6 +71,7 @@
         "$(src_path)"
       ],
       "Errors": [
+        "((file)):((line)):\\d+: error: ((message))\\n",
         "Error: In ((file)), Parse error on line ((line)): ((message))\\n",
         "Error: In ((file)), ((message)) on line ((line))\\n"
       ],
