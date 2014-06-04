@@ -58,6 +58,38 @@
           ]
         }
       ]
+    },
+    {
+      "type": "compile-folder",
+      "id": "compass",
+      "name": "Compass",
+
+      "input": "*.sass *.scss",
+      "output": "*.css",
+
+      "packages": [["gem:compass:*"]],
+
+      "info": [
+        {
+          "versions": "*",
+
+          "cmdline": [
+            "$(ruby)",
+            "-rubygems",
+            "$(gem:compass)/bin/compass",
+            "$(additional)",
+            "compile"
+          ],
+
+          "errors": [
+            "\\(Line ((line)) of ((file)): ((message))\\)",
+            "error<ESC>\\s*((file))\\s+\\(Line ((line)): ((message))\\)"
+          ],
+
+          "options": [
+          ]
+        }
+      ]
     }
   ],
 
