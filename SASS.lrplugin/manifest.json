@@ -82,6 +82,7 @@
           ],
 
           "errors": [
+            "<ESC>error<ESC> ((file)) \\(Line ((line)): ((message))\\)\n",
             "\\(Line ((line)) of ((file)): ((message))\\)",
             "error<ESC>\\s*((file))\\s+\\(Line ((line)): ((message))\\)"
           ],
