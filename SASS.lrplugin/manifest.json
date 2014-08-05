@@ -46,7 +46,7 @@
             },
             {
               "id": "output-style",
-              "type": "select",
+              "type": "popup",
               "label": "Output style:",
               "items": [
                 { "id": "nested", "label": "Nested" },
