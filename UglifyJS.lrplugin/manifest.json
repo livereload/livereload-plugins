@@ -1,0 +1,41 @@
+{
+  "LRCompilers": [
+    {
+      "Name": "UglifyJS",
+      "Extensions": ["js"],
+      "DestinationExtension": "min.js",
+      "ExcludedSuffixes": [".min.js"],
+      "Optional": true,
+      "CommandLine": [
+        "$(node)",
+        "$(plugin)/node_modules/uglify-js/bin/uglifyjs",
+        "$(additional)",
+        "$(src_path)",
+        "-o",
+        "$(dst_path)"
+      ],
+      "Errors": [
+        "((message)) on line ((line))"
+      ],
+      "ExpectedOutputDirectories": [
+        "js",
+        "javascript",
+        "javascripts"
+      ],
+      "Options": [
+        {
+          "Id": "mangle",
+          "Type": "checkbox",
+          "Title": "Mangle Variables",
+          "OnArgument": "-m"
+        },
+        {
+          "Id": "source-map",
+          "Type": "checkbox",
+          "Title": "Generate sourcemap",
+          "OnArgument": "--source-map $(dst_file).map"
+        }
+      ]
+    }
+  ]
+}
