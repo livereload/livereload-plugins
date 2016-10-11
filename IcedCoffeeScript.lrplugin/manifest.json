@@ -2,7 +2,7 @@
   "actions": [
     {
       "type": "compile-file",
-      "id": "iced-coffee-script",
+      "id": "icedcoffeescript",
       "name": "IcedCoffeeScript",
 
       "input": "*.iced *.coffee *.litcoffee *.coffee.md",
