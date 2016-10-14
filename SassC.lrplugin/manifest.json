@@ -1,0 +1,152 @@
+{
+  "actions": [
+    {
+      "type": "compile-file",
+      "id": "sass",
+      "name": "Sass",
+      "input": "*.scss",
+      "output": "*.css",
+      "packages": [],
+      "info": [
+        {
+          "versions": "*",
+          "cmdline": [
+            "/usr/local/bin/sassc",
+            "$(additional)",
+            "$(src_path)",
+            "$(dst_path)"
+          ],
+          "errors": [
+            {
+              "pattern": "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n"
+            },
+            {
+              "pattern": "Exception on line ((line)): ((message))\\n"
+            },
+            {
+              "pattern": "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n"
+            },
+            {
+              "pattern": "Errno::ENOENT: ((message)) - ((file))"
+            },
+            {
+              "pattern": "ZeroDivisionError: ((message))"
+            }
+          ],
+          "options": [
+            {
+              "type": "checkbox",
+              "id": "sourcemap",
+              "label": "Generate sourcemap",
+              "args": "--sourcemap"
+            },
+            {
+              "type": "checkbox",
+              "id": "debug-info",
+              "label": "Include comments showing scss line numbers",
+              "args": "--line-numbers"
+            },
+            {
+              "id": "output-style",
+              "type": "select",
+              "label": "Output style:",
+              "items": [
+                {
+                  "id": "nested",
+                  "label": "Nested",
+                  "args": "--style nested"
+                },
+                {
+                  "id": "compressed",
+                  "label": "Compressed",
+                  "args": "--style compressed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "LRCompilers": [
+    {
+      "CommandLine": [
+        "/usr/local/bin/sassc",
+        "$(additional)",
+        "$(src_path)",
+        "$(dst_path)"
+      ],
+      "DestinationExtension": "css",
+      "Errors": [
+        "Syntax error: ((message))\\n\\s+on line ((line)) of ((file))\\n",
+        "Exception on line ((line)): ((message))\\n",
+        "Syntax error: ((message))\\n\\s+Load path:.*\\n\\s+on line ((line)) of ((file))\\n",
+        "Errno::ENOENT: ((message)) - ((file))",
+        "ZeroDivisionError: ((message))"
+      ],
+      "Warnings": [
+        "WARNING on line ((line)) of ((file)):\\n((message))\\n"
+      ],
+      "Extensions": [
+        "scss"
+      ],
+      "Name": "SASS",
+      "ExpectedOutputDirectories": [
+        "css",
+        "styles",
+        "stylesheet",
+        "stylesheets"
+      ],
+      "ImportRegExps": [
+        "@import\\s*\"([^\"]+)\"",
+        "@import\\s*'([^']+)'",
+        "@import\\s+([\\w./-]+)"
+      ],
+      "ImportContinuationRegExps": [
+        ",\\s*\"([^\"]+)\"",
+        ",\\s*'([^']+)'",
+        ",\\s*([\\w./-]+)"
+      ],
+      "DefaultImportedExts": [
+        "scss"
+      ],
+      "ImportToFileMappings": [
+        "$(dir)/$(file)",
+        "$(dir)/_$(file)"
+      ],
+      "NonImportedExts": [
+        "css"
+      ],
+      "Options": [
+        {
+          "Id": "sourcemap",
+          "Type": "checkbox",
+          "Title": "Generate sourcemap",
+          "OnArgument": "--sourcemap"
+        },
+        {
+          "Id": "debug-info",
+          "Type": "checkbox",
+          "Title": "Include comments showing scss line numbers",
+          "OnArgument": "--line-numbers"
+        },
+        {
+          "Id": "output-style",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "nested",
+              "Title": "Nested output style",
+              "Argument": "--style nested"
+            },
+            {
+              "Id": "compressed",
+              "Title": "Compressed output style",
+              "Argument": "--style compressed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
