@@ -112,7 +112,7 @@ A plugin is a subfolder with `.lrplugin` extension and `manifest.json` file insi
 
 ## Important: Keep them cross-platform
 
-We'd like to keep the plugins cross-platform where possible. LiveReload guarantees that it can launch Node.js and Ruby code on any platform. Please ABSTAIN FROM writing scripts in Bash or Perl; occasional INTERCAL may be fine, but please inquiry first.
+We'd like to keep the plugins cross-platform where possible. LiveReload guarantees that it can launch Node.js and Ruby code on any platform. Please ABSTAIN FROM writing scripts in Bash or Perl; occasional INTERCAL may be fine, but please inquire first.
 
 Your plugins will run on Mac and Windows very soon, and maybe even Linux some time later.
 
