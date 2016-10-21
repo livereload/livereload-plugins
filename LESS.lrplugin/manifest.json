@@ -100,6 +100,23 @@
       ],
       "NonImportedExts": [
         "css"
+      ],
+      "Options": [
+        {
+          "Id": "output-style",
+          "Type": "select",
+          "Items": [
+            {
+              "Id": "normal",
+              "Title": "Normal Output"
+            },
+            {
+              "Id": "compressed",
+              "Title": "Compressed Output",
+              "Argument": "-compress"
+            }
+          ]
+        }
       ]
     }
   ]
